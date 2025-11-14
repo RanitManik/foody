@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model menu_items {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  price        Float
+  category     String
+  imageUrl     String?
+  isAvailable  Boolean       @default(true)
+  restaurantId String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  restaurants  restaurants   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  order_items  order_items[]
+
+  @@index([restaurantId])
+  @@index([isAvailable])
+  @@index([category])
+}
+
+model order_items {
+  id         String     @id @default(cuid())
+  orderId    String
+  menuItemId String
+  quantity   Int
+  price      Float
+  notes      String?
+  menu_items menu_items @relation(fields: [menuItemId], references: [id])
+  orders     orders     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([menuItemId])
+}
+
+model orders {
+  id                  String        @id @default(cuid())
+  userId              String
+  totalAmount         Float
+  status              OrderStatus   @default(PENDING)
+  deliveryAddress     String
+  phone               String
+  specialInstructions String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  order_items         order_items[]
+  users               users         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments            payments?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model payment_methods {
+  id          String     @id @default(cuid())
+  userId      String
+  type        String
+  provider    String
+  last4       String?
+  expiryMonth Int?
+  expiryYear  Int?
+  isDefault   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  users       users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments    payments[]
+}
+
+model payments {
+  id              String          @id @default(cuid())
+  orderId         String          @unique
+  paymentMethodId String
+  amount          Float
+  currency        String          @default("USD")
+  status          String          @default("pending")
+  transactionId   String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  orders          orders          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  payment_methods payment_methods @relation(fields: [paymentMethodId], references: [id])
+}
+
+model restaurants {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  address     String
+  city        String
+  country     Country
+  phone       String?
+  email       String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  menu_items  menu_items[]
+
+  @@index([country])
+  @@index([isActive])
+}
+
+model users {
+  id              String            @id @default(cuid())
+  email           String            @unique
+  password        String
+  firstName       String
+  lastName        String
+  role            UserRole
+  country         Country?
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  orders          orders[]
+  payment_methods payment_methods[]
+
+  @@index([role])
+  @@index([country])
+  @@index([isActive])
+}
+
+enum Country {
+  INDIA
+  AMERICA
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER_INDIA
+  MANAGER_AMERICA
+  MEMBER_INDIA
+  MEMBER_AMERICA
+}

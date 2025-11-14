@@ -1,31 +1,45 @@
 {
     "name": "@foody/source",
     "version": "0.0.0",
+    "private": true,
     "license": "MIT",
+    "workspaces": [
+        "web",
+        "web-e2e",
+        "api",
+        "api-e2e"
+    ],
     "scripts": {
         "build": "nx run-many --target=build --all",
-        "build:web": "nx build @foody/web",
         "build:api": "nx build @foody/api",
+        "build:web": "nx build @foody/web",
+        "db:generate": "cd api && npx prisma generate",
+        "db:migrate": "cd api && npx prisma migrate dev",
+        "db:reset": "cd api && npx prisma migrate reset --force",
+        "db:seed": "cd api && npx prisma db seed",
+        "db:setup": "npm run db:reset && npm run db:migrate && npm run db:seed",
+        "db:studio": "cd api && npx prisma studio",
         "dev": "nx run-many --target=dev --parallel",
-        "dev:web": "nx dev @foody/web",
         "dev:api": "nx dev @foody/api",
-        "typecheck": "nx run-many --target=typecheck --all",
-        "typecheck:web": "nx typecheck @foody/web",
-        "typecheck:api": "nx typecheck @foody/api",
-        "lint": "nx run-many --target=lint --all",
-        "lint:web": "nx lint @foody/web",
-        "lint:api": "nx lint @foody/api",
-        "test": "nx run-many --target=test --all",
-        "test:web": "nx test @foody/web",
-        "test:api": "nx test @foody/api",
+        "dev:web": "nx dev @foody/web",
         "e2e": "nx run-many --target=e2e --all",
-        "e2e:web": "nx e2e @foody/web-e2e",
         "e2e:api": "nx e2e @foody/api-e2e",
+        "e2e:web": "nx e2e @foody/web-e2e",
         "format": "nx format:write",
         "format:check": "nx format:check",
-        "nx": "nx"
+        "lint": "nx run-many --target=lint --all",
+        "lint:api": "nx lint @foody/api",
+        "lint:web": "nx lint @foody/web",
+        "nx": "nx",
+        "test": "nx run-many --target=test --all",
+        "test:api": "nx test @foody/api",
+        "test:web": "nx test @foody/web",
+        "typecheck": "nx run-many --target=typecheck --all",
+        "typecheck:api": "nx typecheck @foody/api",
+        "typecheck:api-e2e": "nx typecheck @foody/api-e2e",
+        "typecheck:web": "nx typecheck @foody/web",
+        "typecheck:web-e2e": "nx typecheck @foody/web-e2e"
     },
-    "private": true,
     "dependencies": {
         "axios": "^1.6.0",
         "express": "^4.21.2",
@@ -86,11 +100,5 @@
         "tslib": "^2.3.0",
         "typescript": "~5.9.2",
         "typescript-eslint": "^8.40.0"
-    },
-    "workspaces": [
-        "web",
-        "web-e2e",
-        "api",
-        "api-e2e"
-    ]
+    }
 }

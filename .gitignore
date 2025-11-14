@@ -5,6 +5,10 @@ dist
 tmp
 out-tsc
 
+# environment variables
+.env
+.env.local
+
 # dependencies
 node_modules
 
@@ -48,3 +52,5 @@ Thumbs.db
 out
 
 test-output
+
+tsconfig.tsbuildinfo
