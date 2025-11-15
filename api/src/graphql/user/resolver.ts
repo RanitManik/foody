@@ -1,3 +1,31 @@
+/**
+ * @fileoverview User Management Resolvers
+ * @module graphql/user/resolver
+ * @description Handles user administration operations with admin-only access.
+ * Provides user listing, details viewing, role management, and account control.
+ *
+ * @features
+ * - User listing with pagination
+ * - User details with orders and payment methods
+ * - User role and country updates
+ * - User account activation/deactivation
+ * - User deletion
+ * - Redis caching for user data
+ *
+ * @security
+ * - **ALL operations require Admin role**
+ * - Authentication required
+ * - Comprehensive logging for audit trail
+ * - Cache invalidation on updates
+ *
+ * @permissions
+ * - **Admin**: Full access to all user management operations
+ * - **Others**: No access (all operations forbidden)
+ *
+ * @author Ranit Kumar Manik
+ * @version 1.0.0
+ */
+
 import { z } from "zod";
 import { prisma } from "../../lib/database";
 import { logger } from "../../lib/shared/logger";
@@ -10,6 +38,39 @@ import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../.
 
 export const userResolvers = {
     Query: {
+        /**
+         * Get paginated list of all users (Admin only)
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Query parameters
+         * @param {number} [params.first=10] - Number of users to return
+         * @param {number} [params.skip=0] - Number to skip for pagination
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<User[]>} Array of users with orders and payment methods
+         *
+         * @throws {GraphQLError} FORBIDDEN - If user is not admin
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         *
+         * @description
+         * Retrieves all users in the system with their recent orders and payment methods.
+         * Cached for performance with admin-specific cache key.
+         *
+         * **Admin access only** - Used for user management dashboard and analytics.
+         *
+         * @caching
+         * - Cache key: user:admin
+         * - TTL: CACHE_TTL.USER_DATA
+         * - Invalidated on: user updates/deletes
+         *
+         * @example
+         * query {
+         *   users(first: 20, skip: 0) {
+         *     id email firstName lastName role country isActive
+         *     orders { id status totalAmount }
+         *   }
+         * }
+         */
         users: async (
             _parent: unknown,
             { first, skip }: { first?: number; skip?: number },

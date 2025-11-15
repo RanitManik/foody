@@ -1,33 +1,97 @@
 {
     "info": {
-        "name": "Foody API",
-        "description": "Complete API collection for the Foody application - GraphQL endpoints for authentication, menu management, orders, restaurants, users, and payments",
+        "name": "Foody API - Complete Collection",
+        "description": "Comprehensive GraphQL API collection for the Foody food ordering platform.\n\n## Overview\nThis collection provides complete API endpoints for:\n- User authentication and authorization\n- Restaurant management and discovery\n- Menu item browsing and management\n- Order creation and tracking\n- Payment processing and methods\n- User administration (admin only)\n\n## Authentication\nMost endpoints require JWT authentication. Use the Login mutation to obtain a token, which will be automatically saved to the environment/collection variables.\n\n## Workflow\n1. Register or Login to get authentication token\n2. Browse restaurants and menu items\n3. Create payment method\n4. Create order with items\n5. Process payment\n6. Track order status\n\n## Roles & Permissions\n- **ADMIN**: Full access to all operations\n- **MANAGER_INDIA/MANAGER_AMERICA**: Manage restaurants and orders in their country\n- **MEMBER_INDIA/MEMBER_AMERICA**: Read-only access to their country's restaurants\n\n## Support\nFor issues or questions, contact the Foody development team.\n\n**Version:** 2.0.0\n**Last Updated:** November 2025",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-        "_exporter_id": "foody-api"
+        "_exporter_id": "foody-api-v2"
     },
     "variable": [
         {
             "key": "baseUrl",
             "value": "http://localhost:4000",
-            "type": "string"
+            "type": "string",
+            "description": "Base URL for the API server"
         },
         {
             "key": "graphql",
             "value": "{{baseUrl}}/graphql",
-            "type": "string"
+            "type": "string",
+            "description": "GraphQL endpoint URL"
         },
         {
             "key": "auth_token",
-            "value": "your-jwt-token-here",
-            "type": "string"
+            "value": "",
+            "type": "string",
+            "description": "JWT authentication token (automatically set after login)"
+        },
+        {
+            "key": "user_id",
+            "value": "",
+            "type": "string",
+            "description": "Current user ID (for testing)"
+        },
+        {
+            "key": "restaurant_id",
+            "value": "",
+            "type": "string",
+            "description": "Sample restaurant ID (for testing)"
+        },
+        {
+            "key": "menu_item_id",
+            "value": "",
+            "type": "string",
+            "description": "Sample menu item ID (for testing)"
+        },
+        {
+            "key": "order_id",
+            "value": "",
+            "type": "string",
+            "description": "Sample order ID (for testing)"
+        },
+        {
+            "key": "payment_method_id",
+            "value": "",
+            "type": "string",
+            "description": "Sample payment method ID (for testing)"
         }
     ],
     "item": [
         {
-            "name": "Authentication",
+            "name": "01 - Authentication",
+            "description": "User registration, login, and session management endpoints.\n\n**Public Endpoints:** No authentication required for register and login.\n\n**Workflow:**\n1. Register a new account\n2. Login with credentials (token saved automatically)\n3. Use 'Me' query to verify authentication",
             "item": [
                 {
                     "name": "Register User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Registration successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.register).to.have.property('token');",
+                                    "    pm.expect(response.data.register).to.have.property('user');",
+                                    "    ",
+                                    "    // Save token and user ID for subsequent requests",
+                                    "    const token = response.data.register.token;",
+                                    "    const userId = response.data.register.user.id;",
+                                    "    ",
+                                    "    if (pm.environment.name) {",
+                                    "        pm.environment.set(\"auth_token\", token);",
+                                    "        pm.environment.set(\"user_id\", userId);",
+                                    "    } else {",
+                                    "        pm.collectionVariables.set(\"auth_token\", token);",
+                                    "        pm.collectionVariables.set(\"user_id\", userId);",
+                                    "    }",
+                                    "    ",
+                                    "    console.log(\"✅ User registered with ID:\", userId);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
                     "request": {
                         "method": "POST",
                         "header": [
@@ -40,18 +104,47 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      country\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"email\": \"test@example.com\",\n    \"password\": \"Password123\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"MEMBER_INDIA\",\n    \"country\": \"INDIA\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"email\": \"manager.india@foody.com\",\n    \"password\": \"SecurePassword123!\",\n    \"firstName\": \"Priya\",\n    \"lastName\": \"Sharma\",\n    \"role\": \"MANAGER_INDIA\",\n    \"country\": \"INDIA\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Register a new user account with email, password, and profile information.\n\n**Available Roles:**\n- ADMIN: Full system access\n- MANAGER_INDIA: Manage Indian restaurants\n- MANAGER_AMERICA: Manage American restaurants\n- MEMBER_INDIA: View Indian restaurants (read-only)\n- MEMBER_AMERICA: View American restaurants (read-only)\n\n**Password Requirements:**\n- Minimum 8 characters\n- Must contain uppercase, lowercase, and numbers"
                     }
                 },
                 {
                     "name": "Login User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Login successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.login).to.have.property('token');",
+                                    "    ",
+                                    "    const token = response.data.login.token;",
+                                    "    const userId = response.data.login.user.id;",
+                                    "    ",
+                                    "    if (pm.environment.name) {",
+                                    "        pm.environment.set(\"auth_token\", token);",
+                                    "        pm.environment.set(\"user_id\", userId);",
+                                    "    } else {",
+                                    "        pm.collectionVariables.set(\"auth_token\", token);",
+                                    "        pm.collectionVariables.set(\"user_id\", userId);",
+                                    "    }",
+                                    "    ",
+                                    "    console.log(\"✅ Login successful. Token saved.\");",
+                                    "    console.log(\"User role:\", response.data.login.user.role);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
                     "request": {
                         "method": "POST",
                         "header": [
@@ -64,61 +157,52 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      country\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"email\": \"test@example.com\",\n    \"password\": \"Password123\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"email\": \"manager.india@foody.com\",\n    \"password\": \"SecurePassword123!\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "/**\n * Save JWT from GraphQL login to environment (or collection as fallback)\n */",
-                                    "pm.test(\"Login response parsed and token extracted\", function () {",
-                                    "    pm.expect(pm.response.code, \"Status is 200\").to.eql(200);",
-                                    "",
-                                    "    let response;",
-                                    "    try {",
-                                    "        response = pm.response.json();",
-                                    "    } catch (e) {",
-                                    "        throw new Error(\"Response is not valid JSON: \" + e.message);",
-                                    "    }",
-                                    "",
-                                    "    const token = response?.data?.login?.token;",
-                                    "",
-                                    "    pm.expect(token, \"Token exists at data.login.token\").to.be.a(\"string\").and.not.empty;",
-                                    "",
-                                    "    // Where are we writing?",
-                                    "    const activeEnv = pm.environment.name || \"(no environment selected)\";",
-                                    "    console.log(\"Active environment:\", activeEnv);",
-                                    "",
-                                    "    if (pm.environment.name) {",
-                                    "        pm.environment.set(\"auth_token\", token);",
-                                    "        const savedEnv = pm.environment.get(\"auth_token\");",
-                                    "        pm.expect(savedEnv, \"Token persisted in environment\").to.eql(token);",
-                                    "        console.log(\"✅ Token saved to environment:\", pm.environment.name);",
-                                    "    } else {",
-                                    "        console.warn(\"⚠️ No active environment selected. Writing token to collection variables as fallback.\");",
-                                    "        pm.collectionVariables.set(\"auth_token\", token);",
-                                    "        const savedCol = pm.collectionVariables.get(\"auth_token\");",
-                                    "        pm.expect(savedCol, \"Token persisted in collection variables\").to.eql(token);",
-                                    "        console.log(\"✅ Token saved to collection variables (fallback).\");",
-                                    "    }",
-                                    "",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ]
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Authenticate user and receive JWT token.\n\n**On Success:**\n- Token is automatically saved to environment/collection variables\n- Token is valid for 24 hours\n- Use token in Authorization header for protected endpoints\n\n**Error Cases:**\n- Invalid credentials: Returns generic error to prevent user enumeration\n- Inactive account: User cannot login if account is deactivated"
+                    }
                 },
                 {
                     "name": "Get Current User (Me)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "description": "JWT token from login"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query Me {\n  me {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    createdAt\n    updatedAt\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Retrieve currently authenticated user's profile information.\n\n**Authentication:** Required\n\n**Use Cases:**\n- Verify token validity\n- Get current user role and permissions\n- Display user profile information"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "02 - Restaurants",
+            "description": "Restaurant discovery, details, and management (admin only).\n\n**Permissions:**\n- **View:** All authenticated users (filtered by country for non-admin)\n- **Create/Update/Delete:** Admin only\n\n**Workflow:**\n1. List restaurants (filtered by user's country)\n2. View individual restaurant details with menu\n3. Admin can create/update/delete restaurants",
+            "item": [
+                {
+                    "name": "Get Restaurants",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -134,20 +218,134 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Me {\n  me {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    createdAt\n    updatedAt\n  }\n}"
+                                "query": "query Restaurants($country: Country, $first: Int, $skip: Int) {\n  restaurants(country: $country, first: $first, skip: $skip) {\n    id\n    name\n    description\n    address\n    city\n    country\n    phone\n    email\n    isActive\n    menuCategories\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"country\": null,\n  \"first\": 10,\n  \"skip\": 0\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "List all restaurants with pagination and optional country filtering.\n\n**Country Filtering:**\n- Admin: Can view all restaurants\n- Manager/Member India: Only see INDIA restaurants\n- Manager/Member America: Only see AMERICA restaurants\n\n**Pagination:**\n- first: Number of items (default: 10)\n- skip: Number to skip (default: 0)"
+                    }
+                },
+                {
+                    "name": "Get Restaurant Details",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query Restaurant($id: ID!) {\n  restaurant(id: $id) {\n    id\n    name\n    description\n    address\n    city\n    country\n    phone\n    email\n    isActive\n    menuItems {\n      id\n      name\n      description\n      price\n      isAvailable\n      category\n      imageUrl\n    }\n    menuCategories\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{restaurant_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Get detailed information about a specific restaurant including its full menu.\n\n**Includes:**\n- Restaurant information and contact details\n- All available menu items\n- List of menu categories\n\n**Access Control:**\n- Users can only view restaurants in their country (except admin)"
+                    }
+                },
+                {
+                    "name": "Create Restaurant (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateRestaurant($input: CreateRestaurantInput!) {\n  createRestaurant(input: $input) {\n    id\n    name\n    description\n    address\n    city\n    country\n    phone\n    email\n    isActive\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Spice Paradise\",\n    \"description\": \"Authentic Indian cuisine with traditional recipes and modern presentation\",\n    \"address\": \"456 Curry Lane, Spice District\",\n    \"city\": \"Mumbai\",\n    \"country\": \"INDIA\",\n    \"phone\": \"+91-22-12345678\",\n    \"email\": \"info@spiceparadise.com\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Create a new restaurant in the system.\n\n**Permissions:** Admin only\n\n**Required Fields:**\n- name, address, city, country, phone, email\n\n**Countries:** INDIA, AMERICA"
+                    }
+                },
+                {
+                    "name": "Update Restaurant (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateRestaurant($id: ID!, $input: UpdateRestaurantInput!) {\n  updateRestaurant(id: $id, input: $input) {\n    id\n    name\n    description\n    isActive\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{restaurant_id}}\",\n  \"input\": {\n    \"description\": \"Updated description with new information\",\n    \"isActive\": true\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Update existing restaurant information.\n\n**Permissions:** Admin only\n\n**Updatable Fields:**\n- All restaurant fields are optional in update\n- Partial updates supported"
+                    }
+                },
+                {
+                    "name": "Delete Restaurant (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation DeleteRestaurant($id: ID!) {\n  deleteRestaurant(id: $id)\n}",
+                                "variables": "{\n  \"id\": \"{{restaurant_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Permanently delete a restaurant.\n\n**Permissions:** Admin only\n\n**Warning:** This action cannot be undone and will cascade delete related menu items."
                     }
                 }
             ]
         },
         {
-            "name": "Menu Management",
+            "name": "03 - Menu Items",
+            "description": "Menu item browsing, management, and category discovery.\n\n**Permissions:**\n- **View:** All authenticated users\n- **Create/Update/Delete:** Admin and Managers (country-restricted for managers)\n\n**Workflow:**\n1. Browse menu items by restaurant or category\n2. View individual menu item details\n3. Managers/Admin can create, update, or delete menu items",
             "item": [
                 {
                     "name": "Get Menu Items",
@@ -166,19 +364,19 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query MenuItems($restaurantId: ID, $first: Int, $skip: Int) {\n  menuItems(restaurantId: $restaurantId, first: $first, skip: $skip) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    restaurant {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"restaurantId\": null,\n  \"first\": 10,\n  \"skip\": 0\n}"
+                                "query": "query MenuItems($restaurantId: ID, $first: Int, $skip: Int) {\n  menuItems(restaurantId: $restaurantId, first: $first, skip: $skip) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    restaurant {\n      id\n      name\n      city\n      country\n    }\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"restaurantId\": null,\n  \"first\": 20,\n  \"skip\": 0\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "List available menu items with optional restaurant filtering.\n\n**Filtering:**\n- restaurantId: Filter by specific restaurant (optional)\n- Only shows available items (isAvailable: true)\n\n**Pagination:**\n- first: Items per page (default: 10)\n- skip: Items to skip (default: 0)"
                     }
                 },
                 {
-                    "name": "Get Menu Item",
+                    "name": "Get Menu Item Details",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -194,15 +392,15 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query MenuItem($id: ID!) {\n  menuItem(id: $id) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    restaurant {\n      id\n      name\n      address\n      city\n      country\n    }\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"menu-item-id-here\"\n}"
+                                "query": "query MenuItem($id: ID!) {\n  menuItem(id: $id) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    restaurant {\n      id\n      name\n      address\n      city\n      country\n      phone\n    }\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{menu_item_id}}\"\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Get detailed information about a specific menu item including restaurant details."
                     }
                 },
                 {
@@ -228,13 +426,13 @@
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Get list of unique menu categories.\n\n**Filtering:**\n- restaurantId: Get categories for specific restaurant (optional)\n- If null, returns all categories across all restaurants\n\n**Use Cases:**\n- Build category filter UI\n- Discover food types available"
                     }
                 },
                 {
-                    "name": "Create Menu Item",
+                    "name": "Create Menu Item (Manager/Admin)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -251,18 +449,18 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation CreateMenuItem($input: CreateMenuItemInput!) {\n  createMenuItem(input: $input) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    restaurant {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"name\": \"Chicken Biryani\",\n    \"description\": \"Aromatic basmati rice with tender chicken and spices\",\n    \"price\": 12.99,\n    \"imageUrl\": \"https://example.com/chicken-biryani.jpg\",\n    \"category\": \"Main Course\",\n    \"restaurantId\": \"restaurant-id-here\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Butter Chicken\",\n    \"description\": \"Tender chicken pieces in rich creamy tomato sauce with aromatic spices\",\n    \"price\": 14.99,\n    \"imageUrl\": \"https://example.com/images/butter-chicken.jpg\",\n    \"category\": \"Main Course\",\n    \"restaurantId\": \"{{restaurant_id}}\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Create a new menu item for a restaurant.\n\n**Permissions:**\n- Admin: Can create for any restaurant\n- Manager India: Only for INDIA restaurants\n- Manager America: Only for AMERICA restaurants\n\n**Required Fields:**\n- name, description, price, category, restaurantId"
                     }
                 },
                 {
-                    "name": "Update Menu Item",
+                    "name": "Update Menu Item (Manager/Admin)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -278,19 +476,19 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "mutation UpdateMenuItem($id: ID!, $input: UpdateMenuItemInput!) {\n  updateMenuItem(id: $id, input: $input) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"menu-item-id-here\",\n  \"input\": {\n    \"name\": \"Updated Chicken Biryani\",\n    \"price\": 13.99,\n    \"isAvailable\": true\n  }\n}"
+                                "query": "mutation UpdateMenuItem($id: ID!, $input: UpdateMenuItemInput!) {\n  updateMenuItem(id: $id, input: $input) {\n    id\n    name\n    description\n    price\n    isAvailable\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{menu_item_id}}\",\n  \"input\": {\n    \"price\": 15.99,\n    \"isAvailable\": true\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Update existing menu item.\n\n**Permissions:** Same as create (country-restricted for managers)\n\n**Updatable Fields:**\n- All fields optional (partial updates supported)"
                     }
                 },
                 {
-                    "name": "Delete Menu Item",
+                    "name": "Delete Menu Item (Manager/Admin)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -307,427 +505,21 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation DeleteMenuItem($id: ID!) {\n  deleteMenuItem(id: $id)\n}",
-                                "variables": "{\n  \"id\": \"menu-item-id-here\"\n}"
+                                "variables": "{\n  \"id\": \"{{menu_item_id}}\"\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Permanently delete a menu item.\n\n**Permissions:** Same as create (country-restricted for managers)\n\n**Warning:** This action cannot be undone."
                     }
                 }
             ]
         },
         {
-            "name": "Order Management",
-            "item": [
-                {
-                    "name": "Get Orders",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "query Orders($first: Int, $skip: Int) {\n  orders(first: $first, skip: $skip) {\n    id\n    status\n    totalAmount\n    deliveryAddress\n    phone\n    specialInstructions\n    user {\n      id\n      email\n      firstName\n      lastName\n    }\n    items {\n      id\n      quantity\n      price\n      notes\n      menuItem {\n        id\n        name\n        price\n      }\n    }\n    payment {\n      id\n      amount\n      status\n      transactionId\n    }\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"first\": 10,\n  \"skip\": 0\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Get Order",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "query Order($id: ID!) {\n  order(id: $id) {\n    id\n    status\n    totalAmount\n    deliveryAddress\n    phone\n    specialInstructions\n    user {\n      id\n      email\n      firstName\n      lastName\n    }\n    items {\n      id\n      quantity\n      price\n      notes\n      menuItem {\n        id\n        name\n        price\n        category\n      }\n    }\n    payment {\n      id\n      amount\n      status\n      method {\n        id\n        type\n        provider\n        last4\n      }\n      transactionId\n    }\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"order-id-here\"\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Create Order",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n    status\n    totalAmount\n    deliveryAddress\n    phone\n    specialInstructions\n    user {\n      id\n      email\n    }\n    items {\n      id\n      quantity\n      price\n      notes\n      menuItem {\n        id\n        name\n        price\n      }\n    }\n    payment {\n      id\n      amount\n      status\n    }\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"menu-item-id-1\",\n        \"quantity\": 2,\n        \"notes\": \"Extra spicy\"\n      },\n      {\n        \"menuItemId\": \"menu-item-id-2\",\n        \"quantity\": 1\n      }\n    ],\n    \"deliveryAddress\": \"123 Main St, City, State 12345\",\n    \"phone\": \"+1234567890\",\n    \"specialInstructions\": \"Ring doorbell twice\",\n    \"paymentMethodId\": \"payment-method-id-here\"\n  }\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Update Order Status",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation UpdateOrderStatus($id: ID!, $status: OrderStatus!) {\n  updateOrderStatus(id: $id, status: $status) {\n    id\n    status\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"order-id-here\",\n  \"status\": \"CONFIRMED\"\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Cancel Order",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation CancelOrder($id: ID!) {\n  cancelOrder(id: $id) {\n    id\n    status\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"order-id-here\"\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                }
-            ]
-        },
-        {
-            "name": "Restaurant Management",
-            "item": [
-                {
-                    "name": "Get Restaurants",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "query Restaurants($country: Country, $first: Int, $skip: Int) {\n  restaurants(country: $country, first: $first, skip: $skip) {\n    id\n    name\n    description\n    address\n    city\n    country\n    phone\n    email\n    isActive\n    menuCategories\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"country\": null,\n  \"first\": 10,\n  \"skip\": 0\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Get Restaurant",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "query Restaurant($id: ID!) {\n  restaurant(id: $id) {\n    id\n    name\n    description\n    address\n    city\n    country\n    phone\n    email\n    isActive\n    menuItems {\n      id\n      name\n      price\n      isAvailable\n      category\n    }\n    menuCategories\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"restaurant-id-here\"\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Create Restaurant",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation CreateRestaurant($input: CreateRestaurantInput!) {\n  createRestaurant(input: $input) {\n    id\n    name\n    description\n    address\n    city\n    country\n    phone\n    email\n    isActive\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"name\": \"Spice Garden\",\n    \"description\": \"Authentic Indian cuisine with modern twist\",\n    \"address\": \"456 Curry Street\",\n    \"city\": \"Mumbai\",\n    \"country\": \"INDIA\",\n    \"phone\": \"+91-9876543210\",\n    \"email\": \"info@spicegarden.com\"\n  }\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Update Restaurant",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation UpdateRestaurant($id: ID!, $input: UpdateRestaurantInput!) {\n  updateRestaurant(id: $id, input: $input) {\n    id\n    name\n    description\n    address\n    city\n    phone\n    email\n    isActive\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"restaurant-id-here\",\n  \"input\": {\n    \"name\": \"Updated Spice Garden\",\n    \"phone\": \"+91-9876543211\",\n    \"isActive\": true\n  }\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Delete Restaurant",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation DeleteRestaurant($id: ID!) {\n  deleteRestaurant(id: $id)\n}",
-                                "variables": "{\n  \"id\": \"restaurant-id-here\"\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                }
-            ]
-        },
-        {
-            "name": "User Management",
-            "item": [
-                {
-                    "name": "Get Users (Admin Only)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "query Users($first: Int, $skip: Int) {\n  users(first: $first, skip: $skip) {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"first\": 10,\n  \"skip\": 0\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Get User (Admin Only)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "query User($id: ID!) {\n  user(id: $id) {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    orders {\n      id\n      status\n      totalAmount\n      createdAt\n    }\n    paymentMethods {\n      id\n      type\n      provider\n      last4\n      isDefault\n    }\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"user-id-here\"\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Update User (Admin Only)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n  updateUser(id: $id, input: $input) {\n    id\n    email\n    firstName\n    lastName\n    isActive\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"user-id-here\",\n  \"input\": {\n    \"firstName\": \"Updated First Name\",\n    \"lastName\": \"Updated Last Name\",\n    \"isActive\": true\n  }\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Delete User (Admin Only)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation DeleteUser($id: ID!) {\n  deleteUser(id: $id)\n}",
-                                "variables": "{\n  \"id\": \"user-id-here\"\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                }
-            ]
-        },
-        {
-            "name": "Payment Management",
+            "name": "04 - Payment Methods",
+            "description": "Payment method management for users.\n\n**Permissions:**\n- Users can only manage their own payment methods\n- Admin can view all payment methods via payments query\n\n**Workflow:**\n1. Create payment method (card/wallet)\n2. Set default payment method\n3. Use payment method for orders",
             "item": [
                 {
                     "name": "Get Payment Methods",
@@ -746,18 +538,18 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query PaymentMethods {\n  paymentMethods {\n    id\n    type\n    provider\n    last4\n    isDefault\n    user {\n      id\n      email\n    }\n    createdAt\n    updatedAt\n  }\n}"
+                                "query": "query PaymentMethods {\n  paymentMethods {\n    id\n    type\n    provider\n    last4\n    isDefault\n    createdAt\n    updatedAt\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Get all payment methods for the current user.\n\n**Returns:**\n- User's saved payment methods\n- Ordered by creation date (newest first)"
                     }
                 },
                 {
-                    "name": "Get Payment Method",
+                    "name": "Get Payment Method Details",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -773,17 +565,253 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query PaymentMethod($id: ID!) {\n  paymentMethod(id: $id) {\n    id\n    type\n    provider\n    last4\n    isDefault\n    user {\n      id\n      email\n      firstName\n      lastName\n    }\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"payment-method-id-here\"\n}"
+                                "query": "query PaymentMethod($id: ID!) {\n  paymentMethod(id: $id) {\n    id\n    type\n    provider\n    last4\n    isDefault\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{payment_method_id}}\"\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Get details of a specific payment method.\n\n**Access:** User can only view their own payment methods"
                     }
                 },
+                {
+                    "name": "Create Payment Method",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {\n  createPaymentMethod(input: $input) {\n    id\n    type\n    provider\n    last4\n    isDefault\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"type\": \"CREDIT_CARD\",\n    \"provider\": \"STRIPE\",\n    \"token\": \"tok_visa_test\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Add a new payment method for the current user.\n\n**Payment Types:**\n- CREDIT_CARD\n- DEBIT_CARD\n- DIGITAL_WALLET\n\n**Providers:**\n- STRIPE\n- PAYPAL\n- RAZORPAY\n\n**Note:** In production, token would come from payment provider SDK"
+                    }
+                },
+                {
+                    "name": "Update Payment Method",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdatePaymentMethod($id: ID!, $input: UpdatePaymentMethodInput!) {\n  updatePaymentMethod(id: $id, input: $input) {\n    id\n    type\n    provider\n    last4\n    isDefault\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{payment_method_id}}\",\n  \"input\": {\n    \"isDefault\": true\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Update payment method settings (currently only supports setting default).\n\n**Note:** Setting a method as default will unset all other defaults"
+                    }
+                },
+                {
+                    "name": "Delete Payment Method",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation DeletePaymentMethod($id: ID!) {\n  deletePaymentMethod(id: $id)\n}",
+                                "variables": "{\n  \"id\": \"{{payment_method_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Remove a payment method.\n\n**Access:** User can only delete their own payment methods"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "05 - Orders",
+            "description": "Order creation, tracking, and management.\n\n**Permissions:**\n- **Create:** Admin and Managers only (Members CANNOT create orders)\n- **View:** Users see their own orders; Managers see country orders; Admin sees all\n- **Update Status/Cancel:** Admin and Managers (country-restricted)\n\n**Workflow:**\n1. Create order with menu items and payment method\n2. Track order status\n3. Manager/Admin can update order status\n4. Manager/Admin can cancel orders if needed",
+            "item": [
+                {
+                    "name": "Get Orders",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query Orders($first: Int, $skip: Int) {\n  orders(first: $first, skip: $skip) {\n    id\n    status\n    totalAmount\n    deliveryAddress\n    phone\n    specialInstructions\n    user {\n      id\n      email\n      firstName\n      lastName\n    }\n    items {\n      id\n      quantity\n      price\n      notes\n      menuItem {\n        id\n        name\n        category\n      }\n    }\n    payment {\n      id\n      amount\n      status\n      transactionId\n    }\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"first\": 10,\n  \"skip\": 0\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Get paginated list of orders.\n\n**Access Control:**\n- Regular users: Only their own orders\n- Manager India: Orders from MEMBER_INDIA users\n- Manager America: Orders from MEMBER_AMERICA users\n- Admin: All orders\n\n**Order Status:**\n- PENDING, CONFIRMED, PREPARING, OUT_FOR_DELIVERY, DELIVERED, CANCELLED"
+                    }
+                },
+                {
+                    "name": "Get Order Details",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query Order($id: ID!) {\n  order(id: $id) {\n    id\n    status\n    totalAmount\n    deliveryAddress\n    phone\n    specialInstructions\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n    }\n    items {\n      id\n      quantity\n      price\n      notes\n      menuItem {\n        id\n        name\n        description\n        price\n        category\n        imageUrl\n      }\n    }\n    payment {\n      id\n      amount\n      status\n      method {\n        id\n        type\n        provider\n        last4\n      }\n      transactionId\n    }\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{order_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Get detailed information about a specific order including all items and payment details.\n\n**Access Control:** Same as orders list query"
+                    }
+                },
+                {
+                    "name": "Create Order (Manager/Admin Only)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n    status\n    totalAmount\n    deliveryAddress\n    phone\n    specialInstructions\n    user {\n      id\n      email\n    }\n    items {\n      id\n      quantity\n      price\n      notes\n      menuItem {\n        id\n        name\n        price\n      }\n    }\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{menu_item_id}}\",\n        \"quantity\": 2,\n        \"notes\": \"Extra spicy, please\"\n      }\n    ],\n    \"deliveryAddress\": \"123 Main Street, Apartment 4B, Mumbai, Maharashtra 400001\",\n    \"phone\": \"+91-98765-43210\",\n    \"specialInstructions\": \"Please ring the doorbell twice and leave at the door\",\n    \"paymentMethodId\": \"{{payment_method_id}}\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Create a new order with menu items.\n\n**IMPORTANT:** Only Managers and Admin can create orders. Members CANNOT place orders.\n\n**Country Restrictions:**\n- Manager India: Can only order from INDIA restaurants\n- Manager America: Can only order from AMERICA restaurants\n- Admin: No restrictions\n\n**Process:**\n1. Validates all menu items are available\n2. Calculates total amount\n3. Verifies payment method\n4. Creates order atomically in transaction\n5. Returns order with calculated totals"
+                    }
+                },
+                {
+                    "name": "Update Order Status (Manager/Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateOrderStatus($id: ID!, $status: OrderStatus!) {\n  updateOrderStatus(id: $id, status: $status) {\n    id\n    status\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{order_id}}\",\n  \"status\": \"CONFIRMED\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Update the status of an order.\n\n**Permissions:** Manager (country-restricted) and Admin\n\n**Status Values:**\n- PENDING\n- CONFIRMED\n- PREPARING\n- OUT_FOR_DELIVERY\n- DELIVERED\n- CANCELLED\n\n**Typical Flow:**\nPENDING → CONFIRMED → PREPARING → OUT_FOR_DELIVERY → DELIVERED"
+                    }
+                },
+                {
+                    "name": "Cancel Order (Manager/Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CancelOrder($id: ID!) {\n  cancelOrder(id: $id) {\n    id\n    status\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{order_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Cancel an existing order.\n\n**Permissions:** Manager (country-restricted) and Admin\n\n**Effect:** Sets order status to CANCELLED\n\n**Note:** Consider refund processing in production systems"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "06 - Payments",
+            "description": "Payment processing and transaction history.\n\n**Permissions:**\n- **Process Payment:** Order owner only\n- **View Single Payment:** Payment owner or Admin\n- **View All Payments:** Admin only\n\n**Workflow:**\n1. Create order first\n2. Process payment for order\n3. Track payment status",
+            "item": [
                 {
                     "name": "Get Payments (Admin Only)",
                     "request": {
@@ -806,13 +834,13 @@
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Get all payments in the system.\n\n**Permissions:** Admin only\n\n**Use Cases:**\n- Financial reporting\n- Transaction auditing\n- Payment reconciliation"
                     }
                 },
                 {
-                    "name": "Get Payment",
+                    "name": "Get Payment Details",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -828,99 +856,15 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Payment($id: ID!) {\n  payment(id: $id) {\n    id\n    amount\n    status\n    method {\n      id\n      type\n      provider\n      last4\n    }\n    order {\n      id\n      totalAmount\n      status\n      deliveryAddress\n    }\n    transactionId\n    createdAt\n    updatedAt\n  }\n}",
+                                "query": "query Payment($id: ID!) {\n  payment(id: $id) {\n    id\n    amount\n    status\n    method {\n      id\n      type\n      provider\n      last4\n    }\n    order {\n      id\n      totalAmount\n      status\n      deliveryAddress\n      user {\n        id\n        email\n      }\n    }\n    transactionId\n    createdAt\n    updatedAt\n  }\n}",
                                 "variables": "{\n  \"id\": \"payment-id-here\"\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Create Payment Method",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {\n  createPaymentMethod(input: $input) {\n    id\n    type\n    provider\n    last4\n    isDefault\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"type\": \"CREDIT_CARD\",\n    \"provider\": \"STRIPE\",\n    \"token\": \"tok_visa\"\n  }\n}"
-                            }
+                            "host": ["{{graphql}}"]
                         },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Update Payment Method",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation UpdatePaymentMethod($id: ID!, $input: UpdatePaymentMethodInput!) {\n  updatePaymentMethod(id: $id, input: $input) {\n    id\n    type\n    provider\n    last4\n    isDefault\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"payment-method-id-here\",\n  \"input\": {\n    \"isDefault\": true\n  }\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
-                    }
-                },
-                {
-                    "name": "Delete Payment Method",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "graphql",
-                            "graphql": {
-                                "query": "mutation DeletePaymentMethod($id: ID!) {\n  deletePaymentMethod(id: $id)\n}",
-                                "variables": "{\n  \"id\": \"payment-method-id-here\"\n}"
-                            }
-                        },
-                        "url": {
-                            "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                        "description": "Get details of a specific payment.\n\n**Access:**\n- Users can view their own payments\n- Admin can view all payments"
                     }
                 },
                 {
@@ -941,14 +885,132 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation ProcessPayment($input: ProcessPaymentInput!) {\n  processPayment(input: $input) {\n    id\n    amount\n    status\n    method {\n      id\n      type\n      provider\n      last4\n    }\n    order {\n      id\n      totalAmount\n      status\n    }\n    transactionId\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"orderId\": \"order-id-here\",\n    \"paymentMethodId\": \"payment-method-id-here\",\n    \"amount\": 25.99\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"orderId\": \"{{order_id}}\",\n    \"paymentMethodId\": \"{{payment_method_id}}\",\n    \"amount\": 29.99\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["graphql"]
-                        }
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Process payment for an order.\n\n**Requirements:**\n- Order must exist and belong to user\n- Payment method must exist and belong to user\n- Order must not already have a payment\n\n**Process:**\n1. Validates order and payment method ownership\n2. Checks for existing payment on order\n3. Processes payment (simulated in current version)\n4. Creates payment record with transaction ID\n5. Returns payment details\n\n**Production Notes:**\n- Integrate with real payment gateway (Stripe/PayPal/Razorpay)\n- Implement webhook handling for async updates\n- Add idempotency keys for retry safety"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "07 - User Management (Admin)",
+            "description": "User administration endpoints for system administrators.\n\n**Permissions:** Admin only for all operations\n\n**Features:**\n- List all users with pagination\n- View individual user details with orders and payment methods\n- Update user information and status\n- Delete user accounts",
+            "item": [
+                {
+                    "name": "Get All Users",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query Users($first: Int, $skip: Int) {\n  users(first: $first, skip: $skip) {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"first\": 20,\n  \"skip\": 0\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "List all users in the system with pagination.\n\n**Permissions:** Admin only\n\n**Use Cases:**\n- User management dashboard\n- User analytics\n- Account status monitoring"
+                    }
+                },
+                {
+                    "name": "Get User Details",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query User($id: ID!) {\n  user(id: $id) {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    orders {\n      id\n      status\n      totalAmount\n      createdAt\n    }\n    paymentMethods {\n      id\n      type\n      provider\n      last4\n      isDefault\n    }\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{user_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Get detailed information about a specific user including their order history and payment methods.\n\n**Permissions:** Admin only\n\n**Includes:**\n- User profile information\n- Recent orders (last 10)\n- Saved payment methods"
+                    }
+                },
+                {
+                    "name": "Update User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateUser($id: ID!, $role: UserRole, $country: Country, $isActive: Boolean) {\n  updateUser(id: $id, role: $role, country: $country, isActive: $isActive) {\n    id\n    email\n    role\n    country\n    isActive\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{user_id}}\",\n  \"role\": \"MANAGER_INDIA\",\n  \"isActive\": true\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Update user information.\n\n**Permissions:** Admin only\n\n**Updatable Fields:**\n- role: User's system role\n- country: User's country\n- isActive: Account active status\n\n**Use Cases:**\n- Promote user to manager\n- Deactivate user account\n- Change user country assignment"
+                    }
+                },
+                {
+                    "name": "Delete User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation DeleteUser($id: ID!) {\n  deleteUser(id: $id)\n}",
+                                "variables": "{\n  \"id\": \"{{user_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "Permanently delete a user account.\n\n**Permissions:** Admin only\n\n**Warning:**\n- This action cannot be undone\n- Will cascade delete related data\n- Consider deactivating instead of deleting for data retention"
                     }
                 }
             ]

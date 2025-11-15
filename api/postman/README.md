@@ -36,7 +36,7 @@ Most requests require authentication. The collection includes **automatic token 
 2. **Token is automatically extracted** from the response and saved to the `auth_token` environment variable
 3. **All subsequent requests** will automatically use this token in the Authorization header
 
-> ![WARNING]
+> [!WARNING]
 > **Registration does NOT have automatic token extraction.** After registering, you must manually copy the token from the response and set it as the `auth_token` environment variable, or run the Login request to get automatic token extraction.
 
 ### Manual Token Management (if needed)

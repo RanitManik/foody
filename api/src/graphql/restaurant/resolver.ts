@@ -1,3 +1,31 @@
+/**
+ * @fileoverview Restaurant Management Resolvers
+ * @module graphql/restaurant/resolver
+ * @description Handles restaurant CRUD operations with country-based filtering and admin-only management.
+ * Implements automatic country filtering for non-admin users and Redis caching for performance.
+ *
+ * @features
+ * - Restaurant listing with country filtering
+ * - Restaurant details with menu items
+ * - Menu categories per restaurant
+ * - Admin-only restaurant management (create/update/delete)
+ * - Automatic country-based access control
+ * - Redis caching with role-specific keys
+ *
+ * @security
+ * - Authentication required for all operations
+ * - Country-based read access filtering for non-admins
+ * - Admin-only write operations
+ * - India/America region isolation
+ *
+ * @permissions
+ * - **View**: All users (auto-filtered by country for non-admin)
+ * - **Create/Update/Delete**: Admin only
+ *
+ * @author Ranit Kumar Manik
+ * @version 1.0.0
+ */
+
 import { prisma } from "../../lib/database";
 import { logger } from "../../lib/shared/logger";
 import { GraphQLErrors } from "../../lib/shared/errors";
@@ -13,6 +41,41 @@ import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../.
 
 export const restaurantResolvers = {
     Query: {
+        /**
+         * Retrieve paginated list of restaurants with automatic country filtering
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Query parameters
+         * @param {string} [params.country] - Optional country filter
+         * @param {number} [params.first=10] - Number of restaurants to return
+         * @param {number} [params.skip=0] - Number to skip for pagination
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<Restaurant[]>} Array of restaurants with available menu items
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         *
+         * @description
+         * Fetches restaurants with automatic country-based filtering:
+         * - **India users**: Only INDIA restaurants
+         * - **America users**: Only AMERICA restaurants
+         * - **Admin**: All restaurants (unless country param specified)
+         *
+         * Results include available menu items and are cached per country.
+         *
+         * @caching
+         * - Cache key: restaurants:{country}
+         * - TTL: CACHE_TTL.RESTAURANTS
+         * - Invalidated on: restaurant create/update/delete
+         *
+         * @example
+         * query {
+         *   restaurants(country: INDIA, first: 10) {
+         *     id name description city country
+         *     menuCategories
+         *   }
+         * }
+         */
         restaurants: async (
             _parent: unknown,
             { country, first, skip }: { country?: string; first?: number; skip?: number },

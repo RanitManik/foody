@@ -1,3 +1,19 @@
+/**
+ * @fileoverview Authentication Resolvers
+ * @module graphql/auth/resolver
+ * @description Handles user authentication operations including registration, login, and user session management.
+ * Implements secure password hashing, JWT token generation, and comprehensive validation.
+ *
+ * @security
+ * - Passwords are hashed using bcryptjs with salt rounds of 12
+ * - JWT tokens are generated for authenticated sessions
+ * - Email validation and sanitization applied to all inputs
+ * - Account status checks prevent inactive user access
+ *
+ * @author Ranit Kumar Manik
+ * @version 1.0.0
+ */
+
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/database";
 import { generateToken } from "../../lib/auth";
@@ -13,6 +29,42 @@ import { GraphQLContext, RegisterInput, LoginInput } from "../../types/graphql";
 
 export const authResolvers = {
     Mutation: {
+        /**
+         * Register a new user account
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {RegisterInput} params.input - User registration data
+         * @returns {Promise<{token: string, user: User}>} JWT token and user object
+         *
+         * @throws {GraphQLError} BAD_INPUT - If user already exists or validation fails
+         * @throws {GraphQLError} INTERNAL_SERVER_ERROR - If registration process fails
+         *
+         * @description
+         * Creates a new user account with the following workflow:
+         * 1. Validates and sanitizes all input fields
+         * 2. Checks for existing user with same email
+         * 3. Hashes password with bcrypt (12 salt rounds)
+         * 4. Creates user record in database
+         * 5. Generates JWT authentication token
+         * 6. Logs successful registration with user metadata
+         *
+         * @example
+         * mutation {
+         *   register(input: {
+         *     email: "user@example.com",
+         *     password: "SecurePass123",
+         *     firstName: "John",
+         *     lastName: "Doe",
+         *     role: "MEMBER_INDIA",
+         *     country: "INDIA"
+         *   }) {
+         *     token
+         *     user { id email role }
+         *   }
+         * }
+         */
         register: async (_parent: unknown, { input }: { input: RegisterInput }) => {
             try {
                 // Validate and sanitize input
@@ -68,6 +120,45 @@ export const authResolvers = {
             }
         },
 
+        /**
+         * Authenticate a user and generate session token
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {LoginInput} params.input - User login credentials
+         * @returns {Promise<{token: string, user: User}>} JWT token and user object
+         *
+         * @throws {GraphQLError} BAD_INPUT - If credentials are invalid
+         * @throws {GraphQLError} FORBIDDEN - If user account is inactive
+         * @throws {GraphQLError} INTERNAL_SERVER_ERROR - If login process fails
+         *
+         * @description
+         * Authenticates user credentials and creates session with the following steps:
+         * 1. Validates and sanitizes email and password inputs
+         * 2. Retrieves user record by email
+         * 3. Verifies user account is active
+         * 4. Compares password hash using bcrypt
+         * 5. Generates new JWT token for session
+         * 6. Logs successful authentication with user metadata
+         *
+         * @security
+         * - Uses constant-time comparison for password verification
+         * - Returns generic error message to prevent user enumeration
+         * - Checks account active status before granting access
+         * - All failed attempts are logged for security monitoring
+         *
+         * @example
+         * mutation {
+         *   login(input: {
+         *     email: "user@example.com",
+         *     password: "SecurePass123"
+         *   }) {
+         *     token
+         *     user { id email role }
+         *   }
+         * }
+         */
         login: async (_parent: unknown, { input }: { input: LoginInput }) => {
             try {
                 // Validate and sanitize input
@@ -126,6 +217,36 @@ export const authResolvers = {
     },
 
     Query: {
+        /**
+         * Get current authenticated user information
+         *
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {unknown} _args - Query arguments (unused)
+         * @param {GraphQLContext} context - GraphQL execution context with authenticated user
+         * @returns {User} Current authenticated user object
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If no user is authenticated in context
+         *
+         * @description
+         * Returns the currently authenticated user's profile information from the context.
+         * Requires valid JWT token in Authorization header.
+         *
+         * @security
+         * - User must be authenticated (valid JWT token required)
+         * - Returns user object from verified token context
+         *
+         * @example
+         * query {
+         *   me {
+         *     id
+         *     email
+         *     firstName
+         *     lastName
+         *     role
+         *     country
+         *   }
+         * }
+         */
         me: (_parent: unknown, _args: unknown, context: GraphQLContext) => {
             if (!context.user) {
                 throw GraphQLErrors.unauthenticated();

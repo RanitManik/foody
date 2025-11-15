@@ -1,3 +1,40 @@
+/**
+ * @fileoverview Order Management Resolvers
+ * @module graphql/order/resolver
+ * @description Handles complete order lifecycle including creation, tracking, status updates,
+ * and cancellation. Implements strict role-based access control with critical business rule:
+ * **MEMBERS CANNOT CREATE ORDERS** - only Managers and Admin can place orders.
+ *
+ * @features
+ * - Order creation with multiple menu items
+ * - Order status tracking and updates
+ * - Order cancellation
+ * - Role-based order visibility
+ * - Country-specific order management for managers
+ * - Transactional order creation for data consistency
+ * - N+1 query prevention with batch loading
+ * - Redis caching for performance
+ *
+ * @security
+ * - Authentication required for all operations
+ * - Members CANNOT create orders (critical business rule)
+ * - Managers can only create/manage orders in their country
+ * - Users can only view their own orders (except managers/admin)
+ * - Order status changes restricted to managers/admin
+ * - Payment method validation ensures ownership
+ *
+ * @businessRules
+ * - **CRITICAL**: Members (MEMBER_INDIA, MEMBER_AMERICA) cannot place orders
+ * - Managers can only order from restaurants in their country
+ * - Orders require valid payment method owned by user
+ * - Total amount calculated server-side (not trusted from client)
+ * - Menu items must be available at order creation time
+ * - Race condition prevention via database transactions
+ *
+ * @author Ranit Kumar Manik
+ * @version 1.0.0
+ */
+
 import { prisma } from "../../lib/database";
 import { logger } from "../../lib/shared/logger";
 import { GraphQLErrors } from "../../lib/shared/errors";
@@ -21,6 +58,43 @@ import { withCache, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cac
 
 export const orderResolvers = {
     Query: {
+        /**
+         * Retrieve paginated list of orders with role-based filtering
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Query parameters
+         * @param {number} [params.first=10] - Number of orders to return
+         * @param {number} [params.skip=0] - Number of orders to skip
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<Order[]>} Array of orders with items, user, and payment details
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         *
+         * @description
+         * Fetches orders with intelligent filtering based on user role:
+         * - **Regular Users**: Only their own orders
+         * - **Manager India**: Orders from MEMBER_INDIA users + their own
+         * - **Manager America**: Orders from MEMBER_AMERICA users + their own
+         * - **Admin**: All orders in the system
+         *
+         * Results include full order items, user info, and payment details.
+         * Orders are cached per user for performance.
+         *
+         * @caching
+         * - Cache key: orders:{userId}:{first}:{skip}
+         * - TTL: CACHE_TTL.ORDERS
+         * - Invalidated on: order create/update/cancel operations
+         *
+         * @example
+         * query {
+         *   orders(first: 10, skip: 0) {
+         *     id status totalAmount
+         *     user { email firstName }
+         *     items { quantity menuItem { name } }
+         *   }
+         * }
+         */
         orders: async (
             _parent: unknown,
             { first, skip }: { first?: number; skip?: number },
@@ -125,6 +199,47 @@ export const orderResolvers = {
             );
         },
 
+        /**
+         * Retrieve detailed information for a single order
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Query parameters
+         * @param {string} params.id - Order ID (CUID format)
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<Order|null>} Order with full details or null if not found/no access
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user cannot access this order
+         * @throws {GraphQLError} BAD_INPUT - If ID format is invalid
+         *
+         * @description
+         * Fetches complete order details with strict access control:
+         * 1. Validates order ID format
+         * 2. Retrieves order from cache or database
+         * 3. Checks user permission to view order
+         * 4. For managers, verifies order is from their country's members
+         *
+         * Access rules:
+         * - **Owner**: Can view their own orders
+         * - **Manager India**: Can view orders from MEMBER_INDIA users
+         * - **Manager America**: Can view orders from MEMBER_AMERICA users
+         * - **Admin**: Can view all orders
+         *
+         * @caching
+         * - Cache key: order:{orderId}:{userId}
+         * - TTL: CACHE_TTL.ORDERS
+         * - User-specific caching for security
+         *
+         * @example
+         * query {
+         *   order(id: "order123") {
+         *     id status totalAmount deliveryAddress
+         *     items { quantity price menuItem { name } }
+         *     payment { amount status transactionId }
+         *   }
+         * }
+         */
         order: async (_parent: unknown, { id }: { id: string }, context: GraphQLContext) => {
             if (!context.user) {
                 throw GraphQLErrors.unauthenticated();
@@ -231,6 +346,65 @@ export const orderResolvers = {
     },
 
     Mutation: {
+        /**
+         * Create a new order with menu items
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {CreateOrderInput} params.input - Order data with items and delivery info
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<Order>} Newly created order with all details
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If member tries to create order or country restriction
+         * @throws {GraphQLError} BAD_INPUT - If validation fails or menu items unavailable
+         *
+         * @description
+         * **CRITICAL BUSINESS RULE: MEMBERS CANNOT CREATE ORDERS**
+         *
+         * Creates a new order with strict validation and transaction safety:
+         * 1. **Blocks members from creating orders** (critical restriction)
+         * 2. Validates all input data
+         * 3. Verifies payment method ownership
+         * 4. Batch fetches all menu items (prevents N+1 queries)
+         * 5. Validates all items are available
+         * 6. For managers, validates restaurants are in their country
+         * 7. Calculates total amount server-side (security)
+         * 8. Creates order in database transaction (atomicity)
+         * 9. Re-checks item availability in transaction (race condition prevention)
+         * 10. Invalidates order caches
+         * 11. Logs order creation with metadata
+         *
+         * @permissions
+         * - **Admin**: Can order from any restaurant
+         * - **Manager India**: Can only order from INDIA restaurants
+         * - **Manager America**: Can only order from AMERICA restaurants
+         * - **Members**: **CANNOT CREATE ORDERS** (forbidden)
+         *
+         * @security
+         * - Total amount calculated server-side (never trust client)
+         * - Transaction ensures data consistency
+         * - Race condition prevention via availability recheck
+         * - Payment method ownership validated
+         * - Menu item prices locked at order time
+         *
+         * @example
+         * mutation {
+         *   createOrder(input: {
+         *     items: [
+         *       { menuItemId: "item1", quantity: 2, notes: "Extra spicy" }
+         *       { menuItemId: "item2", quantity: 1 }
+         *     ]
+         *     deliveryAddress: "123 Main St, Apt 4B, Mumbai 400001"
+         *     phone: "+91-98765-43210"
+         *     specialInstructions: "Ring doorbell twice"
+         *     paymentMethodId: "pm123"
+         *   }) {
+         *     id totalAmount status
+         *   }
+         * }
+         */
         createOrder: async (
             _parent: unknown,
             { input }: { input: CreateOrderInput },
@@ -239,6 +413,20 @@ export const orderResolvers = {
             if (!context.user) {
                 logger.warn("Order creation failed: not authenticated");
                 throw GraphQLErrors.unauthenticated();
+            }
+
+            // Members cannot place orders (checkout & pay)
+            if (
+                context.user.role === UserRole.MEMBER_INDIA ||
+                context.user.role === UserRole.MEMBER_AMERICA
+            ) {
+                logger.warn("Order creation failed: members cannot place orders", {
+                    userId: context.user.id,
+                    role: context.user.role,
+                });
+                throw GraphQLErrors.forbidden(
+                    "Members cannot place orders. Please contact your manager.",
+                );
             }
 
             try {
@@ -305,12 +493,9 @@ export const orderResolvers = {
                         );
                     }
 
-                    // Check country access
+                    // Check country access for managers (members are already blocked)
                     if (context.user.role !== UserRole.ADMIN) {
-                        if (
-                            context.user.role === UserRole.MANAGER_INDIA ||
-                            context.user.role === UserRole.MEMBER_INDIA
-                        ) {
+                        if (context.user.role === UserRole.MANAGER_INDIA) {
                             if (menuItem.restaurants.country !== "INDIA") {
                                 logger.warn("Order creation failed: country access denied", {
                                     userId: context.user.id,
@@ -319,10 +504,7 @@ export const orderResolvers = {
                                 });
                                 throw GraphQLErrors.forbidden("Cannot order from this restaurant");
                             }
-                        } else if (
-                            context.user.role === UserRole.MANAGER_AMERICA ||
-                            context.user.role === UserRole.MEMBER_AMERICA
-                        ) {
+                        } else if (context.user.role === UserRole.MANAGER_AMERICA) {
                             if (menuItem.restaurants.country !== "AMERICA") {
                                 logger.warn("Order creation failed: country access denied", {
                                     userId: context.user.id,
@@ -409,6 +591,51 @@ export const orderResolvers = {
             }
         },
 
+        /**
+         * Update the status of an existing order
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {string} params.id - Order ID to update
+         * @param {OrderStatus} params.status - New order status
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<Order>} Updated order with all details
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user lacks permission or country access
+         * @throws {GraphQLError} NOT_FOUND - If order does not exist
+         * @throws {GraphQLError} BAD_INPUT - If ID validation fails
+         *
+         * @description
+         * Updates order status with role-based and country-based restrictions:
+         * 1. **Blocks members from updating status**
+         * 2. Validates order ID format
+         * 3. Fetches order with user information
+         * 4. For managers, verifies order is from their country
+         * 5. Updates order status
+         * 6. Invalidates relevant caches
+         *
+         * @permissions
+         * - **Admin**: Can update any order status
+         * - **Manager India**: Can only update orders from MEMBER_INDIA users
+         * - **Manager America**: Can only update orders from MEMBER_AMERICA users
+         * - **Members**: **CANNOT UPDATE STATUS** (forbidden)
+         *
+         * @statusFlow
+         * Typical order flow:
+         * PENDING → CONFIRMED → PREPARING → OUT_FOR_DELIVERY → DELIVERED
+         *
+         * Alternative:
+         * Any status → CANCELLED
+         *
+         * @example
+         * mutation {
+         *   updateOrderStatus(id: "order123", status: CONFIRMED) {
+         *     id status updatedAt
+         *   }
+         * }
+         */
         updateOrderStatus: async (
             _parent: unknown,
             { id, status }: { id: string; status: OrderStatus },
@@ -482,6 +709,50 @@ export const orderResolvers = {
                 });
         },
 
+        /**
+         * Cancel an existing order
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {string} params.id - Order ID to cancel
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<Order>} Cancelled order with updated status
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user lacks permission or country access
+         * @throws {GraphQLError} NOT_FOUND - If order does not exist
+         * @throws {GraphQLError} BAD_INPUT - If ID validation fails
+         *
+         * @description
+         * Cancels an order by setting its status to CANCELLED:
+         * 1. **Blocks members from cancelling orders**
+         * 2. Validates order ID format
+         * 3. Fetches order with user information
+         * 4. For managers, verifies order is from their country
+         * 5. Sets order status to CANCELLED
+         * 6. Invalidates relevant caches
+         *
+         * @permissions
+         * - **Admin**: Can cancel any order
+         * - **Manager India**: Can only cancel orders from MEMBER_INDIA users
+         * - **Manager America**: Can only cancel orders from MEMBER_AMERICA users
+         * - **Members**: **CANNOT CANCEL ORDERS** (forbidden)
+         *
+         * @businessLogic
+         * **Note**: In production, consider:
+         * - Refund processing if payment was completed
+         * - Notification to customer about cancellation
+         * - Restaurant notification
+         * - Cancellation time limits (e.g., can't cancel if already out for delivery)
+         *
+         * @example
+         * mutation {
+         *   cancelOrder(id: "order123") {
+         *     id status updatedAt
+         *   }
+         * }
+         */
         cancelOrder: async (_parent: unknown, { id }: { id: string }, context: GraphQLContext) => {
             if (!context.user) {
                 throw GraphQLErrors.unauthenticated();

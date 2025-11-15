@@ -114,6 +114,7 @@ export const typeDefs = `#graphql
         """
         Create a new order with menu items and delivery details.
         Validates menu item availability and payment method ownership.
+        Only ADMIN and MANAGER roles can place orders. Members cannot place orders.
         """
         createOrder(input: CreateOrderInput!): Order!
         """
