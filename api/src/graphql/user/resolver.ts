@@ -150,7 +150,7 @@ export const userResolvers = {
             }
 
             // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            const validatedId = validationSchemas.id.parse(id);
 
             // Use Redis caching for individual users (admin only)
             const cacheKey = createCacheKey.user(validatedId);
@@ -195,6 +195,82 @@ export const userResolvers = {
     },
 
     Mutation: {
+        /**
+         * Update user properties (Admin only)
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {string} params.id - User ID to update
+         * @param {UserRole} [params.role] - New user role (optional)
+         * @param {Country} [params.country] - New user country (optional)
+         * @param {boolean} [params.isActive] - Account active status (optional)
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<User>} Updated user object
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user is not admin
+         * @throws {GraphQLError} NOT_FOUND - If user to update does not exist
+         * @throws {GraphQLError} BAD_INPUT - If ID validation fails or invalid role/country
+         *
+         * @description
+         * Updates user account properties with comprehensive validation:
+         * 1. Validates user is authenticated and has ADMIN role
+         * 2. Validates user ID format (CUID)
+         * 3. Validates optional fields:
+         *    - role: UserRole enum validation
+         *    - country: Country enum validation (INDIA or AMERICA)
+         *    - isActive: Boolean validation
+         * 4. Updates only provided fields (partial update)
+         * 5. Invalidates user caches
+         * 6. Logs update with metadata
+         *
+         * @permissions
+         * - **Admin**: Full access to update any user
+         * - **Others**: Forbidden
+         *
+         * @updatableFields
+         * - role: Change user role (ADMIN, MANAGER_INDIA, MANAGER_AMERICA, MEMBER_INDIA, MEMBER_AMERICA)
+         * - country: Change user country (INDIA or AMERICA)
+         * - isActive: Activate/deactivate user account
+         *
+         * @roleValues
+         * - ADMIN: Full system access
+         * - MANAGER_INDIA: Manage India country resources
+         * - MANAGER_AMERICA: Manage America country resources
+         * - MEMBER_INDIA: India team member (limited access)
+         * - MEMBER_AMERICA: America team member (limited access)
+         *
+         * @businessLogic
+         * - Admins can change user roles
+         * - Inactive users cannot login
+         * - Country must match user's location
+         * - Managers are country-specific
+         * - Members have read-only access to orders
+         *
+         * @caching
+         * Cache invalidation pattern:
+         * - user:* (all user caches)
+         *
+         * @auditLogging
+         * All user updates are logged with:
+         * - Updated user ID
+         * - Admin user ID (who made the change)
+         * - Fields that changed
+         * - Timestamp
+         *
+         * @example
+         * mutation {
+         *   updateUser(
+         *     id: "user123"
+         *     role: MANAGER_INDIA
+         *     country: INDIA
+         *     isActive: true
+         *   ) {
+         *     id email firstName lastName role country isActive
+         *   }
+         * }
+         */
         updateUser: async (
             _parent: unknown,
             {
@@ -206,52 +282,205 @@ export const userResolvers = {
             context: GraphQLContext,
         ) => {
             if (!context.user || context.user.role !== UserRole.ADMIN) {
-                throw GraphQLErrors.forbidden();
+                logger.warn("User update failed: access denied", {
+                    userId: context.user?.id,
+                    userRole: context.user?.role,
+                    targetUserId: id,
+                });
+                throw GraphQLErrors.forbidden("Admin access required to update users");
             }
 
-            // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            try {
+                // Validate ID
+                const validatedId = validationSchemas.id.parse(id);
 
-            // Validate optional fields if provided
-            const updateData: { role?: UserRole; country?: Country; isActive?: boolean } = {};
-            if (role !== undefined) {
-                updateData.role = UserRoleEnum.parse(role);
-            }
-            if (country !== undefined) {
-                updateData.country = CountryEnum.parse(country);
-            }
-            if (isActive !== undefined) {
-                updateData.isActive = z.boolean().parse(isActive);
-            }
+                // Validate optional fields if provided
+                const updateData: { role?: UserRole; country?: Country; isActive?: boolean } = {};
+                if (role !== undefined) {
+                    updateData.role = UserRoleEnum.parse(role);
+                }
+                if (country !== undefined) {
+                    updateData.country = CountryEnum.parse(country);
+                }
+                if (isActive !== undefined) {
+                    updateData.isActive = z.boolean().parse(isActive);
+                }
 
-            return await prisma.users
-                .update({
+                // Verify user exists before updating
+                const existingUser = await prisma.users.findUnique({
+                    where: { id: validatedId },
+                    select: { id: true, email: true, role: true, country: true, isActive: true },
+                });
+
+                if (!existingUser) {
+                    logger.warn("User update failed: user not found", {
+                        targetUserId: validatedId,
+                        adminId: context.user.id,
+                    });
+                    throw GraphQLErrors.notFound("User not found");
+                }
+
+                // Perform update
+                const updatedUser = await prisma.users.update({
                     where: { id: validatedId },
                     data: updateData,
-                })
-                .then((user) => {
-                    // Invalidate user caches
-                    deleteCacheByPattern("user:*");
-                    return user;
                 });
+
+                logger.info("User updated successfully", {
+                    targetUserId: updatedUser.id,
+                    targetUserEmail: updatedUser.email,
+                    adminId: context.user.id,
+                    changes: {
+                        role: role ? `${existingUser.role} → ${role}` : undefined,
+                        country: country ? `${existingUser.country} → ${country}` : undefined,
+                        isActive:
+                            isActive !== undefined
+                                ? `${existingUser.isActive} → ${isActive}`
+                                : undefined,
+                    },
+                });
+
+                // Invalidate user caches
+                await deleteCacheByPattern("user:*");
+
+                return updatedUser;
+            } catch (error) {
+                logger.error("User update failed", {
+                    adminId: context.user?.id,
+                    targetUserId: id,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+                throw error;
+            }
         },
 
+        /**
+         * Delete a user permanently (Admin only)
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {string} params.id - User ID to delete
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<boolean>} True if deletion successful
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user is not admin
+         * @throws {GraphQLError} NOT_FOUND - If user to delete does not exist
+         * @throws {GraphQLError} BAD_INPUT - If ID validation fails
+         *
+         * @description
+         * Permanently removes a user and associated data with admin-only access:
+         * 1. Validates user is authenticated and has ADMIN role
+         * 2. Validates user ID format
+         * 3. Verifies user exists
+         * 4. Deletes user from database
+         * 5. Cascade deletes associated data:
+         *    - Payment methods
+         *    - Orders and order items
+         * 6. Invalidates all user caches
+         * 7. Logs deletion with metadata
+         *
+         * @permissions
+         * - **Admin**: Can delete any user
+         * - **Others**: Forbidden
+         *
+         * @cascadeDelete
+         * Due to database schema with CASCADE constraints:
+         * - All payment_methods for user deleted
+         * - All orders for user deleted
+         * - All order_items referencing user's orders deleted
+         * - All payments for user's orders deleted
+         *
+         * @warning
+         * This is a permanent operation that cannot be undone.
+         * All user data is deleted immediately.
+         *
+         * @dataRetention
+         * In production, consider:
+         * - Soft delete: Mark user as inactive instead
+         * - Data archival: Archive orders before deletion
+         * - Compliance: Ensure GDPR/data deletion compliance
+         *
+         * @productionRecommendation
+         * Replace permanent deletion with:
+         * - updateUser(id, { isActive: false })
+         * - Implement data archival for compliance
+         * - Keep anonymized historical data for analytics
+         *
+         * @auditLogging
+         * Deletion is logged with:
+         * - Deleted user ID and email
+         * - Admin user ID (who deleted)
+         * - Timestamp
+         * - User role and country (for audit trail)
+         *
+         * @example
+         * mutation {
+         *   deleteUser(id: "user123")
+         * }
+         */
         deleteUser: async (_parent: unknown, { id }: { id: string }, context: GraphQLContext) => {
             if (!context.user || context.user.role !== UserRole.ADMIN) {
-                throw GraphQLErrors.forbidden();
+                logger.warn("User deletion failed: access denied", {
+                    userId: context.user?.id,
+                    userRole: context.user?.role,
+                    targetUserId: id,
+                });
+                throw GraphQLErrors.forbidden("Admin access required to delete users");
             }
 
-            // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            try {
+                // Validate ID
+                const validatedId = validationSchemas.id.parse(id);
 
-            await prisma.users.delete({
-                where: { id: validatedId },
-            });
+                // Verify user exists before deletion
+                const userToDelete = await prisma.users.findUnique({
+                    where: { id: validatedId },
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        role: true,
+                        country: true,
+                    },
+                });
 
-            // Invalidate user caches
-            deleteCacheByPattern("user:*");
+                if (!userToDelete) {
+                    logger.warn("User deletion failed: user not found", {
+                        targetUserId: validatedId,
+                        adminId: context.user.id,
+                    });
+                    throw GraphQLErrors.notFound("User not found");
+                }
 
-            return true;
+                // Delete user (cascade deletes orders, payments, etc.)
+                await prisma.users.delete({
+                    where: { id: validatedId },
+                });
+
+                logger.info("User deleted successfully", {
+                    deletedUserId: userToDelete.id,
+                    deletedUserEmail: userToDelete.email,
+                    deletedUserName: `${userToDelete.firstName} ${userToDelete.lastName}`,
+                    deletedUserRole: userToDelete.role,
+                    deletedUserCountry: userToDelete.country,
+                    adminId: context.user.id,
+                });
+
+                // Invalidate user caches
+                await deleteCacheByPattern("user:*");
+
+                return true;
+            } catch (error) {
+                logger.error("User deletion failed", {
+                    adminId: context.user?.id,
+                    targetUserId: id,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+                throw error;
+            }
         },
     },
 };

@@ -168,6 +168,7 @@ export const orderResolvers = {
                                             id: true,
                                             name: true,
                                             price: true,
+                                            isAvailable: true,
                                             category: true,
                                         },
                                     },
@@ -246,7 +247,7 @@ export const orderResolvers = {
             }
 
             // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            const validatedId = validationSchemas.id.parse(id);
 
             // Use Redis caching for individual orders with user-specific keys
             const cacheKey = `order:${validatedId}:${context.user.id}`;
@@ -283,6 +284,7 @@ export const orderResolvers = {
                                             name: true,
                                             description: true,
                                             price: true,
+                                            isAvailable: true,
                                             category: true,
                                             imageUrl: true,
                                             restaurantId: true,
@@ -646,7 +648,7 @@ export const orderResolvers = {
             }
 
             // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            const validatedId = validationSchemas.id.parse(id);
 
             // Check permissions
             if (
@@ -759,7 +761,7 @@ export const orderResolvers = {
             }
 
             // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            const validatedId = validationSchemas.id.parse(id);
 
             // Check permissions - members cannot cancel orders
             if (

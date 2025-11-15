@@ -133,6 +133,7 @@ export const restaurantResolvers = {
                                     id: true,
                                     name: true,
                                     price: true,
+                                    isAvailable: true,
                                     category: true,
                                 },
                                 orderBy: { name: "asc" },
@@ -152,7 +153,7 @@ export const restaurantResolvers = {
             }
 
             // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            const validatedId = validationSchemas.id.parse(id);
 
             // Use Redis caching for individual restaurants with user role-based keys
             const cacheKey = `restaurant:${validatedId}:${context.user.role}`;
@@ -180,6 +181,7 @@ export const restaurantResolvers = {
                                     name: true,
                                     description: true,
                                     price: true,
+                                    isAvailable: true,
                                     category: true,
                                     imageUrl: true,
                                 },
@@ -217,6 +219,52 @@ export const restaurantResolvers = {
     },
 
     Mutation: {
+        /**
+         * Create a new restaurant (Admin only)
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {CreateRestaurantInput} params.input - Restaurant data including name, country, address
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<Restaurant>} Newly created restaurant with menu items
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user is not admin
+         * @throws {GraphQLError} BAD_INPUT - If input validation fails
+         *
+         * @description
+         * Creates a new restaurant in the system with the following workflow:
+         * 1. Validates user is authenticated and has ADMIN role
+         * 2. Validates all input data including country, address, and contact info
+         * 3. Creates restaurant record in database
+         * 4. Invalidates restaurant list caches
+         * 5. Logs creation with restaurant metadata
+         *
+         * @permissions
+         * - **Admin**: Full access to create restaurants in any country
+         * - **Others**: Forbidden
+         *
+         * @businessLogic
+         * - Restaurants can be created in INDIA or AMERICA countries
+         * - New restaurants default to isActive: true
+         * - Menu items can be added after restaurant creation
+         *
+         * @example
+         * mutation {
+         *   createRestaurant(input: {
+         *     name: "Taste of Mumbai"
+         *     description: "Authentic Indian cuisine"
+         *     address: "123 Main St, Mumbai 400001"
+         *     city: "Mumbai"
+         *     country: INDIA
+         *     phone: "+91-9876543210"
+         *     email: "info@tasteindia.com"
+         *   }) {
+         *     id name city country isActive
+         *   }
+         * }
+         */
         createRestaurant: async (
             _parent: unknown,
             { input }: { input: CreateRestaurantInput },
@@ -227,7 +275,7 @@ export const restaurantResolvers = {
                     userId: context.user?.id,
                     userRole: context.user?.role,
                 });
-                throw GraphQLErrors.forbidden();
+                throw GraphQLErrors.forbidden("Admin access required to create restaurants");
             }
 
             try {
@@ -248,6 +296,9 @@ export const restaurantResolvers = {
                     userId: context.user.id,
                 });
 
+                // Invalidate cache for restaurants list
+                await deleteCacheByPattern("restaurants:*");
+
                 return restaurant;
             } catch (error) {
                 logger.error("Restaurant creation failed", {
@@ -259,62 +310,209 @@ export const restaurantResolvers = {
             }
         },
 
+        /**
+         * Update an existing restaurant (Admin only)
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {string} params.id - Restaurant ID to update (CUID format)
+         * @param {Partial<CreateRestaurantInput>} params.input - Fields to update (partial)
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<Restaurant>} Updated restaurant with menu items
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user is not admin
+         * @throws {GraphQLError} NOT_FOUND - If restaurant does not exist
+         * @throws {GraphQLError} BAD_INPUT - If ID or input validation fails
+         *
+         * @description
+         * Updates restaurant properties with validation and comprehensive logging:
+         * 1. Validates user is authenticated and has ADMIN role
+         * 2. Validates restaurant ID format
+         * 3. Validates partial input data (schema allows any subset of fields)
+         * 4. Updates restaurant record in database
+         * 5. Invalidates restaurant-specific caches and list caches
+         * 6. Returns updated restaurant with all details
+         *
+         * @permissions
+         * - **Admin**: Can update any restaurant property
+         * - **Others**: Forbidden
+         *
+         * @updatableFields
+         * - name, description, address, city, country
+         * - phone, email, isActive
+         * Can update any combination of these fields
+         *
+         * @caching
+         * Cache invalidation pattern:
+         * - restaurant:{restaurantId}:* (all role-specific views)
+         * - restaurants:* (all list views)
+         *
+         * @example
+         * mutation {
+         *   updateRestaurant(id: "rest123", input: {
+         *     isActive: false
+         *     phone: "+91-9876543210"
+         *   }) {
+         *     id name isActive updatedAt
+         *   }
+         * }
+         */
         updateRestaurant: async (
             _parent: unknown,
             { id, input }: { id: string; input: Partial<CreateRestaurantInput> },
             context: GraphQLContext,
         ) => {
             if (!context.user || context.user.role !== UserRole.ADMIN) {
-                throw GraphQLErrors.forbidden();
+                logger.warn("Restaurant update failed: access denied", {
+                    userId: context.user?.id,
+                    userRole: context.user?.role,
+                    restaurantId: id,
+                });
+                throw GraphQLErrors.forbidden("Admin access required to update restaurants");
             }
 
-            // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            try {
+                // Validate ID
+                const validatedId = validationSchemas.id.parse(id);
 
-            // Validate update input (partial schema)
-            const validatedInput = CreateRestaurantInputSchema.partial().parse(input);
+                // Validate update input (partial schema)
+                const validatedInput = CreateRestaurantInputSchema.partial().parse(input);
 
-            return await prisma.restaurants
-                .update({
-                    where: { id: validatedId },
-                    data: validatedInput,
-                    include: {
-                        menu_items: true,
-                    },
-                })
-                .then(async (updatedRestaurant) => {
-                    // Invalidate cache for the specific restaurant (all role variants) and restaurants list
-                    await Promise.all([
-                        deleteCacheByPattern(`restaurant:${validatedId}:*`),
-                        deleteCacheByPattern("restaurants:*"),
-                    ]);
-                    return updatedRestaurant;
+                return await prisma.restaurants
+                    .update({
+                        where: { id: validatedId },
+                        data: validatedInput,
+                        include: {
+                            menu_items: true,
+                        },
+                    })
+                    .then(async (updatedRestaurant) => {
+                        logger.info("Restaurant updated successfully", {
+                            restaurantId: updatedRestaurant.id,
+                            name: updatedRestaurant.name,
+                            userId: context.user?.id,
+                        });
+
+                        // Invalidate cache for the specific restaurant (all role variants) and restaurants list
+                        await Promise.all([
+                            deleteCacheByPattern(`restaurant:${validatedId}:*`),
+                            deleteCacheByPattern("restaurants:*"),
+                        ]);
+                        return updatedRestaurant;
+                    });
+            } catch (error) {
+                logger.error("Restaurant update failed", {
+                    userId: context.user?.id,
+                    restaurantId: id,
+                    input,
+                    error: error instanceof Error ? error.message : String(error),
                 });
+                throw error;
+            }
         },
 
+        /**
+         * Delete a restaurant permanently (Admin only)
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {string} params.id - Restaurant ID to delete
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<boolean>} True if deletion successful
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user is not admin
+         * @throws {GraphQLError} NOT_FOUND - If restaurant does not exist
+         * @throws {GraphQLError} BAD_INPUT - If ID validation fails
+         *
+         * @description
+         * Permanently removes a restaurant and all associated data:
+         * 1. Validates user is authenticated and has ADMIN role
+         * 2. Validates restaurant ID format
+         * 3. Deletes restaurant from database (cascade deletes menu items and orders)
+         * 4. Invalidates all restaurant-related caches
+         * 5. Logs deletion with restaurant metadata
+         *
+         * @permissions
+         * - **Admin**: Can delete any restaurant
+         * - **Others**: Forbidden
+         *
+         * @cascadeDelete
+         * Due to database schema with CASCADE constraints:
+         * - All menu_items for this restaurant are deleted
+         * - All order_items referencing menu items are deleted
+         * - All orders become orphaned (consider soft delete in production)
+         *
+         * @warning
+         * This is a permanent operation that cannot be undone.
+         * In production, consider using soft delete (isActive: false) instead.
+         *
+         * @productionRecommendation
+         * Replace permanent deletion with:
+         * - updateRestaurant(id, { isActive: false })
+         * - Keep historical data for auditing and analytics
+         *
+         * @example
+         * mutation {
+         *   deleteRestaurant(id: "rest123")
+         * }
+         */
         deleteRestaurant: async (
             _parent: unknown,
             { id }: { id: string },
             context: GraphQLContext,
         ) => {
             if (!context.user || context.user.role !== UserRole.ADMIN) {
-                throw GraphQLErrors.forbidden();
+                logger.warn("Restaurant deletion failed: access denied", {
+                    userId: context.user?.id,
+                    userRole: context.user?.role,
+                    restaurantId: id,
+                });
+                throw GraphQLErrors.forbidden("Admin access required to delete restaurants");
             }
 
-            // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            try {
+                // Validate ID
+                const validatedId = validationSchemas.id.parse(id);
 
-            await prisma.restaurants.delete({
-                where: { id: validatedId },
-            });
+                // Check restaurant exists before deletion
+                const restaurant = await prisma.restaurants.findUnique({
+                    where: { id: validatedId },
+                    select: { id: true, name: true },
+                });
 
-            // Invalidate cache for the specific restaurant (all role variants) and restaurants list
-            await Promise.all([
-                deleteCacheByPattern(`restaurant:${validatedId}:*`),
-                deleteCacheByPattern("restaurants:*"),
-            ]);
+                if (!restaurant) {
+                    throw GraphQLErrors.notFound("Restaurant not found");
+                }
 
-            return true;
+                await prisma.restaurants.delete({
+                    where: { id: validatedId },
+                });
+
+                logger.info("Restaurant deleted successfully", {
+                    restaurantId: validatedId,
+                    restaurantName: restaurant.name,
+                    userId: context.user.id,
+                });
+
+                // Invalidate cache for the specific restaurant (all role variants) and restaurants list
+                await Promise.all([
+                    deleteCacheByPattern(`restaurant:${validatedId}:*`),
+                    deleteCacheByPattern("restaurants:*"),
+                ]);
+
+                return true;
+            } catch (error) {
+                logger.error("Restaurant deletion failed", {
+                    userId: context.user?.id,
+                    restaurantId: id,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+                throw error;
+            }
         },
     },
 

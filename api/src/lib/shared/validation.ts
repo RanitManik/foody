@@ -97,6 +97,14 @@ export const validationSchemas = {
             "Password must contain at least one lowercase letter, one uppercase letter, and one number",
         ),
     cuid: z.string().regex(/^[cC][^\s-]{8,}$/, "Invalid ID format"),
+    id: z
+        .string()
+        .min(1, "ID cannot be empty")
+        .max(100, "ID too long")
+        .regex(
+            /^[\w-]+$/,
+            "Invalid ID format - only letters, numbers, hyphens, and underscores allowed",
+        ),
     positiveNumber: z.number().positive("Must be a positive number"),
     nonEmptyString: z.string().trim().min(1, "Cannot be empty").transform(sanitize.string),
     phone: z.string().regex(/^\+?[\d\s\-()]+$/, "Invalid phone number format"),
@@ -180,8 +188,8 @@ export const CreateMenuItemInputSchema = z.object({
     description: z.string().max(1000, "Description too long").optional(),
     price: validationSchemas.positiveNumber,
     category: z.string().min(1, "Category is required").max(100, "Category too long"),
-    imageUrl: z.string().url("Invalid image URL").optional().or(z.literal("")),
-    restaurantId: validationSchemas.cuid,
+    imageUrl: z.url("Invalid image URL").optional().or(z.literal("")),
+    restaurantId: validationSchemas.id,
 });
 
 /**
@@ -201,7 +209,7 @@ export const CreateOrderInputSchema = z.object({
     deliveryAddress: z.string().min(1, "Delivery address is required").max(500, "Address too long"),
     phone: validationSchemas.phone,
     specialInstructions: z.string().max(1000, "Special instructions too long").optional(),
-    paymentMethodId: validationSchemas.cuid,
+    paymentMethodId: validationSchemas.id,
 });
 
 /**

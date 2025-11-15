@@ -85,7 +85,7 @@ export const menuResolvers = {
             const whereClause: Record<string, unknown> = { isAvailable: true };
 
             if (restaurantId) {
-                const validatedRestaurantId = validationSchemas.cuid.parse(restaurantId);
+                const validatedRestaurantId = validationSchemas.id.parse(restaurantId);
                 whereClause.restaurantId = validatedRestaurantId;
             }
 
@@ -166,7 +166,7 @@ export const menuResolvers = {
             }
 
             // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            const validatedId = validationSchemas.id.parse(id);
 
             // Use Redis caching for individual menu items
             const cacheKey = createCacheKey.menuItem(validatedId);
@@ -469,7 +469,7 @@ export const menuResolvers = {
             }
 
             // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            const validatedId = validationSchemas.id.parse(id);
 
             const menuItem = await prisma.menu_items.findUnique({
                 where: { id: validatedId },
@@ -583,7 +583,7 @@ export const menuResolvers = {
             }
 
             // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
+            const validatedId = validationSchemas.id.parse(id);
 
             const menuItem = await prisma.menu_items.findUnique({
                 where: { id: validatedId },
@@ -629,6 +629,30 @@ export const menuResolvers = {
             ]);
 
             return true;
+        },
+    },
+
+    /**
+     * Field resolvers for MenuItem type
+     * Maps Prisma relationship fields to GraphQL schema fields
+     */
+    MenuItem: {
+        /**
+         * Resolve the restaurant field for a MenuItem
+         * Maps the 'restaurants' Prisma relation to 'restaurant' GraphQL field
+         *
+         * @async
+         * @param {Object} parent - Parent MenuItem object from Prisma
+         * @param {Object} parent.restaurants - The related restaurant object from Prisma
+         * @returns {Object|null} The restaurant object or null if not loaded
+         *
+         * @description
+         * Field resolver that handles the transformation of the Prisma relationship
+         * to the GraphQL schema. The Prisma relation is named 'restaurants' but
+         * the GraphQL field is 'restaurant' (singular).
+         */
+        restaurant: (parent: Record<string, unknown>) => {
+            return parent.restaurants || null;
         },
     },
 };

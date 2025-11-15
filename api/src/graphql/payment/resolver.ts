@@ -126,7 +126,7 @@ export const paymentResolvers = {
 
             try {
                 // Validate ID
-                const validatedId = validationSchemas.cuid.parse(id);
+                const validatedId = validationSchemas.id.parse(id);
 
                 const paymentMethod = await prisma.payment_methods.findFirst({
                     where: {
@@ -262,7 +262,7 @@ export const paymentResolvers = {
 
             try {
                 // Validate ID
-                const validatedId = validationSchemas.cuid.parse(id);
+                const validatedId = validationSchemas.id.parse(id);
 
                 const payment = await prisma.payments.findFirst({
                     where: { id: validatedId },
@@ -390,75 +390,301 @@ export const paymentResolvers = {
             }
         },
 
+        /**
+         * Update a payment method settings (Admin only)
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {string} params.id - Payment method ID to update
+         * @param {boolean} params.isDefault - Set as default payment method
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<PaymentMethod>} Updated payment method details
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user is not admin
+         * @throws {GraphQLError} NOT_FOUND - If payment method not found
+         * @throws {GraphQLError} BAD_INPUT - If ID validation fails
+         *
+         * @description
+         * Updates payment method settings with admin-only access control:
+         * 1. Validates user is authenticated and has ADMIN role
+         * 2. Validates payment method ID format
+         * 3. Updates payment method settings
+         * 4. If setting as default, unsets default flag from other payment methods
+         * 5. Logs update operation with metadata
+         *
+         * @permissions
+         * - **Admin**: Full access to update any payment method settings
+         * - **Others**: Forbidden (for financial security)
+         *
+         * @security
+         * - **CRITICAL**: Only admin can update payment methods
+         * - Users should not be able to modify others' payment information
+         * - Prevents unauthorized payment method changes
+         *
+         * @businessLogic
+         * - Only one payment method per user can be marked as default
+         * - Setting a new default automatically unsets previous default
+         *
+         * @example
+         * mutation {
+         *   updatePaymentMethod(id: "pm123", isDefault: true) {
+         *     id type provider last4 isDefault updatedAt
+         *   }
+         * }
+         */
         updatePaymentMethod: async (
             _parent: unknown,
             { id, isDefault }: { id: string; isDefault: boolean },
             context: GraphQLContext,
         ) => {
             if (!context.user) {
+                logger.warn("Payment method update failed: not authenticated");
                 throw GraphQLErrors.unauthenticated();
             }
 
-            // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
-
-            // Verify ownership
-            const paymentMethod = await prisma.payment_methods.findFirst({
-                where: {
-                    id: validatedId,
+            // CRITICAL: Only admins can update payment methods
+            if (context.user.role !== "ADMIN") {
+                logger.warn("Payment method update failed: access denied (non-admin)", {
                     userId: context.user.id,
-                },
-            });
-
-            if (!paymentMethod) {
-                throw GraphQLErrors.notFound("Payment method not found");
-            }
-
-            // If setting as default, unset other defaults
-            if (isDefault) {
-                await prisma.payment_methods.updateMany({
-                    where: { userId: context.user.id },
-                    data: { isDefault: false },
+                    paymentMethodId: id,
+                    userRole: context.user.role,
                 });
+                throw GraphQLErrors.forbidden("Admin access required to update payment methods");
             }
 
-            return await prisma.payment_methods.update({
-                where: { id: validatedId },
-                data: { isDefault },
-            });
+            try {
+                // Validate ID
+                const validatedId = validationSchemas.id.parse(id);
+
+                // Verify payment method exists
+                const paymentMethod = await prisma.payment_methods.findUnique({
+                    where: { id: validatedId },
+                });
+
+                if (!paymentMethod) {
+                    logger.warn("Payment method update failed: not found", {
+                        paymentMethodId: validatedId,
+                    });
+                    throw GraphQLErrors.notFound("Payment method not found");
+                }
+
+                // If setting as default, unset other defaults for this user
+                if (isDefault) {
+                    await prisma.payment_methods.updateMany({
+                        where: {
+                            userId: paymentMethod.userId,
+                            id: { not: validatedId },
+                        },
+                        data: { isDefault: false },
+                    });
+                }
+
+                const updatedMethod = await prisma.payment_methods.update({
+                    where: { id: validatedId },
+                    data: { isDefault },
+                });
+
+                logger.info("Payment method updated successfully", {
+                    paymentMethodId: updatedMethod.id,
+                    userId: paymentMethod.userId,
+                    adminId: context.user.id,
+                    isDefault: updatedMethod.isDefault,
+                });
+
+                return updatedMethod;
+            } catch (error) {
+                logger.error("Payment method update failed", {
+                    userId: context.user?.id,
+                    paymentMethodId: id,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+                throw error;
+            }
         },
 
+        /**
+         * Delete a payment method permanently (Admin only)
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {string} params.id - Payment method ID to delete
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<boolean>} True if deletion successful
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user is not admin
+         * @throws {GraphQLError} NOT_FOUND - If payment method not found
+         * @throws {GraphQLError} BAD_INPUT - If ID validation fails
+         *
+         * @description
+         * Permanently removes a payment method with admin-only access:
+         * 1. Validates user is authenticated and has ADMIN role
+         * 2. Validates payment method ID format
+         * 3. Verifies payment method exists
+         * 4. Deletes payment method from database
+         * 5. Logs deletion with metadata
+         *
+         * @permissions
+         * - **Admin**: Can delete any payment method
+         * - **Others**: Forbidden (for financial security)
+         *
+         * @security
+         * - **CRITICAL**: Only admin can delete payment methods
+         * - Prevents unauthorized payment information removal
+         * - Protects against user data tampering
+         *
+         * @dataRetention
+         * - If payment method has associated transactions, consider archival instead
+         * - Current implementation allows cascade delete
+         *
+         * @warning
+         * This is a permanent operation. Consider implementing soft delete
+         * for payment methods with transaction history.
+         *
+         * @example
+         * mutation {
+         *   deletePaymentMethod(id: "pm123")
+         * }
+         */
         deletePaymentMethod: async (
             _parent: unknown,
             { id }: { id: string },
             context: GraphQLContext,
         ) => {
             if (!context.user) {
+                logger.warn("Payment method deletion failed: not authenticated");
                 throw GraphQLErrors.unauthenticated();
             }
 
-            // Validate ID
-            const validatedId = validationSchemas.cuid.parse(id);
-
-            // Verify ownership
-            const paymentMethod = await prisma.payment_methods.findFirst({
-                where: {
-                    id: validatedId,
+            // CRITICAL: Only admins can delete payment methods
+            if (context.user.role !== "ADMIN") {
+                logger.warn("Payment method deletion failed: access denied (non-admin)", {
                     userId: context.user.id,
-                },
-            });
-
-            if (!paymentMethod) {
-                throw GraphQLErrors.notFound("Payment method not found");
+                    paymentMethodId: id,
+                    userRole: context.user.role,
+                });
+                throw GraphQLErrors.forbidden("Admin access required to delete payment methods");
             }
 
-            await prisma.payment_methods.delete({
-                where: { id: validatedId },
-            });
+            try {
+                // Validate ID
+                const validatedId = validationSchemas.id.parse(id);
 
-            return true;
+                // Verify payment method exists
+                const paymentMethod = await prisma.payment_methods.findUnique({
+                    where: { id: validatedId },
+                    select: { id: true, userId: true, provider: true },
+                });
+
+                if (!paymentMethod) {
+                    logger.warn("Payment method deletion failed: not found", {
+                        paymentMethodId: validatedId,
+                    });
+                    throw GraphQLErrors.notFound("Payment method not found");
+                }
+
+                await prisma.payment_methods.delete({
+                    where: { id: validatedId },
+                });
+
+                logger.info("Payment method deleted successfully", {
+                    paymentMethodId: validatedId,
+                    userId: paymentMethod.userId,
+                    adminId: context.user.id,
+                    provider: paymentMethod.provider,
+                });
+
+                return true;
+            } catch (error) {
+                logger.error("Payment method deletion failed", {
+                    userId: context.user?.id,
+                    paymentMethodId: id,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+                throw error;
+            }
         },
 
+        /**
+         * Process payment for an order
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {Object} params - Mutation parameters
+         * @param {Object} params.input - Payment processing input
+         * @param {string} params.input.orderId - Order ID to process payment for
+         * @param {string} params.input.paymentMethodId - Payment method ID to use
+         * @param {number} params.input.amount - Payment amount
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<Payment>} Created payment transaction with details
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} NOT_FOUND - If order or payment method not found
+         * @throws {GraphQLError} FORBIDDEN - If payment method doesn't belong to user
+         * @throws {GraphQLError} BAD_INPUT - If ID validation fails or order already paid
+         *
+         * @description
+         * Processes a payment transaction for an order with the following workflow:
+         * 1. Validates user is authenticated
+         * 2. Validates and sanitizes IDs and amount
+         * 3. Verifies order exists and belongs to user
+         * 4. Verifies payment method exists and belongs to user
+         * 5. Checks order doesn't already have a payment
+         * 6. Creates payment transaction in database
+         * 7. Generates unique transaction ID
+         * 8. Logs payment processing with full metadata
+         * 9. Returns complete payment details
+         *
+         * @permissions
+         * - **Any authenticated user**: Can process payment for their own orders
+         * - Must own both the order and the payment method
+         *
+         * @security
+         * - User ownership of order and payment method verified
+         * - Server-side validation of amount (client not trusted)
+         * - Transaction ID generation ensures uniqueness
+         * - Idempotent checking (one payment per order)
+         *
+         * @processFlow
+         * 1. User adds items to cart (createOrder)
+         * 2. User selects payment method (paymentMethods)
+         * 3. System displays order total (order query)
+         * 4. User initiates payment (processPayment)
+         * 5. System creates payment record
+         * 6. Order status updated to CONFIRMED
+         *
+         * @mockPaymentNote
+         * **Current implementation**: Uses mock payment processing
+         * - Payment automatically marked as "completed"
+         * - In production, integrate with payment providers:
+         *   - Stripe: Use Stripe SDK to charge card
+         *   - PayPal: Redirect to PayPal for authorization
+         *   - Razorpay: Use Razorpay API for processing
+         *
+         * @production
+         * Replace mock processing with:
+         * - Real payment provider API calls
+         * - Webhook handlers for payment status updates
+         * - 3D Secure / SCA authentication
+         * - Retry logic for failed transactions
+         * - Refund capability implementation
+         *
+         * @example
+         * mutation {
+         *   processPayment(input: {
+         *     orderId: "order123"
+         *     paymentMethodId: "pm456"
+         *     amount: 45.99
+         *   }) {
+         *     id amount status transactionId
+         *     method { type provider last4 }
+         *     order { id totalAmount deliveryAddress }
+         *   }
+         * }
+         */
         processPayment: async (
             _parent: unknown,
             { input }: { input: { orderId: string; paymentMethodId: string; amount: number } },
@@ -473,8 +699,8 @@ export const paymentResolvers = {
                 const { orderId, paymentMethodId, amount } = input;
 
                 // Validate IDs
-                const validatedOrderId = validationSchemas.cuid.parse(orderId);
-                const validatedPaymentMethodId = validationSchemas.cuid.parse(paymentMethodId);
+                const validatedOrderId = validationSchemas.id.parse(orderId);
+                const validatedPaymentMethodId = validationSchemas.id.parse(paymentMethodId);
 
                 // Verify order exists and belongs to user
                 const order = await prisma.orders.findFirst({
@@ -485,6 +711,10 @@ export const paymentResolvers = {
                 });
 
                 if (!order) {
+                    logger.warn("Payment processing failed: order not found or not owned by user", {
+                        userId: context.user.id,
+                        orderId: validatedOrderId,
+                    });
                     throw GraphQLErrors.notFound("Order not found");
                 }
 
@@ -497,19 +727,41 @@ export const paymentResolvers = {
                 });
 
                 if (!paymentMethod) {
+                    logger.warn("Payment processing failed: payment method not found", {
+                        userId: context.user.id,
+                        paymentMethodId: validatedPaymentMethodId,
+                    });
                     throw GraphQLErrors.notFound("Payment method not found");
                 }
 
-                // Check if order already has a payment
+                // Check if order already has a payment (idempotency)
                 const existingPayment = await prisma.payments.findUnique({
                     where: { orderId: validatedOrderId },
                 });
 
                 if (existingPayment) {
-                    throw GraphQLErrors.badInput("Order already has a payment");
+                    logger.warn("Payment processing failed: order already has payment", {
+                        userId: context.user.id,
+                        orderId: validatedOrderId,
+                        existingPaymentId: existingPayment.id,
+                    });
+                    throw GraphQLErrors.badInput(
+                        "Order already has a payment. Cannot process duplicate payment.",
+                    );
                 }
 
-                // In a real app, you'd process the payment with Stripe/PayPal
+                // Validate amount matches order total
+                if (Math.abs(amount - order.totalAmount) > 0.01) {
+                    logger.warn("Payment processing failed: amount mismatch", {
+                        userId: context.user.id,
+                        orderId: validatedOrderId,
+                        expectedAmount: order.totalAmount,
+                        providedAmount: amount,
+                    });
+                    throw GraphQLErrors.badInput("Payment amount does not match order total");
+                }
+
+                // In a real app, you'd process the payment with Stripe/PayPal/Razorpay
                 // For now, we'll simulate payment processing
                 const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -533,6 +785,7 @@ export const paymentResolvers = {
                     userId: context.user.id,
                     amount: payment.amount,
                     transactionId: payment.transactionId,
+                    paymentMethod: paymentMethod.provider,
                 });
 
                 return payment;
