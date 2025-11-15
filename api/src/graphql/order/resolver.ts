@@ -261,6 +261,9 @@ export const orderResolvers = {
                             userId: true,
                             status: true,
                             totalAmount: true,
+                            deliveryAddress: true,
+                            phone: true,
+                            specialInstructions: true,
                             createdAt: true,
                             updatedAt: true,
                             users: {
@@ -297,12 +300,14 @@ export const orderResolvers = {
                                     id: true,
                                     amount: true,
                                     status: true,
+                                    transactionId: true,
                                     paymentMethodId: true,
                                     createdAt: true,
                                     payment_methods: {
                                         select: {
                                             id: true,
                                             type: true,
+                                            provider: true,
                                             last4: true,
                                             isDefault: true,
                                         },

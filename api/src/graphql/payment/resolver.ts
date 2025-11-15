@@ -369,6 +369,7 @@ export const paymentResolvers = {
                         type,
                         provider,
                         last4: "4242", // Mock data
+                        updatedAt: new Date(),
                     },
                 });
 
@@ -797,6 +798,28 @@ export const paymentResolvers = {
                 });
                 throw error;
             }
+        },
+    },
+
+    /**
+     * Field resolvers for Payment type
+     * Maps Prisma relationship fields to GraphQL schema fields
+     */
+    Payment: {
+        /**
+         * Resolve the method field for a Payment
+         * Maps the 'payment_methods' Prisma relation to 'method' GraphQL field
+         *
+         * @param {Record<string, unknown>} parent - Parent Payment object from Prisma
+         * @returns {Record<string, unknown>|null} The payment method object or null if not loaded
+         *
+         * @description
+         * Field resolver that handles the transformation of the Prisma relationship
+         * to the GraphQL schema. The Prisma relation is named 'payment_methods' but
+         * the GraphQL field is 'method' (singular, abbreviated).
+         */
+        method: (parent: Record<string, unknown>) => {
+            return parent.payment_methods || null;
         },
     },
 };
