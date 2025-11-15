@@ -1,21 +1,13 @@
 meta {
-  name: me
+  name: signup
   type: graphql
-  seq: 3
+  seq: 2
 }
 
 post {
   url: {{graphql}}
-  body: graphql
+  body: none
   auth: inherit
-}
-
-body:graphql {
-  query Query {
-    me {
-      email
-    }
-  }
 }
 
 settings {

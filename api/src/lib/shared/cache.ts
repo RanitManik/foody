@@ -5,6 +5,11 @@ import { cacheHitsTotal, cacheMissesTotal } from "../../metrics";
 // Redis client instance
 let redisClient: RedisClientType | null = null;
 
+// Reset Redis client (for testing)
+export const resetRedisClient = (): void => {
+    redisClient = null;
+};
+
 // Initialize Redis client
 export const initRedis = async (): Promise<void> => {
     if (redisClient) return;
