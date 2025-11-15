@@ -106,6 +106,7 @@ export const menuResolvers = {
                             isAvailable: true,
                             restaurantId: true,
                             createdAt: true,
+                            updatedAt: true,
                             restaurants: {
                                 select: {
                                     id: true,
@@ -184,6 +185,7 @@ export const menuResolvers = {
                             isAvailable: true,
                             restaurantId: true,
                             createdAt: true,
+                            updatedAt: true,
                             restaurants: {
                                 select: {
                                     id: true,

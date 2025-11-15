@@ -126,6 +126,7 @@ export const restaurantResolvers = {
                             email: true,
                             isActive: true,
                             createdAt: true,
+                            updatedAt: true,
                             menu_items: {
                                 where: { isAvailable: true },
                                 select: {
@@ -163,6 +164,7 @@ export const restaurantResolvers = {
                         select: {
                             id: true,
                             name: true,
+                            description: true,
                             address: true,
                             city: true,
                             country: true,
@@ -170,6 +172,7 @@ export const restaurantResolvers = {
                             email: true,
                             isActive: true,
                             createdAt: true,
+                            updatedAt: true,
                             menu_items: {
                                 where: { isAvailable: true },
                                 select: {
