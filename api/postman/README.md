@@ -28,12 +28,36 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API.
 
 ## 🔐 Authentication
 
-Most requests require authentication:
+Most requests require authentication. The collection includes **automatic token management** for login:
 
-1. **Register or Login** using the Authentication folder requests
-2. **Copy the token** from the response
-3. **Set the `auth_token` variable** in the environment
-4. All authenticated requests will use this Bearer token
+### Automatic Login Flow
+
+1. **Login** using the "Login User" request in the Authentication folder
+2. **Token is automatically extracted** from the response and saved to the `auth_token` environment variable
+3. **All subsequent requests** will automatically use this token in the Authorization header
+
+> ![WARNING]
+> **Registration does NOT have automatic token extraction.** After registering, you must manually copy the token from the response and set it as the `auth_token` environment variable, or run the Login request to get automatic token extraction.
+
+### Manual Token Management (if needed)
+
+- Copy the token from any login/register response
+- Set the `auth_token` variable manually in the environment
+- The token will be used as `Bearer {{auth_token}}` in request headers
+
+### What happens automatically
+
+- ✅ **Login User** request saves token after successful login
+- ✅ **All authenticated requests** include `Authorization: Bearer {{auth_token}}` header
+- ✅ **Console logs** show success/failure of token extraction
+
+### Testing the flow
+
+1. Run "Register User" first (token must be set manually)
+2. Run "Login User" to get automatic token extraction
+3. Check the **Test Results** tab - you should see "✅ Login response parsed and token extracted"
+4. The `auth_token` environment variable is now set
+5. Run any other request - it will automatically include the token
 
 ## 📁 API Endpoints
 

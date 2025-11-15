@@ -72,7 +72,50 @@
                             "host": ["{{baseUrl}}"],
                             "path": ["graphql"]
                         }
-                    }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "/**\n * Save JWT from GraphQL login to environment (or collection as fallback)\n */",
+                                    "pm.test(\"Login response parsed and token extracted\", function () {",
+                                    "    pm.expect(pm.response.code, \"Status is 200\").to.eql(200);",
+                                    "",
+                                    "    let response;",
+                                    "    try {",
+                                    "        response = pm.response.json();",
+                                    "    } catch (e) {",
+                                    "        throw new Error(\"Response is not valid JSON: \" + e.message);",
+                                    "    }",
+                                    "",
+                                    "    const token = response?.data?.login?.token;",
+                                    "",
+                                    "    pm.expect(token, \"Token exists at data.login.token\").to.be.a(\"string\").and.not.empty;",
+                                    "",
+                                    "    // Where are we writing?",
+                                    "    const activeEnv = pm.environment.name || \"(no environment selected)\";",
+                                    "    console.log(\"Active environment:\", activeEnv);",
+                                    "",
+                                    "    if (pm.environment.name) {",
+                                    "        pm.environment.set(\"auth_token\", token);",
+                                    "        const savedEnv = pm.environment.get(\"auth_token\");",
+                                    "        pm.expect(savedEnv, \"Token persisted in environment\").to.eql(token);",
+                                    "        console.log(\"✅ Token saved to environment:\", pm.environment.name);",
+                                    "    } else {",
+                                    "        console.warn(\"⚠️ No active environment selected. Writing token to collection variables as fallback.\");",
+                                    "        pm.collectionVariables.set(\"auth_token\", token);",
+                                    "        const savedCol = pm.collectionVariables.get(\"auth_token\");",
+                                    "        pm.expect(savedCol, \"Token persisted in collection variables\").to.eql(token);",
+                                    "        console.log(\"✅ Token saved to collection variables (fallback).\");",
+                                    "    }",
+                                    "",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ]
                 },
                 {
                     "name": "Get Current User (Me)",
