@@ -266,9 +266,44 @@ export const paymentResolvers = {
 
                 const payment = await prisma.payments.findFirst({
                     where: { id: validatedId },
-                    include: {
-                        payment_methods: true,
-                        orders: true,
+                    select: {
+                        id: true,
+                        amount: true,
+                        status: true,
+                        transactionId: true,
+                        createdAt: true,
+                        updatedAt: true,
+                        payment_methods: {
+                            select: {
+                                id: true,
+                                type: true,
+                                provider: true,
+                                last4: true,
+                                userId: true,
+                            },
+                        },
+                        orders: {
+                            select: {
+                                id: true,
+                                userId: true,
+                                status: true,
+                                totalAmount: true,
+                                deliveryAddress: true,
+                                phone: true,
+                                specialInstructions: true,
+                                createdAt: true,
+                                updatedAt: true,
+                                users: {
+                                    select: {
+                                        id: true,
+                                        email: true,
+                                        firstName: true,
+                                        lastName: true,
+                                        role: true,
+                                    },
+                                },
+                            },
+                        },
                     },
                 });
 
@@ -771,7 +806,7 @@ export const paymentResolvers = {
                         orderId: validatedOrderId,
                         paymentMethodId: validatedPaymentMethodId,
                         amount,
-                        status: "completed",
+                        status: "COMPLETED",
                         transactionId,
                     },
                     include: {
@@ -820,6 +855,22 @@ export const paymentResolvers = {
          */
         method: (parent: Record<string, unknown>) => {
             return parent.payment_methods || null;
+        },
+
+        /**
+         * Resolve the order field for a Payment
+         * Maps the 'orders' Prisma relation to 'order' GraphQL field
+         *
+         * @param {Record<string, unknown>} parent - Parent Payment object from Prisma
+         * @returns {Record<string, unknown>|null} The order object or null if not loaded
+         *
+         * @description
+         * Field resolver that handles the transformation of the Prisma relationship
+         * to the GraphQL schema. The Prisma relation is named 'orders' but
+         * the GraphQL field is 'order' (singular).
+         */
+        order: (parent: Record<string, unknown>) => {
+            return parent.orders || null;
         },
     },
 };
