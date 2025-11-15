@@ -1,61 +1,31 @@
 // ===== EXTERNAL DEPENDENCIES =====
 import express from "express";
-import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@as-integrations/express4";
-import { makeExecutableSchema } from "@graphql-tools/schema";
-import { useServer } from "graphql-ws/use/ws";
-import { WebSocketServer } from "ws";
 import { createServer } from "http";
-import { execute } from "graphql";
-import { NoSchemaIntrospectionCustomRule, validateSchema } from "graphql";
-import depthLimit from "graphql-depth-limit";
-import { v4 as uuidv4 } from "uuid";
+import type { Request, Response } from "express";
 
 // ===== INTERNAL MODULES =====
 import { logger } from "./lib/shared/logger";
-import { createComplexityRule } from "./lib/graphql/complexity";
-import { typeDefs } from "./graphql";
-import { resolvers } from "./graphql";
-import { prisma, validateDatabaseConfig, setupDatabaseGracefulShutdown } from "./lib/database";
+import { prisma, setupDatabaseGracefulShutdown } from "./lib/database";
 import { getUserFromToken, extractToken } from "./lib/auth";
 import { GraphQLContext } from "./types/graphql";
 import { setupMiddleware } from "./middleware";
-import { ErrorLoggingPlugin } from "./plugins";
 import { API_CONSTANTS } from "./lib/shared/constants";
-import { initRedis } from "./lib/shared/cache";
 import { createHealthRouter } from "./lib/shared/health";
 import { createMetricsRouter } from "./lib/shared/metrics";
+import { runStartupChecks } from "./startup";
+import { createApolloServer } from "./graphql-server";
+import { setupWebSocketServer } from "./websocket-server";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { typeDefs, resolvers } from "./graphql";
 
-// ===== ENVIRONMENT VALIDATION =====
-const REQUIRED_ENV_VARS = ["JWT_SECRET", "DATABASE_URL"];
-const missingEnvVars = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
-
-if (missingEnvVars.length > 0) {
-    const message = `Missing environment variable(s): ${missingEnvVars.join(", ")}`;
-    if (process.env.NODE_ENV === "production") {
-        throw new Error(`❌ ${message}`);
-    } else {
-        console.warn(`⚠️  ${message} - ensure .env file is loaded or vars are set`);
-    }
-}
-
-// Validate database configuration
-const dbConfigValidation = validateDatabaseConfig();
-if (!dbConfigValidation.valid) {
-    const message = `Invalid database configuration: ${dbConfigValidation.errors.join(", ")}`;
-    if (process.env.NODE_ENV === "production") {
-        throw new Error(`❌ ${message}`);
-    } else {
-        console.warn(`⚠️  ${message}`);
-    }
-}
-
+// ===== SERVER CONFIGURATION =====
 const host = process.env.HOST ?? API_CONSTANTS.SERVER.DEFAULT_HOST;
 const port = process.env.PORT ? Number(process.env.PORT) : API_CONSTANTS.SERVER.DEFAULT_PORT;
 
 async function main() {
-    // Initialize Redis cache
-    await initRedis();
+    // Run all startup checks (env, DB, Redis)
+    await runStartupChecks();
 
     const app = express();
 
@@ -68,74 +38,27 @@ async function main() {
         resolvers,
     });
 
-    // Validate schema at boot to catch type errors early
-    const schemaErrors = validateSchema(executableSchema);
-    if (schemaErrors.length) {
-        throw new Error(
-            `Schema validation failed: ${schemaErrors.map((e) => e.message).join(", ")}`,
-        );
-    }
-
     // HTTP server (needed for WebSocket)
     const httpServer = createServer(app);
 
-    // WebSocket server for subscriptions
-    const wsServer = new WebSocketServer({
-        server: httpServer,
-        path: "/graphql",
-    });
+    // Setup WebSocket server for subscriptions
+    const { cleanup: wsCleanup } = setupWebSocketServer(httpServer, executableSchema);
 
-    // Setup WebSocket GraphQL handler
-    const serverCleanup = useServer(
-        {
-            schema: executableSchema,
-            execute,
-            context: async (ctx: { connectionParams?: Record<string, unknown> }) => {
-                const token = extractToken({ connectionParams: ctx.connectionParams });
-                const user = await getUserFromToken(token);
-
-                // Use sessionId from connectionParams for traceability, or generate one
-                const sessionId = (ctx.connectionParams?.sessionId as string) || `ws-${uuidv4()}`;
-
-                // Log failed auth for WebSocket connections
-                if (!user && token) {
-                    logger.warn("WebSocket connection with invalid token", { sessionId });
-                }
-
-                return {
-                    user,
-                    prisma,
-                    sessionId, // Use sessionId for WebSocket connections
-                } as GraphQLContext;
-            },
-        },
-        wsServer,
-    );
-
-    // Apollo Server with plugins
-    const validationRules = [
-        depthLimit(API_CONSTANTS.GRAPHQL.MAX_DEPTH, { ignore: ["__typename"] }),
-        createComplexityRule(API_CONSTANTS.GRAPHQL.MAX_COMPLEXITY),
-    ];
-
-    if (process.env.NODE_ENV === "production") {
-        validationRules.push(NoSchemaIntrospectionCustomRule);
-    }
-
-    const server = new ApolloServer<GraphQLContext>({
-        schema: executableSchema,
-        introspection: process.env.NODE_ENV !== "production",
-        validationRules,
-        plugins: [ErrorLoggingPlugin],
-    });
-
+    // Create and start Apollo Server
+    const server = createApolloServer();
     await server.start();
 
     // GraphQL HTTP endpoint
     app.use(
         "/graphql",
         expressMiddleware(server, {
-            context: async ({ req, res }) => {
+            context: async ({
+                req,
+                res,
+            }: {
+                req: Request;
+                res: Response;
+            }): Promise<GraphQLContext> => {
                 const authHeader = req.headers.authorization as string | undefined;
                 const token = extractToken({ authHeader });
                 const user = await getUserFromToken(token);
@@ -159,9 +82,6 @@ async function main() {
     // This ensures consistent error handling across the application
 
     // ===== SERVER STARTUP =====
-    // Connect to database before accepting traffic
-    await prisma.$connect();
-
     httpServer.listen(port, host, () => {
         logger.info(`🚀 GraphQL Server ready at http://${host}:${port}/graphql`);
         logger.info(`📊 Health check at http://${host}:${port}/health`);
@@ -184,10 +104,13 @@ async function main() {
         }, API_CONSTANTS.SERVER.SHUTDOWN_TIMEOUT_MS);
 
         try {
-            await serverCleanup?.dispose?.();
-            wsServer.close();
+            // Cleanup WebSocket server
+            await wsCleanup();
+
+            // Stop Apollo Server
             await server.stop();
 
+            // Close HTTP server
             await new Promise<void>((resolve, reject) => {
                 httpServer.close((err) => {
                     if (err) return reject(err);

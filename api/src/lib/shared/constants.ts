@@ -15,6 +15,9 @@ export const API_CONSTANTS = {
     // Request Timeout
     REQUEST_TIMEOUT_MS: 30000,
 
+    // HTTP Timeout (for all Express routes)
+    HTTP_TIMEOUT_MS: 30000,
+
     // Body Parser Limits
     BODY_PARSER_LIMIT: "1mb",
 
