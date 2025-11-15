@@ -40,7 +40,7 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      country\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"MEMBER_INDIA\",\n    \"country\": \"INDIA\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"email\": \"test@example.com\",\n    \"password\": \"Password123\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"MEMBER_INDIA\",\n    \"country\": \"INDIA\"\n  }\n}"
                             }
                         },
                         "url": {
@@ -64,7 +64,7 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      country\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"email\": \"test@example.com\",\n    \"password\": \"Password123\"\n  }\n}"
                             }
                         },
                         "url": {
