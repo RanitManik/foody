@@ -43,7 +43,7 @@ describe("Logger Utilities", () => {
     describe("logger", () => {
         it("should create logger with correct configuration", () => {
             // Import the module to trigger logger creation
-            require("../logger");
+            require("../shared/logger");
 
             const winston = require("winston");
             expect(winston.createLogger).toHaveBeenCalledWith({
@@ -58,7 +58,7 @@ describe("Logger Utilities", () => {
     describe("log convenience methods", () => {
         it("should export log object with convenience methods", () => {
             // Test that the log object exists and has the expected methods
-            const loggerModule = require("../logger");
+            const loggerModule = require("../shared/logger");
             expect(loggerModule.log).toBeDefined();
             expect(typeof loggerModule.log.error).toBe("function");
             expect(typeof loggerModule.log.warn).toBe("function");

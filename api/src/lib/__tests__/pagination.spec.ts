@@ -1,4 +1,4 @@
-import { parsePagination, DEFAULT_PAGINATION, PaginationInputSchema } from "../pagination";
+import { parsePagination, DEFAULT_PAGINATION, PaginationInputSchema } from "../shared/pagination";
 
 describe("Pagination Utilities", () => {
     describe("DEFAULT_PAGINATION", () => {

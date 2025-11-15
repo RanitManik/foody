@@ -1,4 +1,4 @@
-import { GraphQLErrors, ErrorCode, createGraphQLError } from "../errors";
+import { GraphQLErrors, ErrorCode, createGraphQLError } from "../shared/errors";
 import { GraphQLError } from "graphql";
 
 describe("Error Utilities", () => {

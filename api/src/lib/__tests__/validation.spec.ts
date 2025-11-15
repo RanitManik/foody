@@ -1,14 +1,14 @@
-import { validateInput, validateEmail, validatePassword, validationSchemas } from "../validation";
+import { validateInput, validateEmail, validatePassword, validationSchemas } from "../shared/validation";
 import { z } from "zod";
 
 // Mock GraphQLErrors
-jest.mock("../errors", () => ({
+jest.mock("../shared/errors", () => ({
     GraphQLErrors: {
         badInput: jest.fn(),
     },
 }));
 
-import { GraphQLErrors as MockGraphQLErrors } from "../errors";
+import { GraphQLErrors as MockGraphQLErrors } from "../shared/errors";
 
 const mockGraphQLErrors = MockGraphQLErrors as jest.Mocked<typeof MockGraphQLErrors>;
 
