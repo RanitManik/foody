@@ -24,6 +24,7 @@ import { ErrorLoggingPlugin } from "./plugins";
 import { API_CONSTANTS } from "./lib/shared/constants";
 import { initRedis } from "./lib/shared/cache";
 import { createHealthRouter } from "./lib/shared/health";
+import { createMetricsRouter } from "./lib/shared/metrics";
 
 // ===== ENVIRONMENT VALIDATION =====
 const REQUIRED_ENV_VARS = ["JWT_SECRET", "DATABASE_URL"];
@@ -152,6 +153,7 @@ async function main() {
 
     // Health and monitoring routes
     app.use("/health", createHealthRouter());
+    app.use("/metrics", createMetricsRouter());
 
     // Note: Global error handler is set up in setupMiddleware (error-handler.ts)
     // This ensures consistent error handling across the application
@@ -163,6 +165,7 @@ async function main() {
     httpServer.listen(port, host, () => {
         logger.info(`🚀 GraphQL Server ready at http://${host}:${port}/graphql`);
         logger.info(`📊 Health check at http://${host}:${port}/health`);
+        logger.info(`📈 Metrics endpoint at http://${host}:${port}/metrics`);
         logger.info(`✅ Readiness check at http://${host}:${port}/health/ready`);
         logger.info(`🔒 Query depth limit: 10 | Complexity limit: 2000`);
         logger.info(`🌐 CORS origins: ${origins.join(", ")}`);

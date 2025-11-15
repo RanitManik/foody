@@ -1,14 +1,13 @@
 import express from "express";
 import { checkDatabaseHealth } from "../../lib/database";
 import { getRedisClient } from "./cache";
-import { register } from "../../metrics";
 import { logger } from "./logger";
 
 export const createHealthRouter = () => {
     const router = express.Router();
 
     // Basic health check
-    router.get("/health", async (req, res) => {
+    router.get("/", async (req, res) => {
         try {
             // Check database connectivity
             const dbHealth = await checkDatabaseHealth();
@@ -41,7 +40,7 @@ export const createHealthRouter = () => {
     });
 
     // Detailed health check
-    router.get("/health/detailed", async (req, res) => {
+    router.get("/detailed", async (req, res) => {
         try {
             const startTime = Date.now();
 
@@ -96,18 +95,6 @@ export const createHealthRouter = () => {
                 timestamp: new Date().toISOString(),
                 error: error instanceof Error ? error.message : "Unknown error",
             });
-        }
-    });
-
-    // Metrics endpoint for Prometheus
-    router.get("/metrics", async (req, res) => {
-        try {
-            res.set("Content-Type", register.contentType);
-            const metrics = await register.metrics();
-            res.end(metrics);
-        } catch (error) {
-            logger.error("Metrics collection failed", error);
-            res.status(500).end();
         }
     });
 
