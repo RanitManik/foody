@@ -17,6 +17,7 @@ import {
     users,
     menu_items,
 } from "@prisma/client";
+import { withCache, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
 export const orderResolvers = {
     Query: {
@@ -57,27 +58,71 @@ export const orderResolvers = {
                 }
             }
 
-            return await prisma.orders.findMany({
-                where: whereClause,
-                include: {
-                    users: true,
-                    order_items: {
-                        include: {
-                            menu_items: true,
+            // Use Redis caching for orders queries (user-specific)
+            const cacheKey = `orders:${context.user.id}:${pagination.first}:${pagination.skip}`;
+            return await withCache(
+                cacheKey,
+                async () => {
+                    return await prisma.orders.findMany({
+                        where: whereClause,
+                        select: {
+                            id: true,
+                            userId: true,
+                            totalAmount: true,
+                            status: true,
+                            deliveryAddress: true,
+                            phone: true,
+                            specialInstructions: true,
+                            createdAt: true,
+                            updatedAt: true,
+                            users: {
+                                select: {
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true,
+                                    email: true,
+                                },
+                            },
+                            order_items: {
+                                select: {
+                                    id: true,
+                                    quantity: true,
+                                    price: true,
+                                    notes: true,
+                                    menu_items: {
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            price: true,
+                                            category: true,
+                                        },
+                                    },
+                                },
+                            },
+                            payments: {
+                                select: {
+                                    id: true,
+                                    amount: true,
+                                    status: true,
+                                    createdAt: true,
+                                    payment_methods: {
+                                        select: {
+                                            type: true,
+                                            provider: true,
+                                        },
+                                    },
+                                },
+                            },
                         },
-                    },
-                    payments: {
-                        include: {
-                            payment_methods: true,
+                        orderBy: {
+                            createdAt: "desc",
                         },
-                    },
+                        take: pagination.first,
+                        skip: pagination.skip,
+                    });
                 },
-                orderBy: {
-                    createdAt: "desc",
-                },
-                take: pagination.first,
-                skip: pagination.skip,
-            });
+                CACHE_TTL.ORDERS,
+            );
         },
 
         order: async (_parent: unknown, { id }: { id: string }, context: GraphQLContext) => {
@@ -88,22 +133,70 @@ export const orderResolvers = {
             // Validate ID
             const validatedId = validationSchemas.cuid.parse(id);
 
-            const order = await prisma.orders.findUnique({
-                where: { id: validatedId },
-                include: {
-                    users: true,
-                    order_items: {
-                        include: {
-                            menu_items: true,
+            // Use Redis caching for individual orders with user-specific keys
+            const cacheKey = `order:${validatedId}:${context.user.id}`;
+            const order = await withCache(
+                cacheKey,
+                async () => {
+                    return await prisma.orders.findUnique({
+                        where: { id: validatedId },
+                        select: {
+                            id: true,
+                            userId: true,
+                            status: true,
+                            totalAmount: true,
+                            createdAt: true,
+                            updatedAt: true,
+                            users: {
+                                select: {
+                                    id: true,
+                                    email: true,
+                                    firstName: true,
+                                    lastName: true,
+                                    role: true,
+                                },
+                            },
+                            order_items: {
+                                select: {
+                                    id: true,
+                                    quantity: true,
+                                    price: true,
+                                    notes: true,
+                                    menu_items: {
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            description: true,
+                                            price: true,
+                                            category: true,
+                                            imageUrl: true,
+                                            restaurantId: true,
+                                        },
+                                    },
+                                },
+                            },
+                            payments: {
+                                select: {
+                                    id: true,
+                                    amount: true,
+                                    status: true,
+                                    paymentMethodId: true,
+                                    createdAt: true,
+                                    payment_methods: {
+                                        select: {
+                                            id: true,
+                                            type: true,
+                                            last4: true,
+                                            isDefault: true,
+                                        },
+                                    },
+                                },
+                            },
                         },
-                    },
-                    payments: {
-                        include: {
-                            payment_methods: true,
-                        },
-                    },
+                    });
                 },
-            });
+                CACHE_TTL.ORDERS,
+            );
 
             if (!order) return null;
 
@@ -302,6 +395,9 @@ export const orderResolvers = {
                     itemCount: orderItems.length,
                 });
 
+                // Invalidate order caches for the user
+                await deleteCacheByPattern(`orders:${context.user.id}:*`);
+
                 return order;
             } catch (error) {
                 logger.error("Order creation failed", {
@@ -358,23 +454,32 @@ export const orderResolvers = {
                 }
             }
 
-            return await prisma.orders.update({
-                where: { id: validatedId },
-                data: { status },
-                include: {
-                    users: true,
-                    order_items: {
-                        include: {
-                            menu_items: true,
+            return await prisma.orders
+                .update({
+                    where: { id: validatedId },
+                    data: { status },
+                    include: {
+                        users: true,
+                        order_items: {
+                            include: {
+                                menu_items: true,
+                            },
+                        },
+                        payments: {
+                            include: {
+                                payment_methods: true,
+                            },
                         },
                     },
-                    payments: {
-                        include: {
-                            payment_methods: true,
-                        },
-                    },
-                },
-            });
+                })
+                .then(async (updatedOrder) => {
+                    // Invalidate cache for the specific order (all user variants) and orders list
+                    await Promise.all([
+                        deleteCacheByPattern(`order:${validatedId}:*`),
+                        deleteCacheByPattern(`orders:${updatedOrder.userId}:*`),
+                    ]);
+                    return updatedOrder;
+                });
         },
 
         cancelOrder: async (_parent: unknown, { id }: { id: string }, context: GraphQLContext) => {
@@ -418,23 +523,32 @@ export const orderResolvers = {
                 }
             }
 
-            return await prisma.orders.update({
-                where: { id: validatedId },
-                data: { status: OrderStatus.CANCELLED },
-                include: {
-                    users: true,
-                    order_items: {
-                        include: {
-                            menu_items: true,
+            return await prisma.orders
+                .update({
+                    where: { id: validatedId },
+                    data: { status: OrderStatus.CANCELLED },
+                    include: {
+                        users: true,
+                        order_items: {
+                            include: {
+                                menu_items: true,
+                            },
+                        },
+                        payments: {
+                            include: {
+                                payment_methods: true,
+                            },
                         },
                     },
-                    payments: {
-                        include: {
-                            payment_methods: true,
-                        },
-                    },
-                },
-            });
+                })
+                .then(async (cancelledOrder) => {
+                    // Invalidate cache for the specific order (all user variants) and orders list
+                    await Promise.all([
+                        deleteCacheByPattern(`order:${validatedId}:*`),
+                        deleteCacheByPattern(`orders:${cancelledOrder.userId}:*`),
+                    ]);
+                    return cancelledOrder;
+                });
         },
     },
 

@@ -24,6 +24,7 @@ model menu_items {
   @@index([restaurantId])
   @@index([isAvailable])
   @@index([category])
+  @@index([restaurantId, isAvailable])
 }
 
 model order_items {
@@ -103,6 +104,7 @@ model restaurants {
 
   @@index([country])
   @@index([isActive])
+  @@index([country, isActive])
 }
 
 model users {

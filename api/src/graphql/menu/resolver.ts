@@ -9,6 +9,7 @@ import {
 import { parsePagination } from "../../lib/shared/pagination";
 import { GraphQLContext, CreateMenuItemInput } from "../../types/graphql";
 import { UserRole } from "@prisma/client";
+import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
 export const menuResolvers = {
     Query: {
@@ -29,17 +30,43 @@ export const menuResolvers = {
                 whereClause.restaurantId = validatedRestaurantId;
             }
 
-            return await prisma.menu_items.findMany({
-                where: whereClause,
-                include: {
-                    restaurants: true,
+            // Use Redis caching for menu items queries
+            const cacheKey = createCacheKey.menuItems(restaurantId);
+            return await withCache(
+                cacheKey,
+                async () => {
+                    return await prisma.menu_items.findMany({
+                        where: whereClause,
+                        select: {
+                            id: true,
+                            name: true,
+                            description: true,
+                            price: true,
+                            category: true,
+                            imageUrl: true,
+                            isAvailable: true,
+                            restaurantId: true,
+                            createdAt: true,
+                            restaurants: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    address: true,
+                                    city: true,
+                                    country: true,
+                                    isActive: true,
+                                },
+                            },
+                        },
+                        orderBy: {
+                            name: "asc",
+                        },
+                        take: pagination.first,
+                        skip: pagination.skip,
+                    });
                 },
-                orderBy: {
-                    name: "asc",
-                },
-                take: pagination.first,
-                skip: pagination.skip,
-            });
+                CACHE_TTL.MENU_ITEMS,
+            );
         },
 
         menuItem: async (_parent: unknown, { id }: { id: string }, context: GraphQLContext) => {
@@ -50,18 +77,44 @@ export const menuResolvers = {
             // Validate ID
             const validatedId = validationSchemas.cuid.parse(id);
 
-            const menuItem = await prisma.menu_items.findUnique({
-                where: { id: validatedId },
-                include: {
-                    restaurants: true,
+            // Use Redis caching for individual menu items
+            const cacheKey = createCacheKey.menuItem(validatedId);
+            return await withCache(
+                cacheKey,
+                async () => {
+                    const menuItem = await prisma.menu_items.findUnique({
+                        where: { id: validatedId },
+                        select: {
+                            id: true,
+                            name: true,
+                            description: true,
+                            price: true,
+                            category: true,
+                            imageUrl: true,
+                            isAvailable: true,
+                            restaurantId: true,
+                            createdAt: true,
+                            restaurants: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    address: true,
+                                    city: true,
+                                    country: true,
+                                    isActive: true,
+                                },
+                            },
+                        },
+                    });
+
+                    if (!menuItem) {
+                        throw GraphQLErrors.notFound("Menu item not found");
+                    }
+
+                    return menuItem;
                 },
-            });
-
-            if (!menuItem) {
-                throw GraphQLErrors.notFound("Menu item not found");
-            }
-
-            return menuItem;
+                CACHE_TTL.MENU_ITEMS,
+            );
         },
 
         menuCategories: async (
@@ -148,6 +201,9 @@ export const menuResolvers = {
                     price: menuItem.price,
                 });
 
+                // Invalidate cache for menu items
+                await deleteCacheByPattern("menuItems:*");
+
                 return menuItem;
             } catch (error) {
                 logger.error("Menu item creation failed", {
@@ -191,13 +247,22 @@ export const menuResolvers = {
             // Validate update input (partial schema)
             const validatedInput = CreateMenuItemInputSchema.partial().parse(input);
 
-            return await prisma.menu_items.update({
-                where: { id: validatedId },
-                data: validatedInput,
-                include: {
-                    restaurants: true,
-                },
-            });
+            return await prisma.menu_items
+                .update({
+                    where: { id: validatedId },
+                    data: validatedInput,
+                    include: {
+                        restaurants: true,
+                    },
+                })
+                .then(async (updatedMenuItem) => {
+                    // Invalidate cache for the specific menu item and menu items list
+                    await Promise.all([
+                        deleteCacheByPattern(`menuItem:${validatedId}`),
+                        deleteCacheByPattern("menuItems:*"),
+                    ]);
+                    return updatedMenuItem;
+                });
         },
 
         deleteMenuItem: async (
@@ -232,6 +297,12 @@ export const menuResolvers = {
             await prisma.menu_items.delete({
                 where: { id: validatedId },
             });
+
+            // Invalidate cache for the specific menu item and menu items list
+            await Promise.all([
+                deleteCacheByPattern(`menuItem:${validatedId}`),
+                deleteCacheByPattern("menuItems:*"),
+            ]);
 
             return true;
         },

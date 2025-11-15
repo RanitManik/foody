@@ -3,15 +3,106 @@ import { GraphQLErrors } from "./errors";
 import { UserRole, Country } from "@prisma/client";
 
 /**
+ * Input sanitization utilities
+ */
+export const sanitize = {
+    /**
+     * Sanitize string input by trimming and removing potentially dangerous characters
+     */
+    string: (input: string): string => {
+        if (typeof input !== "string") return "";
+
+        // Trim whitespace
+        let sanitized = input.trim();
+
+        // Basic XSS prevention - remove script tags and common attack vectors
+        sanitized = sanitized
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+            .replace(/javascript:/gi, "")
+            .replace(/on\w+\s*=/gi, "");
+
+        return sanitized;
+    },
+
+    /**
+     * Sanitize email by trimming and basic validation
+     */
+    email: (email: string): string => {
+        const sanitized = sanitize.string(email).toLowerCase();
+        // Basic email validation regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(sanitized)) {
+            throw new Error("Invalid email format");
+        }
+        return sanitized;
+    },
+
+    /**
+     * Sanitize HTML content (basic - for rich text fields)
+     */
+    html: (input: string): string => {
+        if (typeof input !== "string") return "";
+
+        let sanitized = input.trim();
+
+        // Remove dangerous tags and attributes
+        const dangerousTags = ["script", "iframe", "object", "embed", "form", "input", "button"];
+        dangerousTags.forEach((tag) => {
+            const regex = new RegExp(`<${tag}\\b[^>]*>.*?</${tag}>`, "gi");
+            sanitized = sanitized.replace(regex, "");
+        });
+
+        // Remove dangerous attributes
+        const dangerousAttrs = ["on\\w+", "javascript:", "vbscript:", "data:", "src="];
+        dangerousAttrs.forEach((attr) => {
+            const regex = new RegExp(`\\s${attr}[^\\s]*`, "gi");
+            sanitized = sanitized.replace(regex, "");
+        });
+
+        return sanitized;
+    },
+
+    /**
+     * Sanitize SQL-like inputs (prevent SQL injection patterns)
+     */
+    sqlInput: (input: string): string => {
+        const sanitized = sanitize.string(input);
+
+        // Remove common SQL injection patterns
+        const sqlPatterns = [
+            /(\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b)/gi,
+            /(-{2}|\/\*|\*\/)/g, // Comments
+            /('|(\\x27)|(\\x2D))/g, // Quotes and dashes
+        ];
+
+        let result = sanitized;
+        sqlPatterns.forEach((pattern) => {
+            result = result.replace(pattern, "");
+        });
+
+        return result;
+    },
+};
+
+/**
  * Common validation schemas
  */
 export const validationSchemas = {
-    email: z.email("Invalid email format"),
-    password: z.string().min(6, "Password must be at least 6 characters long"),
-    cuid: z.cuid("Invalid ID format"),
+    email: z.email("Invalid email format").transform(sanitize.email),
+    password: z
+        .string()
+        .min(8, "Password must be at least 8 characters long")
+        .regex(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+            "Password must contain at least one lowercase letter, one uppercase letter, and one number",
+        ),
+    cuid: z.string().regex(/^[cC][^\s-]{8,}$/, "Invalid ID format"),
     positiveNumber: z.number().positive("Must be a positive number"),
-    nonEmptyString: z.string().min(1, "Cannot be empty"),
-    phone: z.string().regex(/^\+?[\d\s-()]+$/, "Invalid phone number format"),
+    nonEmptyString: z.string().trim().min(1, "Cannot be empty").transform(sanitize.string),
+    phone: z.string().regex(/^\+?[\d\s\-()]+$/, "Invalid phone number format"),
+    url: z.url("Invalid URL format"),
+    safeString: z.string().max(1000, "Input too long").transform(sanitize.string),
+    safeHtml: z.string().max(10000, "Content too long").transform(sanitize.html),
 };
 
 /**
@@ -62,15 +153,23 @@ export const CountryEnum = z.enum([Country.INDIA, Country.AMERICA] as [Country, 
 export const RegisterInputSchema = z.object({
     email: validationSchemas.email,
     password: validationSchemas.password,
-    firstName: z.string().min(1, "First name is required").max(100, "First name too long"),
-    lastName: z.string().min(1, "Last name is required").max(100, "Last name too long"),
+    firstName: z
+        .string()
+        .min(1, "First name is required")
+        .max(100, "First name too long")
+        .transform(sanitize.string),
+    lastName: z
+        .string()
+        .min(1, "Last name is required")
+        .max(100, "Last name too long")
+        .transform(sanitize.string),
     role: UserRoleEnum,
     country: CountryEnum.optional(),
 });
 
 export const LoginInputSchema = z.object({
     email: validationSchemas.email,
-    password: z.string().min(1, "Password is required"),
+    password: z.string().min(1, "Password is required").transform(sanitize.string),
 });
 
 /**

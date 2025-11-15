@@ -9,6 +9,7 @@ import {
 import { parsePagination } from "../../lib/shared/pagination";
 import { GraphQLContext, CreateRestaurantInput } from "../../types/graphql";
 import { UserRole, restaurants, menu_items } from "@prisma/client";
+import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
 export const restaurantResolvers = {
     Query: {
@@ -44,14 +45,41 @@ export const restaurantResolvers = {
                 whereClause.country = country;
             }
 
-            return await prisma.restaurants.findMany({
-                where: whereClause,
-                include: {
-                    menu_items: true,
+            // Use Redis caching for restaurants queries
+            const cacheKey = createCacheKey.restaurants(country);
+            return await withCache(
+                cacheKey,
+                async () => {
+                    return await prisma.restaurants.findMany({
+                        where: whereClause,
+                        select: {
+                            id: true,
+                            name: true,
+                            description: true,
+                            address: true,
+                            city: true,
+                            country: true,
+                            phone: true,
+                            email: true,
+                            isActive: true,
+                            createdAt: true,
+                            menu_items: {
+                                where: { isAvailable: true },
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    price: true,
+                                    category: true,
+                                },
+                                orderBy: { name: "asc" },
+                            },
+                        },
+                        take: pagination.first,
+                        skip: pagination.skip,
+                    });
                 },
-                take: pagination.first,
-                skip: pagination.skip,
-            });
+                CACHE_TTL.RESTAURANTS,
+            );
         },
 
         restaurant: async (_parent: unknown, { id }: { id: string }, context: GraphQLContext) => {
@@ -62,12 +90,40 @@ export const restaurantResolvers = {
             // Validate ID
             const validatedId = validationSchemas.cuid.parse(id);
 
-            const restaurant = await prisma.restaurants.findUnique({
-                where: { id: validatedId },
-                include: {
-                    menu_items: true,
+            // Use Redis caching for individual restaurants with user role-based keys
+            const cacheKey = `restaurant:${validatedId}:${context.user.role}`;
+            const restaurant = await withCache(
+                cacheKey,
+                async () => {
+                    return await prisma.restaurants.findUnique({
+                        where: { id: validatedId },
+                        select: {
+                            id: true,
+                            name: true,
+                            address: true,
+                            city: true,
+                            country: true,
+                            phone: true,
+                            email: true,
+                            isActive: true,
+                            createdAt: true,
+                            menu_items: {
+                                where: { isAvailable: true },
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    description: true,
+                                    price: true,
+                                    category: true,
+                                    imageUrl: true,
+                                },
+                                orderBy: { category: "asc" },
+                            },
+                        },
+                    });
                 },
-            });
+                CACHE_TTL.RESTAURANTS,
+            );
 
             if (!restaurant) return null;
 
@@ -152,13 +208,22 @@ export const restaurantResolvers = {
             // Validate update input (partial schema)
             const validatedInput = CreateRestaurantInputSchema.partial().parse(input);
 
-            return await prisma.restaurants.update({
-                where: { id: validatedId },
-                data: validatedInput,
-                include: {
-                    menu_items: true,
-                },
-            });
+            return await prisma.restaurants
+                .update({
+                    where: { id: validatedId },
+                    data: validatedInput,
+                    include: {
+                        menu_items: true,
+                    },
+                })
+                .then(async (updatedRestaurant) => {
+                    // Invalidate cache for the specific restaurant (all role variants) and restaurants list
+                    await Promise.all([
+                        deleteCacheByPattern(`restaurant:${validatedId}:*`),
+                        deleteCacheByPattern("restaurants:*"),
+                    ]);
+                    return updatedRestaurant;
+                });
         },
 
         deleteRestaurant: async (
@@ -176,6 +241,12 @@ export const restaurantResolvers = {
             await prisma.restaurants.delete({
                 where: { id: validatedId },
             });
+
+            // Invalidate cache for the specific restaurant (all role variants) and restaurants list
+            await Promise.all([
+                deleteCacheByPattern(`restaurant:${validatedId}:*`),
+                deleteCacheByPattern("restaurants:*"),
+            ]);
 
             return true;
         },

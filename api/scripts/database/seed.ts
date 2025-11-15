@@ -1,13 +1,29 @@
 import { PrismaClient, UserRole, Country } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
+// Generate secure random password or use environment variable
+function getSecurePassword(envVar: string, defaultPassword: string): string {
+    const envPassword = process.env[envVar];
+    if (envPassword && envPassword.length >= 8) {
+        return envPassword;
+    }
+    // Generate a secure random password if not provided
+    return crypto.randomBytes(16).toString("hex");
+}
+
 async function main() {
     console.log("🌱 Starting database seeding...");
+    console.log("🔐 Using secure passwords from environment variables or generated randomly");
+    console.log(
+        "📝 Set ADMIN_PASSWORD, MANAGER_PASSWORD, MEMBER_PASSWORD env vars for custom passwords",
+    );
 
     // Create admin user
-    const adminPassword = await bcrypt.hash("admin123", 12);
+    const adminPasswordPlain = getSecurePassword("ADMIN_PASSWORD", "ChangeMe123!");
+    const adminPassword = await bcrypt.hash(adminPasswordPlain, 12);
     const admin = await prisma.users.upsert({
         where: { email: "admin@foody.com" },
         update: {},
@@ -20,14 +36,21 @@ async function main() {
         },
     });
 
+    console.log(
+        `✅ Admin user created: admin@foody.com / ${process.env.ADMIN_PASSWORD ? "[SET VIA ENV]" : adminPasswordPlain}`,
+    );
+
     // Create managers
-    const managerIndiaPassword = await bcrypt.hash("manager123", 12);
+    const managerPassword = await bcrypt.hash(
+        getSecurePassword("MANAGER_PASSWORD", "ChangeMe123!"),
+        12,
+    );
     const managerIndia = await prisma.users.upsert({
         where: { email: "captain.marvel@foody.com" },
         update: {},
         create: {
             email: "captain.marvel@foody.com",
-            password: managerIndiaPassword,
+            password: managerPassword,
             firstName: "Captain",
             lastName: "Marvel",
             role: UserRole.MANAGER_INDIA,
@@ -35,13 +58,12 @@ async function main() {
         },
     });
 
-    const managerAmericaPassword = await bcrypt.hash("manager123", 12);
     const managerAmerica = await prisma.users.upsert({
         where: { email: "captain.america@foody.com" },
         update: {},
         create: {
             email: "captain.america@foody.com",
-            password: managerAmericaPassword,
+            password: managerPassword,
             firstName: "Captain",
             lastName: "America",
             role: UserRole.MANAGER_AMERICA,
@@ -50,13 +72,16 @@ async function main() {
     });
 
     // Create team members
-    const memberIndiaPassword = await bcrypt.hash("member123", 12);
+    const memberPassword = await bcrypt.hash(
+        getSecurePassword("MEMBER_PASSWORD", "ChangeMe123!"),
+        12,
+    );
     const memberIndia1 = await prisma.users.upsert({
         where: { email: "thanos@foody.com" },
         update: {},
         create: {
             email: "thanos@foody.com",
-            password: memberIndiaPassword,
+            password: memberPassword,
             firstName: "Thanos",
             lastName: "Titan",
             role: UserRole.MEMBER_INDIA,
@@ -69,7 +94,7 @@ async function main() {
         update: {},
         create: {
             email: "thor@foody.com",
-            password: memberIndiaPassword,
+            password: memberPassword,
             firstName: "Thor",
             lastName: "Odinson",
             role: UserRole.MEMBER_INDIA,
@@ -77,13 +102,12 @@ async function main() {
         },
     });
 
-    const memberAmericaPassword = await bcrypt.hash("member123", 12);
     const memberAmerica = await prisma.users.upsert({
         where: { email: "travis@foody.com" },
         update: {},
         create: {
             email: "travis@foody.com",
-            password: memberAmericaPassword,
+            password: memberPassword,
             firstName: "Travis",
             lastName: "Scott",
             role: UserRole.MEMBER_AMERICA,

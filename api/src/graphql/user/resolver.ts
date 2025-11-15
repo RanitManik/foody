@@ -6,6 +6,7 @@ import { validationSchemas, UserRoleEnum, CountryEnum } from "../../lib/shared/v
 import { parsePagination } from "../../lib/shared/pagination";
 import { GraphQLContext } from "../../types/graphql";
 import { UserRole, Country } from "@prisma/client";
+import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
 export const userResolvers = {
     Query: {
@@ -24,17 +25,48 @@ export const userResolvers = {
 
             try {
                 const pagination = parsePagination({ first, skip });
-                const users = await prisma.users.findMany({
-                    include: {
-                        orders: true,
-                        payment_methods: true,
+
+                // Use Redis caching for users queries (admin only)
+                const cacheKey = createCacheKey.user("admin");
+                const users = await withCache(
+                    cacheKey,
+                    async () => {
+                        return await prisma.users.findMany({
+                            select: {
+                                id: true,
+                                email: true,
+                                firstName: true,
+                                lastName: true,
+                                role: true,
+                                country: true,
+                                isActive: true,
+                                createdAt: true,
+                                orders: {
+                                    select: {
+                                        id: true,
+                                        status: true,
+                                        totalAmount: true,
+                                        createdAt: true,
+                                    },
+                                },
+                                payment_methods: {
+                                    select: {
+                                        id: true,
+                                        type: true,
+                                        provider: true,
+                                        isDefault: true,
+                                    },
+                                },
+                            },
+                            take: pagination.first,
+                            skip: pagination.skip,
+                            orderBy: {
+                                createdAt: "desc",
+                            },
+                        });
                     },
-                    take: pagination.first,
-                    skip: pagination.skip,
-                    orderBy: {
-                        createdAt: "desc",
-                    },
-                });
+                    CACHE_TTL.USER_DATA,
+                );
 
                 logger.info("Users queried successfully", {
                     userId: context.user.id,
@@ -59,13 +91,45 @@ export const userResolvers = {
             // Validate ID
             const validatedId = validationSchemas.cuid.parse(id);
 
-            return await prisma.users.findUnique({
-                where: { id: validatedId },
-                include: {
-                    orders: true,
-                    payment_methods: true,
+            // Use Redis caching for individual users (admin only)
+            const cacheKey = createCacheKey.user(validatedId);
+            return await withCache(
+                cacheKey,
+                async () => {
+                    return await prisma.users.findUnique({
+                        where: { id: validatedId },
+                        select: {
+                            id: true,
+                            email: true,
+                            firstName: true,
+                            lastName: true,
+                            role: true,
+                            country: true,
+                            isActive: true,
+                            createdAt: true,
+                            orders: {
+                                select: {
+                                    id: true,
+                                    status: true,
+                                    totalAmount: true,
+                                    createdAt: true,
+                                },
+                                orderBy: { createdAt: "desc" },
+                                take: 10, // Limit to recent orders for performance
+                            },
+                            payment_methods: {
+                                select: {
+                                    id: true,
+                                    type: true,
+                                    isDefault: true,
+                                    createdAt: true,
+                                },
+                            },
+                        },
+                    });
                 },
-            });
+                CACHE_TTL.USER_DATA,
+            );
         },
     },
 
@@ -99,10 +163,16 @@ export const userResolvers = {
                 updateData.isActive = z.boolean().parse(isActive);
             }
 
-            return await prisma.users.update({
-                where: { id: validatedId },
-                data: updateData,
-            });
+            return await prisma.users
+                .update({
+                    where: { id: validatedId },
+                    data: updateData,
+                })
+                .then((user) => {
+                    // Invalidate user caches
+                    deleteCacheByPattern("user:*");
+                    return user;
+                });
         },
 
         deleteUser: async (_parent: unknown, { id }: { id: string }, context: GraphQLContext) => {
@@ -116,6 +186,9 @@ export const userResolvers = {
             await prisma.users.delete({
                 where: { id: validatedId },
             });
+
+            // Invalidate user caches
+            deleteCacheByPattern("user:*");
 
             return true;
         },

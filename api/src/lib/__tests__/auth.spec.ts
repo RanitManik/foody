@@ -1,4 +1,4 @@
-import { generateToken, getUserFromToken, extractToken } from ".";
+import { generateToken, getUserFromToken, extractToken } from "../auth";
 import jwt from "jsonwebtoken";
 import { UserRole, Country } from "@prisma/client";
 
@@ -66,7 +66,7 @@ describe("Auth Utilities", () => {
             expect(mockJwt.sign).toHaveBeenCalledWith(
                 { userId },
                 "your-super-secret-jwt-key-change-this-in-production",
-                { expiresIn: "7d" }
+                { expiresIn: "7d" },
             );
             expect(token).toBe("mocked-token-user-123");
         });
@@ -78,7 +78,7 @@ describe("Auth Utilities", () => {
             expect(mockJwt.sign).toHaveBeenCalledWith(
                 { userId },
                 "your-super-secret-jwt-key-change-this-in-production",
-                { expiresIn: "7d" }
+                { expiresIn: "7d" },
             );
         });
 
@@ -90,7 +90,7 @@ describe("Auth Utilities", () => {
             expect(mockJwt.sign).toHaveBeenCalledWith(
                 { userId },
                 "your-super-secret-jwt-key-change-this-in-production",
-                { expiresIn: "1h" }
+                { expiresIn: "1h" },
             );
         });
 
@@ -101,7 +101,7 @@ describe("Auth Utilities", () => {
             expect(mockJwt.sign).toHaveBeenCalledWith(
                 { userId },
                 "your-super-secret-jwt-key-change-this-in-production",
-                { expiresIn: "7d" }
+                { expiresIn: "7d" },
             );
         });
     });
@@ -134,7 +134,7 @@ describe("Auth Utilities", () => {
                 lastName: "User",
                 isActive: true,
                 createdAt: new Date(),
-                updatedAt: new Date()
+                updatedAt: new Date(),
             };
 
             (mockPrisma.users.findUnique as jest.Mock).mockResolvedValue(mockUser);
@@ -200,28 +200,28 @@ describe("Auth Utilities", () => {
         describe("from connectionParams", () => {
             it("should extract from authorization param", () => {
                 const result = extractToken({
-                    connectionParams: { authorization: "Bearer ws-token" }
+                    connectionParams: { authorization: "Bearer ws-token" },
                 });
                 expect(result).toBe("ws-token");
             });
 
             it("should extract from Authorization param (case sensitive)", () => {
                 const result = extractToken({
-                    connectionParams: { Authorization: "Bearer ws-token-case" }
+                    connectionParams: { Authorization: "Bearer ws-token-case" },
                 });
                 expect(result).toBe("ws-token-case");
             });
 
             it("should extract from authToken param", () => {
                 const result = extractToken({
-                    connectionParams: { authToken: "auth-token-123" }
+                    connectionParams: { authToken: "auth-token-123" },
                 });
                 expect(result).toBe("auth-token-123");
             });
 
             it("should extract from token param", () => {
                 const result = extractToken({
-                    connectionParams: { token: "simple-token" }
+                    connectionParams: { token: "simple-token" },
                 });
                 expect(result).toBe("simple-token");
             });
@@ -231,8 +231,8 @@ describe("Auth Utilities", () => {
                     connectionParams: {
                         authorization: "Bearer auth-param",
                         authToken: "auth-token-param",
-                        token: "token-param"
-                    }
+                        token: "token-param",
+                    },
                 });
                 expect(result).toBe("auth-param");
             });

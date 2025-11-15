@@ -1,3 +1,4 @@
+// ===== EXTERNAL DEPENDENCIES =====
 import express from "express";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@as-integrations/express4";
@@ -8,18 +9,21 @@ import { createServer } from "http";
 import { execute } from "graphql";
 import { NoSchemaIntrospectionCustomRule, validateSchema } from "graphql";
 import depthLimit from "graphql-depth-limit";
+import { v4 as uuidv4 } from "uuid";
+
+// ===== INTERNAL MODULES =====
 import { logger } from "./lib/shared/logger";
 import { createComplexityRule } from "./lib/graphql/complexity";
 import { typeDefs } from "./graphql";
 import { resolvers } from "./graphql";
-import { prisma } from "./lib/database";
+import { prisma, validateDatabaseConfig, setupDatabaseGracefulShutdown } from "./lib/database";
 import { getUserFromToken, extractToken } from "./lib/auth";
 import { GraphQLContext } from "./types/graphql";
 import { setupMiddleware } from "./middleware";
 import { ErrorLoggingPlugin } from "./plugins";
-import { register } from "./metrics";
 import { API_CONSTANTS } from "./lib/shared/constants";
-import { v4 as uuidv4 } from "uuid";
+import { initRedis } from "./lib/shared/cache";
+import { createHealthRouter } from "./lib/shared/health";
 
 // ===== ENVIRONMENT VALIDATION =====
 const REQUIRED_ENV_VARS = ["JWT_SECRET", "DATABASE_URL"];
@@ -34,10 +38,24 @@ if (missingEnvVars.length > 0) {
     }
 }
 
-const host = process.env.HOST ?? "localhost";
-const port = process.env.PORT ? Number(process.env.PORT) : 4000;
+// Validate database configuration
+const dbConfigValidation = validateDatabaseConfig();
+if (!dbConfigValidation.valid) {
+    const message = `Invalid database configuration: ${dbConfigValidation.errors.join(", ")}`;
+    if (process.env.NODE_ENV === "production") {
+        throw new Error(`❌ ${message}`);
+    } else {
+        console.warn(`⚠️  ${message}`);
+    }
+}
+
+const host = process.env.HOST ?? API_CONSTANTS.SERVER.DEFAULT_HOST;
+const port = process.env.PORT ? Number(process.env.PORT) : API_CONSTANTS.SERVER.DEFAULT_PORT;
 
 async function main() {
+    // Initialize Redis cache
+    await initRedis();
+
     const app = express();
 
     // Setup middleware
@@ -132,41 +150,8 @@ async function main() {
         }),
     );
 
-    // Health check endpoint
-    app.get("/health", (_req, res) => {
-        res.json({ status: "ok", timestamp: new Date().toISOString() });
-    });
-
-    // Readiness check endpoint
-    app.get("/health/ready", async (_req, res) => {
-        try {
-            await prisma.$queryRaw`SELECT 1`;
-            res.json({
-                status: "ready",
-                timestamp: new Date().toISOString(),
-                database: "connected",
-            });
-        } catch (error) {
-            res.status(503).json({
-                status: "not_ready",
-                timestamp: new Date().toISOString(),
-                database: "disconnected",
-                error:
-                    process.env.NODE_ENV !== "production" ? String(error) : "Database unavailable",
-            });
-        }
-    });
-
-    // Metrics endpoint
-    app.get("/metrics", async (_req, res) => {
-        try {
-            res.set("Content-Type", register.contentType);
-            res.end(await register.metrics());
-        } catch (ex) {
-            logger.error("Error generating metrics", { error: ex });
-            res.status(500).end();
-        }
-    });
+    // Health and monitoring routes
+    app.use("/health", createHealthRouter());
 
     // Note: Global error handler is set up in setupMiddleware (error-handler.ts)
     // This ensures consistent error handling across the application
@@ -183,6 +168,9 @@ async function main() {
         logger.info(`🌐 CORS origins: ${origins.join(", ")}`);
     });
 
+    // Setup database graceful shutdown handlers
+    setupDatabaseGracefulShutdown();
+
     // ===== GRACEFUL SHUTDOWN =====
     const gracefulShutdown = async () => {
         logger.info("Shutting down gracefully...");
@@ -190,7 +178,7 @@ async function main() {
         const cleanupTimer = setTimeout(() => {
             logger.warn("Graceful shutdown timed out, force exit");
             process.exit(1);
-        }, 15000);
+        }, API_CONSTANTS.SERVER.SHUTDOWN_TIMEOUT_MS);
 
         try {
             await serverCleanup?.dispose?.();
@@ -204,7 +192,7 @@ async function main() {
                 });
             });
 
-            await prisma.$disconnect();
+            // Note: Database disconnection is handled by setupDatabaseGracefulShutdown
             clearTimeout(cleanupTimer);
             logger.info("✅ Shutdown complete.");
             process.exit(0);

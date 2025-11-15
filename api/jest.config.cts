@@ -16,4 +16,18 @@ module.exports = {
     },
     moduleFileExtensions: ["ts", "js", "html"],
     coverageDirectory: "test-output/jest/coverage",
+    collectCoverageFrom: [
+        "src/**/*.{ts,js}",
+        "!src/**/*.d.ts",
+        "!src/**/index.ts", // Don't collect coverage from barrel exports
+    ],
+    coverageReporters: ["text", "lcov", "html"],
+    coverageThreshold: {
+        global: {
+            branches: 70,
+            functions: 80,
+            lines: 80,
+            statements: 80,
+        },
+    },
 };
