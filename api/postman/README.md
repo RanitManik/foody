@@ -1,21 +1,21 @@
 # Foody API - Postman Collections
 
-Complete Postman collections for testing all endpoints of the Foody GraphQL API with automated role-based testing.
+Complete Postman collection for testing all endpoints of the Foody GraphQL API with automated role-based testing.
 
 <details>
 <summary><strong>Table of Contents</strong> (Click to Expand)</summary>
 
 - [**Files**](#files)
     - [Manual Testing Collection](#manual-testing-collection)
-    - [Automated Role-Based Collections](#automated-role-based-collections)
+    - [Automated Complete Flow Collection](#automated-complete-flow-collection)
 - [**Quick Start**](#quick-start)
 - [**API Endpoints**](#api-endpoints)
 - [**Environment Variables**](#environment-variables)
 - [**Requirements**](#requirements)
-- [**Automated Role-Based Collections**](#automated-role-based-collections-1)
-    - [Admin Collection](#admin-collection)
-    - [Manager Collection](#manager-collection)
-    - [Member Collection](#member-collection)
+- [**Automated Complete Flow Collection**](#automated-complete-flow-collection-1)
+    - [Admin Flow](#admin-flow)
+    - [Manager Flow](#manager-flow)
+    - [Member Flow](#member-flow)
 - [**How to Run Collections**](#how-to-run-collections)
     - [Option 1: Collection Runner (Recommended)](#option-1-collection-runner-recommended)
     - [Option 2: Newman CLI (CI/CD)](#option-2-newman-cli-cicd)
@@ -34,11 +34,9 @@ Complete Postman collections for testing all endpoints of the Foody GraphQL API 
 - `Foody_API_Postman_Collection.json` - Complete API collection with 31 requests for manual testing
 - `Foody_API_Postman_Environment.postman_environment.json` - Environment variables (optional)
 
-### Automated Role-Based Collections
+### Automated Complete Flow Collection
 
-- `Foody_Admin_Collection.json` - **Admin** automated flow (17 requests) - Full CRUD access
-- `Foody_Manager_Collection.json` - **Manager India** automated flow (13 requests) - Country-based restrictions
-- `Foody_Member_Collection.json` - **Member India** automated flow (10 requests) - Read-only + blocks validation
+- `Foody_Complete_Flow_Automated.json` - **Complete automated flow** (~30 requests) - Tests all roles (Admin, Manager, Member) in one sequential run
 
 > [!IMPORTANT]
 > **Before using these collections**, ensure you have seeded the database with test data by running:
@@ -110,24 +108,29 @@ Complete Postman collections for testing all endpoints of the Foody GraphQL API 
 - Foody API server running on `http://localhost:4000`
 - Database seeded with test data (`npm run db:seed`)
 
-## Automated Role-Based Collections
+## Automated Complete Flow Collection
 
-Three automated collections for comprehensive RBAC testing with automatic authentication and validation:
+**Single comprehensive collection** that tests all roles (Admin, Manager, Member) in one sequential run.
 
-- **Admin Collection** - Full system access and CRUD operations
-- **Manager Collection** - Country-restricted management capabilities
-- **Member Collection** - Read-only access with write operation blocking
+**Why Single Collection?**
+
+- ✅ No dependency issues (admin creates all necessary data first)
+- ✅ Tests all 5 problem statement functions for all 3 roles in one run
+- ✅ Sequential execution: Admin Setup → Manager Tests → Member Tests
+- ✅ Create → Verify pattern for data consistency
+- ✅ ~30 comprehensive tests covering complete functionality
 
 **Key Features:**
 
-- Auto-login with JWT token capture and injection
+- Auto-login with JWT token capture and injection for each role
 - Sequential execution for Collection Runner
 - Automated response validation
 - Self-contained (no manual token management)
+- Organized into folders by role
 
-### Admin Collection
+### Admin Flow
 
-**User:** Nick Fury (admin@foody.com) | **Role:** ADMIN | **Requests:** 14
+**User:** Nick Fury (admin@foody.com) | **Role:** ADMIN | **Tests:** 12
 
 **Capabilities:**
 
@@ -138,56 +141,64 @@ Three automated collections for comprehensive RBAC testing with automatic authen
 - Order lifecycle management
 - Payment processing
 
-**Execution Flow:**
+**Test Flow:**
 
 ```
-1. Login → 2. Get Current User → 3. Create User → 4. Get All Users → 5. Update User
-6. Create Restaurant → 7. Get Restaurants → 8. Create Menu Item → 9. Update Menu Item
-10. Create Payment Method → 11. Get Payment Methods → 12. Create Order → 13. Get Orders
-14. Update Order Status → 15. Process Payment → 16. Get All Payments
+1. Login → 2. View Restaurants (Function 1) → 3. View Menu Items (Function 1)
+4. Create Restaurant → 5. Create Menu Item → 6. Create Payment Method (Function 5)
+7. Create & Place Order (Functions 2 & 3) → 8. Verify Order in List
+9. Process Payment → 10. Update Order Status → 11. Cancel Order (Function 4)
+12. Update Payment Method (Function 5)
 ```
 
 **Expected Results:**
 
-- ✅ All 14 requests pass
+- ✅ All 12 tests pass
 - ✅ All CRUD operations succeed
-- ✅ Admin can view all orders and payments
+- ✅ Admin can view and manage all resources
 
-### Manager Collection
+---
 
-**User:** Captain Marvel (captain.marvel@foody.com) | **Role:** MANAGER_INDIA | **Requests:** 12
+### Manager Flow
+
+**User:** Captain Marvel (captain.marvel@foody.com) | **Role:** MANAGER_INDIA | **Tests:** 8
 
 **Capabilities:**
 
 - Country-based restaurant filtering (INDIA only)
-- Menu item CRUD for assigned country
-- Order creation and status updates
-- Payment processing
-- Member order management
+- Menu item viewing (read-only for testing)
+- Order status updates
+- Payment method viewing (read-only)
 
 **Restrictions:**
 
+- ❌ Cannot create payment methods (admin-only)
+- ❌ Cannot update payment methods (admin-only)
 - ❌ Cannot access other countries' restaurants
-- ❌ Cannot modify cross-country data
-- ✅ Can manage country-specific member orders
+- ✅ Can view payment methods
+- ✅ Can update order status
 
-**Execution Flow:**
+**Test Flow:**
 
 ```
-1. Login → 2. Get Current User → 3. Get India Restaurants → 4. Get Menu Items
-5. Create Menu Item → 6. Update Menu Item → 7. Create Payment Method → 8. Create Order
-9. Get Orders → 10. Update Order Status → 11. Process Payment → 12. Get Payment Methods
+1. Login → 2. View India Restaurants Only (Function 1) → 3. View Menu Items (Function 1)
+4. BLOCKED Create Payment Method (Function 5) → 5. BLOCKED Update Payment Method (Function 5)
+6. ALLOWED Read Payment Methods (Function 5) → 7. View Orders & Extract ID
+8. Update Order Status (Function 4)
 ```
 
 **Expected Results:**
 
-- ✅ All 12 requests pass
+- ✅ All 8 tests pass
 - ✅ Only INDIA restaurants visible
-- ✅ CRUD operations succeed within country scope
+- ✅ Payment method operations correctly blocked
+- ✅ Order status updates succeed
 
-### Member Collection
+---
 
-**User:** Thanos (thanos@foody.com) | **Role:** MEMBER_INDIA | **Requests:** 10
+### Member Flow
+
+**User:** Thanos (thanos@foody.com) | **Role:** MEMBER_INDIA | **Tests:** 7
 
 **Capabilities:**
 
@@ -197,35 +208,38 @@ Three automated collections for comprehensive RBAC testing with automatic authen
 
 **Restrictions (Validated):**
 
-- ❌ Cannot place orders
-- ❌ Cannot cancel orders
-- ❌ Cannot manage payment methods
+- ❌ Cannot place orders (checkout & pay blocked)
+- ❌ Cannot create payment methods
+- ❌ Cannot update menu items
+- ❌ Cannot delete menu items
 - ❌ Cannot modify menu items
 - ❌ Cannot create restaurants
 
-**Execution Flow:**
+**Test Flow:**
 
 ```
-1. Login → 2. Get Current User → 3. Get Restaurants → 4. Get Menu Items
-5. BLOCKED: Create Payment → 6. BLOCKED: Create Order → 7. BLOCKED: Cancel Order
-8. BLOCKED: Update Menu → 9. BLOCKED: Delete Menu → 10. BLOCKED: Create Restaurant
+1. Login → 2. View Restaurants (Function 1) → 3. View Menu Items (Function 1)
+4. BLOCKED Place Order (Function 3) → 5. BLOCKED Create Payment Method (Function 5)
+6. BLOCKED Update Menu Item → 7. BLOCKED Delete Menu Item
 ```
 
 **Expected Results:**
 
-- ✅ All 10 requests pass (blocks validated as successes)
+- ✅ All 7 tests pass (blocks validated as successes)
 - ✅ Read operations succeed
 - ✅ Write operations properly blocked with error messages
+
+---
 
 ## How to Run Collections
 
 ### Option 1: Collection Runner (Recommended)
 
-1. Import collection (Admin/Manager/Member)
+1. Import `Foody_Complete_Flow_Automated.json`
 2. Click collection name → **"Run"** button
-3. Ensure all requests selected
-4. Click **"Run [Collection Name]"**
-5. View automated execution results
+3. Ensure all requests/folders selected
+4. Click **"Run Foody API - Complete Flow (Automated)"**
+5. View automated execution results (all ~30 tests run sequentially)
 
 ### Option 2: Newman CLI (CI/CD)
 
@@ -233,18 +247,17 @@ Three automated collections for comprehensive RBAC testing with automatic authen
 # Install Newman
 npm install -g newman
 
-# Run collections
-newman run Foody_Admin_Collection.json
-newman run Foody_Manager_Collection.json
-newman run Foody_Member_Collection.json
+# Run complete flow
+newman run Foody_Complete_Flow_Automated.json
 ```
 
 ### Option 3: Manual Execution
 
 1. Open collection
-2. Run requests sequentially (01, 02, 03...)
-3. Token auto-captured after login
-4. Subsequent requests use stored token
+2. Expand folders (Admin Flow, Manager Flow, Member Flow)
+3. Run requests sequentially within each folder
+4. Tokens auto-captured after each role's login
+5. Subsequent requests use stored tokens
 
 ## Test User Credentials
 
@@ -259,29 +272,31 @@ newman run Foody_Member_Collection.json
 
 ## Validation Summary
 
-| Collection | CRUD Access | Country Filtering | User Management | Payment Methods | Order Management |
-| ---------- | ----------- | ----------------- | --------------- | --------------- | ---------------- |
-| Admin      | Full        | Global            | ✅              | ✅              | All Users        |
-| Manager    | Limited     | Country-specific  | ❌              | ❌              | Country Members  |
-| Member     | Read-only   | Country-specific  | ❌              | ❌              | ❌               |
+| Role    | CRUD Access | Country Filtering | User Management | Payment Methods  | Order Management |
+| ------- | ----------- | ----------------- | --------------- | ---------------- | ---------------- |
+| Admin   | Full        | Global            | ✅              | ✅ Create/Update | All Users        |
+| Manager | Limited     | Country-specific  | ❌              | ✅ Read Only     | Country Members  |
+| Member  | Read-only   | Country-specific  | ❌              | ❌               | ❌               |
 
 ## Troubleshooting
 
-| Issue                          | Solution                                      |
-| ------------------------------ | --------------------------------------------- |
-| Token not captured after login | Verify API running on `http://localhost:4000` |
-| "Unauthorized" errors          | Run the "Login" request first (always #01)    |
-| Order creation fails           | Ensure database seeded (`npm run db:seed`)    |
-| Country filtering not working  | Verify user role/country in Get Current User  |
-| Newman CLI errors              | Collections use variables, no env file needed |
+| Issue                          | Solution                                           |
+| ------------------------------ | -------------------------------------------------- |
+| Token not captured after login | Verify API running on `http://localhost:4000`      |
+| "Unauthorized" errors          | Run requests in order (login first in each folder) |
+| Order creation fails           | Ensure database seeded (`npm run db:seed`)         |
+| Country filtering not working  | Verify user role/country in login response         |
+| Newman CLI errors              | Collections use variables, no env file needed      |
+| Manager order update fails     | This test auto-skips if no orders exist (expected) |
 
 ## Collection Stats
 
-| Collection | Requests | Duration | Auto-Login | Auto-Cleanup |
-| ---------- | -------- | -------- | ---------- | ------------ |
-| Admin      | 14       | ~2-3s    | ✅         | N/A          |
-| Manager    | 12       | ~1-2s    | ✅         | N/A          |
-| Member     | 10       | ~1s      | ✅         | N/A          |
+| Collection     | Tests | Duration | Auto-Login   | Folders |
+| -------------- | ----- | -------- | ------------ | ------- |
+| Complete Flow  | ~30   | ~3-5s    | ✅ (3 roles) | ✅ (3)  |
+| - Admin Flow   | 12    | ~2s      | ✅           | -       |
+| - Manager Flow | 8     | ~1s      | ✅           | -       |
+| - Member Flow  | 7     | ~1s      | ✅           | -       |
 
 **Last Updated:** November 16, 2025  
 **API Version:** 1.0.0

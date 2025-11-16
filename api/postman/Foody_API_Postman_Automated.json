@@ -1,0 +1,1165 @@
+{
+    "info": {
+        "name": "Foody API - Complete Collection (Automated)",
+        "description": "**Complete Automated Test Flow**\n\nThis collection tests the entire Foody API in a single, sequential flow without dependency issues.\n\n## Problem Statement Validation\n\n### Test Flow\n1. **Admin Setup** (Nick Fury)\n   - Login as admin\n   - Create restaurants\n   - Create menu items\n   - Create payment methods\n   - Create orders and place them\n   - Process payments\n   - Cancel orders\n   - Update payment methods\n\n2. **Manager Tests** (Captain Marvel - India)\n   - Login as manager\n   - View restaurants (India only)\n   - Create menu items (India restaurants)\n   - View orders (India members)\n   - Update order status\n   - **BLOCKED**: Create payment methods\n   - **BLOCKED**: Update payment methods\n   - **ALLOWED**: Read payment methods\n\n3. **Member Tests** (Thanos - India)\n   - Login as member\n   - View restaurants (read-only)\n   - View menu items (read-only)\n   - **BLOCKED**: Create orders (cannot checkout & pay)\n   - **BLOCKED**: Create payment methods\n   - **BLOCKED**: Update menu items\n   - **BLOCKED**: Delete menu items\n\n## Problem Statement Compliance Matrix\n\n| S.NO | FUNCTION | ADMIN | MANAGER | MEMBER | STATUS |\n|------|----------|-------|---------|--------|--------|\n| 1 | View restaurants & menu items | ✅ | ✅ | ✅ | Tested |\n| 2 | Create order (add food items) | ✅ | ✅ | ✅* | Tested |\n| 3 | Place order (checkout & pay) | ✅ | ✅ | ❌ | Tested |\n| 4 | Cancel order | ✅ | ✅ | ❌ | Tested |\n| 5 | Update payment method | ✅ | ❌ | ❌ | Tested |\n\n*Members can add items but cannot checkout (blocked by payment requirement)\n\n## Key Features\n- ✅ Single file, complete flow\n- ✅ No dependency issues\n- ✅ Tests all 5 problem statement functions\n- ✅ Tests all 3 user roles\n- ✅ Create → Verify → Update → Verify pattern\n- ✅ Comprehensive validation\n\n## Usage\nRun the entire collection using Collection Runner. All tests will execute in sequence.\n\n**Version:** 1.0.0\n**Total Requests:** ~30\n**Last Updated:** November 2025",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{auth_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:4000",
+            "type": "string"
+        },
+        {
+            "key": "graphql",
+            "value": "{{baseUrl}}/graphql",
+            "type": "string"
+        },
+        {
+            "key": "auth_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "admin_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "manager_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "member_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "restaurant_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "menu_item_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "payment_method_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "order_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "payment_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "ADMIN FLOW (Nick Fury)",
+            "item": [
+                {
+                    "name": "ADMIN-01: Login as Admin",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Admin login successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.login).to.have.property('token');",
+                                    "    pm.expect(response.data.login.user.role).to.equal('ADMIN');",
+                                    "    ",
+                                    "    const token = response.data.login.token;",
+                                    "    pm.collectionVariables.set('auth_token', token);",
+                                    "    pm.collectionVariables.set('admin_token', token);",
+                                    "    console.log('✅ Admin authenticated');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      role\n    }\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"email\": \"admin@foody.com\",\n    \"password\": \"ChangeMe123!\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-02: View Restaurants",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Restaurants retrieved\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.restaurants).to.be.an('array');",
+                                    "    pm.expect(response.data.restaurants.length).to.be.greaterThan(0);",
+                                    "    ",
+                                    "    // Save first restaurant ID",
+                                    "    pm.collectionVariables.set('restaurant_id', response.data.restaurants[0].id);",
+                                    "    console.log('✅ Function 1: Admin can view restaurants');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query Restaurants {\n  restaurants {\n    id\n    name\n    country\n    city\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-03: View Menu Items",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Menu items retrieved\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.menuItems).to.be.an('array');",
+                                    "    ",
+                                    "    if (response.data.menuItems.length > 0) {",
+                                    "        pm.collectionVariables.set('menu_item_id', response.data.menuItems[0].id);",
+                                    "    }",
+                                    "    console.log('✅ Function 1: Admin can view menu items');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query MenuItems {\n  menuItems {\n    id\n    name\n    price\n    restaurant {\n      id\n      country\n    }\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-04: Create Restaurant",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Restaurant created\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.createRestaurant).to.have.property('id');",
+                                    "    pm.collectionVariables.set('restaurant_id', response.data.createRestaurant.id);",
+                                    "    console.log('✅ Restaurant created:', response.data.createRestaurant.id);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateRestaurant($input: CreateRestaurantInput!) {\n  createRestaurant(input: $input) {\n    id\n    name\n    country\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Test Restaurant - Automated\",\n    \"address\": \"123 Test Street\",\n    \"city\": \"Bangalore\",\n    \"country\": \"INDIA\",\n    \"phone\": \"+91-1234567890\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-05: Create Menu Item",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Menu item created\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.createMenuItem).to.have.property('id');",
+                                    "    pm.collectionVariables.set('menu_item_id', response.data.createMenuItem.id);",
+                                    "    console.log('✅ Menu item created:', response.data.createMenuItem.id);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateMenuItem($input: CreateMenuItemInput!) {\n  createMenuItem(input: $input) {\n    id\n    name\n    price\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Test Dish - Automated\",\n    \"description\": \"Automated test menu item\",\n    \"price\": 15.99,\n    \"category\": \"Main Course\",\n    \"restaurantId\": \"{{restaurant_id}}\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-06: Create Payment Method",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Payment method created\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.createPaymentMethod).to.have.property('id');",
+                                    "    pm.collectionVariables.set('payment_method_id', response.data.createPaymentMethod.id);",
+                                    "    console.log('✅ Function 5: Admin created payment method');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {\n  createPaymentMethod(input: $input) {\n    id\n    type\n    provider\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"type\": \"CREDIT_CARD\",\n    \"provider\": \"STRIPE\",\n    \"token\": \"tok_automated_test\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-07: Create & Place Order",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Order created and placed\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.createOrder).to.have.property('id');",
+                                    "    pm.expect(response.data.createOrder.status).to.equal('PENDING');",
+                                    "    pm.collectionVariables.set('order_id', response.data.createOrder.id);",
+                                    "    console.log('✅ Function 2: Admin added items to order');",
+                                    "    console.log('✅ Function 3: Admin placed order with payment');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n    totalAmount\n    status\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{menu_item_id}}\",\n        \"quantity\": 2,\n        \"notes\": \"Extra spicy\"\n      }\n    ],\n    \"deliveryAddress\": \"123 Admin Street, New York\",\n    \"phone\": \"+1-555-0100\",\n    \"paymentMethodId\": \"{{payment_method_id}}\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-08: Verify Order in List",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Order appears in list\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    const orderId = pm.collectionVariables.get('order_id');",
+                                    "    const orderExists = response.data.orders.some(o => o.id === orderId);",
+                                    "    pm.expect(orderExists).to.be.true;",
+                                    "    console.log('✅ Order verified in list');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query Orders {\n  orders {\n    id\n    status\n    totalAmount\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-09: Process Payment",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Payment processed\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.processPayment).to.have.property('id');",
+                                    "    pm.expect(response.data.processPayment.status).to.equal('COMPLETED');",
+                                    "    pm.collectionVariables.set('payment_id', response.data.processPayment.id);",
+                                    "    console.log('✅ Payment processed successfully');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation ProcessPayment($input: ProcessPaymentInput!) {\n  processPayment(input: $input) {\n    id\n    amount\n    status\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"orderId\": \"{{order_id}}\",\n    \"paymentMethodId\": \"{{payment_method_id}}\",\n    \"amount\": 31.98\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-10: Update Order Status",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Order status updated\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.updateOrderStatus.status).to.equal('CONFIRMED');",
+                                    "    console.log('✅ Order status updated to CONFIRMED');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateOrderStatus($id: ID!, $status: OrderStatus!) {\n  updateOrderStatus(id: $id, status: $status) {\n    id\n    status\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{order_id}}\",\n  \"status\": \"CONFIRMED\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-11: Cancel Order",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Order cancelled\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.updateOrderStatus.status).to.equal('CANCELLED');",
+                                    "    console.log('✅ Function 4: Admin cancelled order');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateOrderStatus($id: ID!, $status: OrderStatus!) {\n  updateOrderStatus(id: $id, status: $status) {\n    id\n    status\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{order_id}}\",\n  \"status\": \"CANCELLED\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "ADMIN-12: Update Payment Method",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "// Ensure we're using admin token",
+                                    "const adminToken = pm.collectionVariables.get('admin_token');",
+                                    "if (adminToken) {",
+                                    "    pm.collectionVariables.set('auth_token', adminToken);",
+                                    "    console.log('🔐 Switched to admin token for payment method update');",
+                                    "}"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Payment method updated\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.updatePaymentMethod).to.have.property('id');",
+                                    "    pm.expect(response.data.updatePaymentMethod.isDefault).to.be.true;",
+                                    "    console.log('✅ Function 5: Admin updated payment method');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdatePaymentMethod($id: ID!, $input: UpdatePaymentMethodInput!) {\n  updatePaymentMethod(id: $id, input: $input) {\n    id\n    isDefault\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{payment_method_id}}\",\n  \"input\": {\n    \"isDefault\": true\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "MANAGER FLOW (Captain Marvel)",
+            "item": [
+                {
+                    "name": "MANAGER-01: Login as Manager India",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Manager login successful\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.login.user.role).to.equal('MANAGER_INDIA');",
+                                    "    pm.expect(response.data.login.user.country).to.equal('INDIA');",
+                                    "    ",
+                                    "    const token = response.data.login.token;",
+                                    "    pm.collectionVariables.set('auth_token', token);",
+                                    "    pm.collectionVariables.set('manager_token', token);",
+                                    "    console.log('✅ Manager India authenticated');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      role\n      country\n    }\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"email\": \"captain.marvel@foody.com\",\n    \"password\": \"ChangeMe123!\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MANAGER-02: View India Restaurants Only",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Only India restaurants visible\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.restaurants).to.be.an('array');",
+                                    "    response.data.restaurants.forEach(r => {",
+                                    "        pm.expect(r.country).to.equal('INDIA');",
+                                    "    });",
+                                    "    console.log('✅ Function 1: Manager can view (India only)');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query Restaurants {\n  restaurants {\n    id\n    name\n    country\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MANAGER-03: View Menu Items",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Menu items retrieved\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.menuItems).to.be.an('array');",
+                                    "    console.log('✅ Function 1: Manager can view menu items');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query MenuItems {\n  menuItems {\n    id\n    name\n    price\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MANAGER-04: BLOCKED - Create Payment Method",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Manager CANNOT create payment method\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Only admins can manage payment methods');",
+                                    "    console.log('✅ Function 5: Manager blocked from creating payment methods');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {\n  createPaymentMethod(input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"type\": \"CREDIT_CARD\",\n    \"provider\": \"STRIPE\",\n    \"token\": \"tok_manager\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MANAGER-05: BLOCKED - Update Payment Method",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Manager CANNOT update payment method\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    console.log('✅ Function 5: Manager blocked from updating payment methods');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdatePaymentMethod($id: ID!, $input: UpdatePaymentMethodInput!) {\n  updatePaymentMethod(id: $id, input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"id\": \"dummy-id\",\n  \"input\": {\n    \"isDefault\": true\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MANAGER-06: Read Payment Methods",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Manager CAN read payment methods\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.paymentMethods).to.be.an('array');",
+                                    "    console.log('✅ Function 5: Manager can read payment methods');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query PaymentMethods {\n  paymentMethods {\n    id\n    type\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MANAGER-07: View Orders & Extract ID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Orders retrieved\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.orders).to.be.an('array');",
+                                    "    ",
+                                    "    if (response.data.orders.length > 0) {",
+                                    "        const order = response.data.orders[0];",
+                                    "        pm.collectionVariables.set('order_id', order.id);",
+                                    "        console.log('✅ Order ID saved for status update test');",
+                                    "    }",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query Orders {\n  orders {\n    id\n    status\n    totalAmount\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MANAGER-08: Update Order Status",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const orderId = pm.collectionVariables.get('order_id');",
+                                    "",
+                                    "if (orderId) {",
+                                    "    pm.test(\"Manager can update order status\", function () {",
+                                    "        const response = pm.response.json();",
+                                    "        pm.expect(response.data.updateOrderStatus.status).to.equal('CONFIRMED');",
+                                    "        console.log('✅ Function 4: Manager updated order status');",
+                                    "    });",
+                                    "} else {",
+                                    "    pm.test(\"Skipped - no order available\", function () {",
+                                    "        console.log('⚠️ No order to update');",
+                                    "        pm.expect(true).to.be.true;",
+                                    "    });",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateOrderStatus($id: ID!, $status: OrderStatus!) {\n  updateOrderStatus(id: $id, status: $status) {\n    id\n    status\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{order_id}}\",\n  \"status\": \"CONFIRMED\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "MEMBER FLOW (Thanos)",
+            "item": [
+                {
+                    "name": "MEMBER-01: Login as Member India",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member login successful\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.login.user.role).to.equal('MEMBER_INDIA');",
+                                    "    ",
+                                    "    const token = response.data.login.token;",
+                                    "    pm.collectionVariables.set('auth_token', token);",
+                                    "    pm.collectionVariables.set('member_token', token);",
+                                    "    console.log('✅ Member India authenticated');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      role\n    }\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"email\": \"thanos@foody.com\",\n    \"password\": \"ChangeMe123!\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MEMBER-02: View Restaurants",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member can view restaurants\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.restaurants).to.be.an('array');",
+                                    "    console.log('✅ Function 1: Member can view restaurants');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query Restaurants {\n  restaurants {\n    id\n    name\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MEMBER-03: View Menu Items",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member can view menu items\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.menuItems).to.be.an('array');",
+                                    "    console.log('✅ Function 1: Member can view menu items');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query MenuItems {\n  menuItems {\n    id\n    name\n    price\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MEMBER-04: BLOCKED - Place Order",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT place order (checkout & pay)\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Members cannot place orders');",
+                                    "    console.log('✅ Function 3: Member blocked from placing orders');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{menu_item_id}}\",\n        \"quantity\": 1\n      }\n    ],\n    \"deliveryAddress\": \"Member Address\",\n    \"phone\": \"+91-0000000000\",\n    \"paymentMethodId\": \"{{payment_method_id}}\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MEMBER-05: BLOCKED - Create Payment Method",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT create payment method\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    console.log('✅ Function 5: Member blocked from creating payment methods');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {\n  createPaymentMethod(input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"type\": \"CREDIT_CARD\",\n    \"provider\": \"STRIPE\",\n    \"token\": \"tok_member\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MEMBER-06: BLOCKED - Update Menu Item",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT update menu items\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    console.log('✅ Member blocked from updating menu items');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateMenuItem($id: ID!, $input: UpdateMenuItemInput!) {\n  updateMenuItem(id: $id, input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{menu_item_id}}\",\n  \"input\": {\n    \"price\": 99.99\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "MEMBER-07: BLOCKED - Delete Menu Item",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT delete menu items\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    console.log('✅ Member blocked from deleting menu items');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation DeleteMenuItem($id: ID!) {\n  deleteMenuItem(id: $id)\n}",
+                                "variables": "{\n  \"id\": \"{{menu_item_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

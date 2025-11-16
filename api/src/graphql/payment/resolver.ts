@@ -68,6 +68,21 @@ export const paymentResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
+            // Only admins and managers can query payment methods
+            if (
+                context.user.role !== "ADMIN" &&
+                context.user.role !== "MANAGER_INDIA" &&
+                context.user.role !== "MANAGER_AMERICA"
+            ) {
+                logger.warn("Payment methods query failed: insufficient permissions", {
+                    userId: context.user.id,
+                    role: context.user.role,
+                });
+                throw GraphQLErrors.forbidden(
+                    "Only admins and managers can access payment methods",
+                );
+            }
+
             try {
                 const paymentMethods = await prisma.payment_methods.findMany({
                     where: { userId: context.user.id },
@@ -493,7 +508,7 @@ export const paymentResolvers = {
          */
         updatePaymentMethod: async (
             _parent: unknown,
-            { id, isDefault }: { id: string; isDefault: boolean },
+            { id, input }: { id: string; input: { isDefault?: boolean } },
             context: GraphQLContext,
         ) => {
             if (!context.user) {
@@ -528,7 +543,7 @@ export const paymentResolvers = {
                 }
 
                 // If setting as default, unset other defaults for this user
-                if (isDefault) {
+                if (input.isDefault) {
                     await prisma.payment_methods.updateMany({
                         where: {
                             userId: paymentMethod.userId,
@@ -540,7 +555,7 @@ export const paymentResolvers = {
 
                 const updatedMethod = await prisma.payment_methods.update({
                     where: { id: validatedId },
-                    data: { isDefault },
+                    data: { isDefault: input.isDefault },
                 });
 
                 logger.info("Payment method updated successfully", {
@@ -750,6 +765,19 @@ export const paymentResolvers = {
             if (!context.user) {
                 logger.warn("Payment processing failed: not authenticated");
                 throw GraphQLErrors.unauthenticated();
+            }
+
+            // Only admins and managers can process payments
+            if (
+                context.user.role !== "ADMIN" &&
+                context.user.role !== "MANAGER_INDIA" &&
+                context.user.role !== "MANAGER_AMERICA"
+            ) {
+                logger.warn("Payment processing failed: insufficient permissions", {
+                    userId: context.user.id,
+                    role: context.user.role,
+                });
+                throw GraphQLErrors.forbidden("Only admins and managers can process payments");
             }
 
             try {

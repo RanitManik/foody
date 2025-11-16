@@ -48,6 +48,7 @@ import { GraphQLContext, CreateOrderInput } from "../../types/graphql";
 import {
     UserRole,
     OrderStatus,
+    Country,
     orders,
     order_items,
     payments,
@@ -666,7 +667,18 @@ export const orderResolvers = {
 
             const order = await prisma.orders.findUnique({
                 where: { id: validatedId },
-                include: { users: true },
+                include: {
+                    users: true,
+                    order_items: {
+                        include: {
+                            menu_items: {
+                                include: {
+                                    restaurants: true,
+                                },
+                            },
+                        },
+                    },
+                },
             });
 
             if (!order) {
@@ -674,18 +686,26 @@ export const orderResolvers = {
             }
 
             // Check if manager can access this order
+            // Managers can only update orders for restaurants in their country
             if (context.user.role !== UserRole.ADMIN) {
+                // Get the restaurant country from the first order item
+                const restaurantCountry = order.order_items[0]?.menu_items?.restaurants?.country;
+
                 if (
                     context.user.role === UserRole.MANAGER_INDIA &&
-                    order.users.role !== UserRole.MEMBER_INDIA
+                    restaurantCountry !== Country.INDIA
                 ) {
-                    throw GraphQLErrors.forbidden();
+                    throw GraphQLErrors.forbidden(
+                        "Managers can only update orders for restaurants in their country",
+                    );
                 }
                 if (
                     context.user.role === UserRole.MANAGER_AMERICA &&
-                    order.users.role !== UserRole.MEMBER_AMERICA
+                    restaurantCountry !== Country.AMERICA
                 ) {
-                    throw GraphQLErrors.forbidden();
+                    throw GraphQLErrors.forbidden(
+                        "Managers can only update orders for restaurants in their country",
+                    );
                 }
             }
 
