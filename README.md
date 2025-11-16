@@ -1,11 +1,11 @@
 # Foody - Food Ordering Application
 
-A full-stack food ordering application with role-based access control (RBAC) and country-based restrictions. Built with Next.js, NestJS, GraphQL, and Prisma.
+A full-stack food ordering application with role-based access control (RBAC) and location-based restrictions. Built with Next.js, NestJS, GraphQL, and Prisma.
 
 ## Features
 
-- **Role-based Access Control**: Admin, Manager (India/America), Member (India/America)
-- **Country-based Restrictions**: Users can only access data for their assigned country
+- **Role-based Access Control**: Admin, Manager, Member
+- **Location-based Restrictions**: Users can only access data for their assigned location
 - **GraphQL API**: Type-safe API with Apollo Server
 - **Real-time Subscriptions**: WebSocket support for real-time updates
 - **Security**: Helmet, CORS, rate limiting, input validation
@@ -102,12 +102,13 @@ Authorization: Bearer <your-jwt-token>
 
 #### Users
 
-- **Roles**: ADMIN, MANAGER_INDIA, MANAGER_AMERICA, MEMBER_INDIA, MEMBER_AMERICA
-- **Country-based access**: Users can only view data for their assigned country
+- **Roles**: ADMIN, MANAGER, MEMBER
+- **Location-based access**: Users can only view data for their assigned location (admin has global access)
+- **Assigned Locations**: Managers and members include an `assignedLocation` slug (for example `spice-garden-bangalore`)
 
 #### Restaurants
 
-- **Country-specific**: Restaurants belong to either India or America
+- **Location-specific**: Each restaurant is tied to a unique `location` slug (for example `burger-haven-new-york`)
 - **Menu management**: Each restaurant has multiple menu items
 
 #### Menu Items
@@ -127,13 +128,13 @@ Authorization: Bearer <your-jwt-token>
 #### Get Restaurants
 
 ```graphql
-query GetRestaurants($country: Country) {
-    restaurants(country: $country, first: 10) {
+query GetRestaurants($location: String) {
+    restaurants(location: $location, first: 10) {
         id
         name
         address
         city
-        country
+        location
         menu_items(where: { isAvailable: true }) {
             id
             name
