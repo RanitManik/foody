@@ -1,7 +1,7 @@
 {
     "info": {
-        "name": "Foody API - Complete Collection (Manual Testing)",
-        "description": "**Comprehensive GraphQL API Collection for Manual Testing**\n\nThis collection provides complete API endpoints for testing all features of the Foody food ordering platform.\n\n## Overview\nComplete endpoint coverage for:\n- User authentication and authorization\n- Restaurant management and discovery\n- Menu item browsing and management\n- Order creation and tracking\n- Payment processing and methods\n- User administration (admin only)\n\n## Authentication\nMost endpoints require JWT authentication. The Login request automatically captures and saves the JWT token for use in all subsequent requests.\n\n## Auto-Token Management\n✅ Login request automatically extracts token\n✅ Token auto-injected in all authenticated requests\n✅ Token stored in collection variables\n✅ No manual token copying required\n\n## Testing Workflow\n1. Register or Login to get authentication token (auto-saved)\n2. Browse restaurants and menu items\n3. Create payment method\n4. Create order with items\n5. Process payment\n6. Track order status\n\n## Roles & Permissions\n- **ADMIN**: Full access to all operations globally\n- **MANAGER_INDIA/MANAGER_AMERICA**: Manage restaurants and orders in their assigned country\n- **MEMBER_INDIA/MEMBER_AMERICA**: Read-only access to their country's restaurants\n\n## Related Collections\nFor automated testing, see:\n- `Foody_Admin_Collection.json` - Automated admin flow\n- `Foody_Manager_Collection.json` - Automated manager flow\n- `Foody_Member_Collection.json` - Automated member flow\n\n**Version:** 2.1.0\n**Last Updated:** November 2025\n**Type:** Manual Testing Collection",
+        "name": "Foody API - Manual Testing Collection",
+        "description": "**Comprehensive GraphQL API Collection for Manual Testing**\n\n## Overview\nComplete endpoint coverage for testing all Foody API features:\n- User authentication & authorization\n- Restaurant management & discovery\n- Menu item browsing & management  \n- Order creation & tracking\n- Payment processing & methods\n- User administration (admin only)\n\n## Quick Start\n1. **Login First**: Use Login endpoint with admin@foody.com / ChangeMe123!\n2. **Copy Token**: From response, save JWT to `{{auth_token}}`\n3. **Use Variables**: All subsequent requests use collection variables\n4. **Execute Sequentially**: Follow the folder order for proper workflow\n\n## Key Features\n✅ Proper GraphQL variables - all requests use parameterized queries\n✅ Collection variables defined - restaurantId, menuItemId, orderId, paymentMethodId\n✅ Organized by feature folders (Authentication, Restaurants, Orders, etc.)\n✅ Flexible variable setup - manual copy/paste from responses\n✅ Built-in error handling and response validation\n✅ No hardcoded test data - use provided examples as templates\n\n## Authentication & Tokens\n- Most endpoints require Bearer token authentication\n- Login/Register requests return token in response\n- Copy token from response to `{{auth_token}}` variable\n- All authenticated requests use: `Authorization: Bearer {{auth_token}}`\n- Token valid for 24 hours\n\n## Roles & Permissions Matrix\n\n| Role | View Restaurants | Create/Edit Items | Create Orders | Update Orders | Admin Functions |\n|------|------------------|-------------------|---------------|----------------|-----------------|\n| ADMIN | All (Global) | Yes | Yes | Yes | Yes |\n| MANAGER_INDIA | INDIA only | INDIA only | INDIA only | INDIA only | No |\n| MANAGER_AMERICA | AMERICA only | AMERICA only | AMERICA only | AMERICA only | No |\n| MEMBER_INDIA | INDIA only | No | No | No | No |\n| MEMBER_AMERICA | AMERICA only | No | No | No | No |\n\n## Testing Workflow (Recommended Order)\n1. **Auth**: Login to get token (copy to `{{auth_token}}`)\n2. **Restaurants**: Browse/create restaurants (copy IDs to variables)\n3. **Menu Items**: Browse/create menu items (copy IDs to variables)\n4. **Payment Methods**: Create payment method (copy ID to variable)\n5. **Orders**: Create order with items (copy ID to variable)\n6. **Payments**: Process payment for order (copy ID to variable)\n7. **Tracking**: Update order status and view results\n\n## Important Notes\n- **Members CANNOT Create Orders**: Only Admin/Manager can create orders\n- **Country Restrictions**: Managers only see/manage their assigned country\n- **Variables Are Essential**: Copy IDs from Create responses to use in subsequent operations\n- **GraphQL Variables**: All requests use proper GraphQL variables (not inline values)\n- **No Auto-Capture**: Manually copy values from responses to collection variables\n- **Production Use**: Update email/password before using in production\n\n## Test User Credentials\n```\nAdmin: admin@foody.com / ChangeMe123!\nManager India: captain.marvel@foody.com / ChangeMe123!\nMember India: thanos@foody.com / ChangeMe123!\n```\n\n## Collection Variables\n- `{{baseUrl}}`: API base URL (default: http://localhost:4000)\n- `{{graphql}}`: GraphQL endpoint (default: {{baseUrl}}/graphql)\n- `{{auth_token}}`: JWT token (auto-set after login)\n- `{{restaurant_id}}`: Current restaurant ID (set after create/view)\n- `{{menu_item_id}}`: Current menu item ID (set after create/view)\n- `{{order_id}}`: Current order ID (set after create/view)\n- `{{payment_method_id}}`: Current payment method ID (set after create/view)\n- `{{user_id}}`: Current user ID (set after login)\n\n**Version:** 3.0.0  \n**Last Updated:** November 16, 2025  \n**Type:** Manual Testing Collection - Consistent & Variable-Based",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "_exporter_id": "foody-api-v2"
     },
@@ -32,76 +32,52 @@
             "key": "auth_token",
             "value": "",
             "type": "string",
-            "description": "JWT authentication token (automatically set after login)"
+            "description": "JWT authentication token (copy from Login/Register response)"
         },
         {
             "key": "user_id",
             "value": "",
             "type": "string",
-            "description": "Current user ID (for testing)"
+            "description": "Current user ID (copy from Login/Register response)"
         },
         {
             "key": "restaurant_id",
             "value": "",
             "type": "string",
-            "description": "Sample restaurant ID (for testing)"
+            "description": "Sample restaurant ID (copy from Create Restaurant or Get Restaurants response)"
         },
         {
             "key": "menu_item_id",
             "value": "",
             "type": "string",
-            "description": "Sample menu item ID (for testing)"
+            "description": "Sample menu item ID (copy from Create Menu Item or Get Menu Items response)"
         },
         {
             "key": "order_id",
             "value": "",
             "type": "string",
-            "description": "Sample order ID (for testing)"
+            "description": "Sample order ID (copy from Create Order or Get Orders response)"
         },
         {
             "key": "payment_method_id",
             "value": "",
             "type": "string",
-            "description": "Sample payment method ID (for testing)"
+            "description": "Sample payment method ID (copy from Create Payment Method response)"
+        },
+        {
+            "key": "payment_id",
+            "value": "",
+            "type": "string",
+            "description": "Sample payment ID (copy from Process Payment response)"
         }
     ],
     "item": [
         {
             "name": "01 - Authentication",
-            "description": "User registration, login, and session management endpoints.\n\n**Public Endpoints:** No authentication required for register and login.\n\n**Workflow:**\n1. Register a new account\n2. Login with credentials (token saved automatically)\n3. Use 'Me' query to verify authentication",
+            "description": "## User Authentication & Session Management\n\n### Overview\nHandle user registration, login, and session management. All requests return JWT tokens for protected endpoint access.\n\n### Key Points\n- **Public Endpoints**: Register and Login require NO authentication\n- **Token in Response**: Token returned in response data\n- **Session Duration**: JWT tokens valid for 24 hours\n- **Manual Token Setup**: Copy token from response to `{{auth_token}}` variable\n\n### Test Users (Pre-seeded)\nUse these credentials if database is seeded:\n- **Admin**: admin@foody.com / ChangeMe123!\n- **Manager India**: captain.marvel@foody.com / ChangeMe123!\n- **Member India**: thanos@foody.com / ChangeMe123!\n\n### Workflow\n1. **Register** (optional): Create new test account\n   - Choose role and country\n   - Copy token from response\n2. **Login**: Authenticate with existing credentials\n   - Copy token from response to use in Authorization header\n   - Ready for protected endpoints\n3. **Me Query**: Verify authentication\n   - Confirms token validity\n   - Shows current user role and permissions\n\n### Response Handling\n- ✅ Token returned in response.data.register.token or response.data.login.token\n- ✅ Copy and save to `{{auth_token}}` variable for subsequent requests\n- ✅ User ID in response.data.register.user.id or response.data.login.user.id\n\n### Error Scenarios\n- **Invalid Credentials**: Generic error (prevents user enumeration)\n- **Inactive Account**: User cannot login if deactivated\n- **Token Expired**: Use Login again to get new token",
             "item": [
                 {
                     "name": "Register User",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test(\"Registration successful\", function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "    const response = pm.response.json();",
-                                    "    pm.expect(response.data.register).to.have.property('token');",
-                                    "    pm.expect(response.data.register).to.have.property('user');",
-                                    "    ",
-                                    "    const token = response.data.register.token;",
-                                    "    const userId = response.data.register.user.id;",
-                                    "    const userRole = response.data.register.user.role;",
-                                    "    const userCountry = response.data.register.user.country;",
-                                    "    ",
-                                    "    pm.collectionVariables.set(\"auth_token\", token);",
-                                    "    pm.collectionVariables.set(\"user_id\", userId);",
-                                    "    ",
-                                    "    console.log(\"✅ User registered successfully - Token automatically saved\");",
-                                    "    console.log(\"🆔 User ID:\", userId);",
-                                    "    console.log(\"📧 Email:\", response.data.register.user.email);",
-                                    "    console.log(\"👤 Role:\", userRole);",
-                                    "    console.log(\"🌍 Country:\", userCountry);",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
                     "request": {
                         "method": "POST",
                         "header": [
@@ -114,7 +90,7 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      country\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"email\": \"manager.india@foody.com\",\n    \"password\": \"SecurePassword123!\",\n    \"firstName\": \"Priya\",\n    \"lastName\": \"Sharma\",\n    \"role\": \"MANAGER_INDIA\",\n    \"country\": \"INDIA\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"email\": \"user@example.com\",\n    \"password\": \"SecurePassword123!\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"MEMBER_INDIA\",\n    \"country\": \"INDIA\"\n  }\n}"
                             }
                         },
                         "url": {
@@ -126,35 +102,6 @@
                 },
                 {
                     "name": "Login User",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test(\"Login successful\", function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "    const response = pm.response.json();",
-                                    "    pm.expect(response.data.login).to.have.property('token');",
-                                    "    pm.expect(response.data.login).to.have.property('user');",
-                                    "    ",
-                                    "    const token = response.data.login.token;",
-                                    "    const userId = response.data.login.user.id;",
-                                    "    const userRole = response.data.login.user.role;",
-                                    "    const userCountry = response.data.login.user.country;",
-                                    "    ",
-                                    "    pm.collectionVariables.set(\"auth_token\", token);",
-                                    "    pm.collectionVariables.set(\"user_id\", userId);",
-                                    "    ",
-                                    "    console.log(\"✅ Login successful - Token automatically saved\");",
-                                    "    console.log(\"📧 Email:\", response.data.login.user.email);",
-                                    "    console.log(\"👤 Role:\", userRole);",
-                                    "    console.log(\"🌍 Country:\", userCountry || 'Global (Admin)');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
                     "request": {
                         "method": "POST",
                         "header": [
@@ -167,7 +114,7 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      country\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"email\": \"manager.india@foody.com\",\n    \"password\": \"SecurePassword123!\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"email\": \"admin@foody.com\",\n    \"password\": \"ChangeMe123!\"\n  }\n}"
                             }
                         },
                         "url": {
@@ -179,29 +126,6 @@
                 },
                 {
                     "name": "Get Current User (Me)",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test(\"Current user retrieved\", function () {",
-                                    "    pm.response.to.have.status(200);",
-                                    "    const response = pm.response.json();",
-                                    "    pm.expect(response.data.me).to.have.property('id');",
-                                    "    pm.expect(response.data.me).to.have.property('email');",
-                                    "    pm.expect(response.data.me).to.have.property('role');",
-                                    "    ",
-                                    "    console.log(\"✅ Current user verified\");",
-                                    "    console.log(\"👤 User:\", response.data.me.firstName, response.data.me.lastName);",
-                                    "    console.log(\"📧 Email:\", response.data.me.email);",
-                                    "    console.log(\"🔐 Role:\", response.data.me.role);",
-                                    "    console.log(\"🌍 Country:\", response.data.me.country || 'Global');",
-                                    "});"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
                     "request": {
                         "method": "POST",
                         "header": [
@@ -232,7 +156,7 @@
         },
         {
             "name": "02 - Restaurants",
-            "description": "Restaurant discovery, details, and management (admin only).\n\n**Permissions:**\n- **View:** All authenticated users (filtered by country for non-admin)\n- **Create/Update/Delete:** Admin only\n\n**Workflow:**\n1. List restaurants (filtered by user's country)\n2. View individual restaurant details with menu\n3. Admin can create/update/delete restaurants",
+            "description": "## Restaurant Discovery & Management\n\n### Overview\nBrowse restaurants, view details with full menus, and manage restaurants (admin only).\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View (Filtered) | All restaurants | Own country only | Own country only |\n| Create | ✅ | ❌ | ❌ |\n| Update | ✅ | ❌ | ❌ |\n| Delete | ✅ | ❌ | ❌ |\n\n### Country Filtering\n- **Admin**: See ALL restaurants globally\n- **Manager India**: See ONLY INDIA restaurants\n- **Manager America**: See ONLY AMERICA restaurants\n- **Members**: See only restaurants in their country\n\n### Workflow\n1. **List Restaurants**: Get paginated restaurant list\n   - Automatically filtered by user's country (except admin)\n   - Uses `{{restaurant_id}}` variable for subsequent requests\n2. **View Details**: Get restaurant with full menu\n   - Shows all menu items and categories\n   - Required before creating menu items\n3. **Create** (Admin only): Add new restaurant\n   - Returned ID auto-saved to `{{restaurant_id}}`\n4. **Update** (Admin only): Modify restaurant details\n   - Partial updates supported\n5. **Delete** (Admin only): Remove restaurant\n   - Cascades to delete menu items\n\n### Important Notes\n- ⚠️ Managers cannot create restaurants\n- ⚠️ Members can only view restaurants\n- ⚠️ Delete cascades to all menu items\n- 💡 Always get restaurant details before creating menu items",
             "item": [
                 {
                     "name": "Get Restaurants",
@@ -308,14 +232,14 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation CreateRestaurant($input: CreateRestaurantInput!) {\n  createRestaurant(input: $input) {\n    id\n    name\n    description\n    address\n    city\n    country\n    phone\n    email\n    isActive\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"name\": \"Spice Paradise\",\n    \"description\": \"Authentic Indian cuisine with traditional recipes and modern presentation\",\n    \"address\": \"456 Curry Lane, Spice District\",\n    \"city\": \"Mumbai\",\n    \"country\": \"INDIA\",\n    \"phone\": \"+91-22-12345678\",\n    \"email\": \"info@spiceparadise.com\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Restaurant Name\",\n    \"description\": \"Restaurant description here\",\n    \"address\": \"123 Main Street\",\n    \"city\": \"City Name\",\n    \"country\": \"INDIA\",\n    \"phone\": \"+91-9876543210\",\n    \"email\": \"restaurant@example.com\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Create a new restaurant in the system.\n\n**Permissions:** Admin only\n\n**Required Fields:**\n- name, address, city, country, phone, email\n\n**Countries:** INDIA, AMERICA"
+                        "description": "Create a new restaurant in the system.\n\n**Permissions:** Admin only\n\n**Required Fields:**\n- name, address, city, country, phone, email\n\n**Countries:** INDIA, AMERICA\n\n**Tip:** Copy the restaurant ID from response to use in `{{restaurant_id}}` for subsequent requests"
                     }
                 },
                 {
@@ -378,7 +302,7 @@
         },
         {
             "name": "03 - Menu Items",
-            "description": "Menu item browsing, management, and category discovery.\n\n**Permissions:**\n- **View:** All authenticated users\n- **Create/Update/Delete:** Admin and Managers (country-restricted for managers)\n\n**Workflow:**\n1. Browse menu items by restaurant or category\n2. View individual menu item details\n3. Managers/Admin can create, update, or delete menu items",
+            "description": "## Menu Item Discovery, Management & Categories\n\n### Overview\nBrowse menu items across restaurants, view detailed item information, discover food categories, and manage menu offerings (admin/manager only).\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View Items | All restaurants | Own country only | Own country only |\n| View Categories | All categories | All categories | All categories |\n| Create/Update/Delete | ✅ | Own country only | ❌ |\n\n### Country Filtering\n- **Admin**: Can manage menu items for ALL restaurants globally\n- **Manager India**: Can only manage INDIA restaurant menu items\n- **Manager America**: Can only manage AMERICA restaurant menu items\n- **Members**: Can only view menu items from their country restaurants\n\n### Workflow\n1. **Browse Menu Items**: Get paginated menu items with optional restaurant filtering\n   - Automatically filtered by user's country (except admin)\n   - Shows only available items (isAvailable: true)\n2. **View Item Details**: Get complete menu item information\n   - Includes restaurant details and pricing\n3. **Explore Categories**: Discover available food categories\n   - Filter by restaurant or get all categories\n   - Useful for building category-based navigation\n4. **Create Items** (Manager/Admin): Add new menu items\n   - Must specify restaurant ID\n   - Returned ID saved to `{{menu_item_id}}`\n5. **Update Items** (Manager/Admin): Modify existing items\n   - Partial updates supported\n   - Country restrictions apply\n6. **Delete Items** (Manager/Admin): Remove menu items\n   - Permanent action\n   - Country restrictions apply\n\n### Important Notes\n- ⚠️ Managers cannot manage menu items outside their assigned country\n- ⚠️ Members can only view, not modify menu items\n- ⚠️ Menu items must belong to existing restaurants\n- 💡 Always verify restaurant details before creating menu items\n- 💡 Use categories for better menu organization and user experience\n- 📊 Menu items include pricing, availability, and categorization",
             "item": [
                 {
                     "name": "Get Menu Items",
@@ -433,7 +357,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Get detailed information about a specific menu item including restaurant details."
+                        "description": "Get comprehensive details about a specific menu item.\n\n**Includes:**\n- Complete menu item information (name, description, price)\n- Availability status and category\n- Associated restaurant details\n- Image URL and metadata\n\n**Access Control:**\n- Users can only view menu items from restaurants in their country (except admin)"
                     }
                 },
                 {
@@ -482,14 +406,14 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation CreateMenuItem($input: CreateMenuItemInput!) {\n  createMenuItem(input: $input) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    restaurant {\n      id\n      name\n    }\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"name\": \"Butter Chicken\",\n    \"description\": \"Tender chicken pieces in rich creamy tomato sauce with aromatic spices\",\n    \"price\": 14.99,\n    \"imageUrl\": \"https://example.com/images/butter-chicken.jpg\",\n    \"category\": \"Main Course\",\n    \"restaurantId\": \"{{restaurant_id}}\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Menu Item Name\",\n    \"description\": \"Item description here\",\n    \"price\": 10.00,\n    \"imageUrl\": \"https://example.com/image.jpg\",\n    \"category\": \"Category\",\n    \"restaurantId\": \"{{restaurant_id}}\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Create a new menu item for a restaurant.\n\n**Permissions:**\n- Admin: Can create for any restaurant\n- Manager India: Only for INDIA restaurants\n- Manager America: Only for AMERICA restaurants\n\n**Required Fields:**\n- name, description, price, category, restaurantId"
+                        "description": "Create a new menu item for a restaurant.\n\n**Permissions:**\n- Admin: Can create for any restaurant\n- Manager India: Only for INDIA restaurants\n- Manager America: Only for AMERICA restaurants\n\n**Required Fields:**\n- name, description, price, category, restaurantId\n\n**Tip:** Copy the menu item ID from response to use in `{{menu_item_id}}` for subsequent requests"
                     }
                 },
                 {
@@ -552,7 +476,7 @@
         },
         {
             "name": "04 - Payment Methods",
-            "description": "Payment method management for users.\n\n**Permissions:**\n- Users can only manage their own payment methods\n- Admin can view all payment methods via payments query\n\n**Workflow:**\n1. Create payment method (card/wallet)\n2. Set default payment method\n3. Use payment method for orders",
+            "description": "## Payment Method Management & Security\n\n### Overview\nManage user payment methods for secure order processing. Users can save multiple payment options and set default methods for streamlined checkout.\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View Own Methods | ❌ | ❌ | ✅ |\n| Create Methods | ❌ | ❌ | ✅ |\n| Update Methods | ❌ | ❌ | ✅ |\n| Delete Methods | ❌ | ❌ | ✅ |\n| View All Methods | ✅ (via payments) | ❌ | ❌ |\n\n### Security Model\n- **User Isolation**: Users can only access their own payment methods\n- **Token-Based**: Payment details are tokenized for security\n- **Provider Integration**: Supports Stripe, PayPal, and Razorpay\n- **Admin Oversight**: Admin can view payment methods through payment records\n\n### Workflow\n1. **List Payment Methods**: View saved payment options\n   - Shows all user's payment methods\n   - Indicates default method\n   - Ordered by creation date\n2. **View Method Details**: Get specific payment method information\n   - Includes masked card numbers (last 4 digits)\n   - Shows provider and type\n3. **Add Payment Method**: Save new payment option\n   - Requires payment provider token\n   - Can set as default automatically\n   - Returned ID saved to `{{payment_method_id}}`\n4. **Update Method**: Modify payment settings\n   - Currently supports default status only\n   - Setting default unsets other defaults\n5. **Remove Method**: Delete payment option\n   - Permanent action\n   - Cannot delete if used in pending orders\n\n### Important Notes\n- 🔒 Payment data is tokenized and never stored in plain text\n- 💳 Supports credit cards, debit cards, and digital wallets\n- 🌐 Multiple payment providers supported (Stripe, PayPal, Razorpay)\n- ⭐ Only one default payment method allowed per user\n- ⚠️ Payment methods cannot be deleted if associated with active orders\n- 🔑 In production, tokens come from payment provider SDK integration",
             "item": [
                 {
                     "name": "Get Payment Methods",
@@ -606,7 +530,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Get details of a specific payment method.\n\n**Access:** User can only view their own payment methods"
+                        "description": "Retrieve detailed information about a specific payment method.\n\n**Includes:**\n- Payment method type and provider\n- Masked card number (last 4 digits)\n- Default status indicator\n- Creation and update timestamps\n\n**Access Control:** Users can only view their own payment methods"
                     }
                 },
                 {
@@ -627,14 +551,14 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {\n  createPaymentMethod(input: $input) {\n    id\n    type\n    provider\n    last4\n    isDefault\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"type\": \"CREDIT_CARD\",\n    \"provider\": \"STRIPE\",\n    \"token\": \"tok_visa_test\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"type\": \"CREDIT_CARD\",\n    \"provider\": \"STRIPE\",\n    \"token\": \"tok_payment_token_here\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Add a new payment method for the current user.\n\n**Payment Types:**\n- CREDIT_CARD\n- DEBIT_CARD\n- DIGITAL_WALLET\n\n**Providers:**\n- STRIPE\n- PAYPAL\n- RAZORPAY\n\n**Note:** In production, token would come from payment provider SDK"
+                        "description": "Add a new payment method for the current user.\n\n**Payment Types:**\n- CREDIT_CARD\n- DEBIT_CARD\n- DIGITAL_WALLET\n\n**Providers:**\n- STRIPE\n- PAYPAL\n- RAZORPAY\n\n**Note:** In production, token would come from payment provider SDK. Copy the payment method ID from response to use in `{{payment_method_id}}`"
                     }
                 },
                 {
@@ -697,7 +621,7 @@
         },
         {
             "name": "05 - Orders",
-            "description": "Order creation, tracking, and management.\n\n**Permissions:**\n- **Create:** Admin and Managers only (Members CANNOT create orders)\n- **View:** Users see their own orders; Managers see country orders; Admin sees all\n- **Update Status/Cancel:** Admin and Managers (country-restricted)\n\n**Workflow:**\n1. Create order with menu items and payment method\n2. Track order status\n3. Manager/Admin can update order status\n4. Manager/Admin can cancel orders if needed",
+            "description": "## Order Lifecycle Management & Tracking\n\n### Overview\nComplete order management system with creation, status tracking, and administrative controls. Supports the full order lifecycle from placement to delivery.\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View Orders | All orders | Own country orders | Own orders only |\n| Create Orders | ✅ | Own country only | ❌ |\n| Update Status | ✅ | Own country only | ❌ |\n| Cancel Orders | ✅ | Own country only | ❌ |\n\n### Order Status Flow\n```mermaid\nPENDING → CONFIRMED → PREPARING → OUT_FOR_DELIVERY → DELIVERED\n    ↓\nCANCELLED\n```\n\n### Country Restrictions\n- **Admin**: Can manage ALL orders globally\n- **Manager India**: Can only manage orders from INDIA restaurants\n- **Manager America**: Can only manage orders from AMERICA restaurants\n- **Members**: Cannot create orders (read-only access to own orders)\n\n### Workflow\n1. **Browse Orders**: Get paginated order list\n   - Access control based on user role\n   - Includes order status and basic details\n2. **View Order Details**: Get complete order information\n   - Full item details, payment info, delivery address\n   - Order history and timestamps\n3. **Create Order** (Manager/Admin): Place new order\n   - Validates menu item availability\n   - Calculates total amount automatically\n   - Requires payment method\n   - Atomic transaction with rollback on failure\n   - Returned ID saved to `{{order_id}}`\n4. **Update Status** (Manager/Admin): Change order status\n   - Follows predefined status flow\n   - Country restrictions apply\n5. **Cancel Order** (Manager/Admin): Cancel existing order\n   - Sets status to CANCELLED\n   - May trigger refund processes\n\n### Important Notes\n- 🚫 **Members CANNOT create orders** - Only Admin/Manager roles\n- 🌍 Country restrictions apply to all order operations\n- 💰 Orders calculate totals automatically from menu item prices\n- 🔄 Order creation is atomic - all validations pass or transaction rolls back\n- 📍 Delivery address and contact info required for all orders\n- ⚠️ Status updates must follow the defined flow\n- 💳 Payment method required at order creation\n- 📊 Orders include detailed itemization with quantities and notes",
             "item": [
                 {
                     "name": "Get Orders",
@@ -780,7 +704,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Create a new order with menu items.\n\n**IMPORTANT:** Only Managers and Admin can create orders. Members CANNOT place orders.\n\n**Country Restrictions:**\n- Manager India: Can only order from INDIA restaurants\n- Manager America: Can only order from AMERICA restaurants\n- Admin: No restrictions\n\n**Process:**\n1. Validates all menu items are available\n2. Calculates total amount\n3. Verifies payment method\n4. Creates order atomically in transaction\n5. Returns order with calculated totals"
+                        "description": "Create a new order with menu items.\n\n**IMPORTANT:** Only Managers and Admin can create orders. Members CANNOT place orders.\n\n**Country Restrictions:**\n- Manager India: Can only order from INDIA restaurants\n- Manager America: Can only order from AMERICA restaurants\n- Admin: No restrictions\n\n**Process:**\n1. Validates all menu items are available\n2. Calculates total amount\n3. Verifies payment method\n4. Creates order atomically in transaction\n5. Returns order with calculated totals\n\n**Tip:** Copy the order ID from response to use in `{{order_id}}` for subsequent requests"
                     }
                 },
                 {
@@ -843,7 +767,7 @@
         },
         {
             "name": "06 - Payments",
-            "description": "Payment processing and transaction history.\n\n**Permissions:**\n- **Process Payment:** Order owner only\n- **View Single Payment:** Payment owner or Admin\n- **View All Payments:** Admin only\n\n**Workflow:**\n1. Create order first\n2. Process payment for order\n3. Track payment status",
+            "description": "## Payment Processing & Transaction Management\n\n### Overview\nHandle payment processing for orders with secure transaction handling, status tracking, and comprehensive payment records.\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View Own Payments | ❌ | ❌ | ✅ |\n| Process Payments | ❌ | ❌ | ✅ (own orders) |\n| View All Payments | ✅ | ❌ | ❌ |\n| View Payment Details | Own payments | ❌ | Own payments |\n\n### Payment Flow\n```mermaid\nOrder Created → Payment Method Selected → Payment Processed → Transaction Recorded\n```\n\n### Security & Integration\n- **Provider Integration**: Supports Stripe, PayPal, and Razorpay\n- **Token Security**: Payment methods use secure tokens\n- **Transaction Tracking**: Unique transaction IDs for all payments\n- **Audit Trail**: Complete payment history with timestamps\n\n### Workflow\n1. **View Payment History** (Admin): System-wide payment records\n   - Financial reporting and reconciliation\n   - Transaction auditing capabilities\n   - Includes payment methods and order details\n2. **View Payment Details**: Get specific payment information\n   - Complete transaction details\n   - Associated order and payment method\n   - Transaction status and timestamps\n3. **Process Payment**: Execute payment for order\n   - Validates order ownership and payment method\n   - Prevents duplicate payments\n   - Creates transaction record\n   - Returns payment details with transaction ID\n   - Payment ID saved to `{{payment_id}}`\n\n### Important Notes\n- 💰 Payments are processed only for user's own orders\n- 🔒 Payment processing includes ownership validation\n- 🚫 Duplicate payments prevented by order-payment relationship\n- 🌐 Supports multiple payment providers (Stripe, PayPal, Razorpay)\n- 📊 Transaction IDs provided for payment reconciliation\n- ⚠️ Production integration requires webhook handling\n- 🔄 Async payment processing recommended for production\n- 💳 Payment methods must be pre-created and owned by user\n- 📈 Admin can view all payments for system oversight",
             "item": [
                 {
                     "name": "Get Payments (Admin Only)",
@@ -890,14 +814,14 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "query Payment($id: ID!) {\n  payment(id: $id) {\n    id\n    amount\n    status\n    method {\n      id\n      type\n      provider\n      last4\n    }\n    order {\n      id\n      totalAmount\n      status\n      deliveryAddress\n      user {\n        id\n        email\n      }\n    }\n    transactionId\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"payment-id-here\"\n}"
+                                "variables": "{\n  \"id\": \"{{payment_id}}\"\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Get details of a specific payment.\n\n**Access:**\n- Users can view their own payments\n- Admin can view all payments"
+                        "description": "Get comprehensive details about a specific payment transaction.\n\n**Includes:**\n- Payment amount and status\n- Associated payment method (masked)\n- Linked order information\n- Transaction ID for reconciliation\n- Complete audit trail with timestamps\n\n**Access Control:**\n- Users can view their own payments\n- Admin can view all payments in the system"
                     }
                 },
                 {
@@ -925,14 +849,14 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Process payment for an order.\n\n**Requirements:**\n- Order must exist and belong to user\n- Payment method must exist and belong to user\n- Order must not already have a payment\n\n**Process:**\n1. Validates order and payment method ownership\n2. Checks for existing payment on order\n3. Processes payment (simulated in current version)\n4. Creates payment record with transaction ID\n5. Returns payment details\n\n**Production Notes:**\n- Integrate with real payment gateway (Stripe/PayPal/Razorpay)\n- Implement webhook handling for async updates\n- Add idempotency keys for retry safety"
+                        "description": "Process payment for an order.\n\n**Requirements:**\n- Order must exist and belong to user\n- Payment method must exist and belong to user\n- Order must not already have a payment\n\n**Process:**\n1. Validates order and payment method ownership\n2. Checks for existing payment on order\n3. Processes payment (simulated in current version)\n4. Creates payment record with transaction ID\n5. Returns payment details\n\n**Production Notes:**\n- Integrate with real payment gateway (Stripe/PayPal/Razorpay)\n- Implement webhook handling for async updates\n- Add idempotency keys for retry safety\n\n**Tip:** Copy the payment ID from response to use in `{{payment_id}}` for subsequent requests"
                     }
                 }
             ]
         },
         {
             "name": "07 - User Management (Admin)",
-            "description": "User administration endpoints for system administrators.\n\n**Permissions:** Admin only for all operations\n\n**Features:**\n- List all users with pagination\n- View individual user details with orders and payment methods\n- Update user information and status\n- Delete user accounts",
+            "description": "## User Administration & System Management\n\n### Overview\nComprehensive user management system for administrators to oversee user accounts, roles, permissions, and system access controls.\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View All Users | ✅ | ❌ | ❌ |\n| View User Details | ✅ | ❌ | ❌ |\n| Update Users | ✅ | ❌ | ❌ |\n| Delete Users | ✅ | ❌ | ❌ |\n\n### User Roles & Access\n- **ADMIN**: Full system access, user management, global operations\n- **MANAGER_INDIA**: Restaurant and order management for India\n- **MANAGER_AMERICA**: Restaurant and order management for America\n- **MEMBER_INDIA**: Read-only access to Indian restaurants\n- **MEMBER_AMERICA**: Read-only access to American restaurants\n\n### Country Assignment\n- **Geographic Restrictions**: Managers and members are assigned to specific countries\n- **Access Control**: Users can only operate within their assigned country\n- **Admin Override**: Admin users have global access without restrictions\n\n### Workflow\n1. **List All Users**: Get paginated user directory\n   - Complete user list with roles and status\n   - Pagination for large user bases\n   - Filter and search capabilities\n2. **View User Details**: Get comprehensive user profile\n   - Profile information and account status\n   - Order history and payment methods\n   - Activity and access patterns\n3. **Update User**: Modify user attributes\n   - Change role assignments\n   - Update country assignments\n   - Activate/deactivate accounts\n4. **Delete User**: Permanently remove user account\n   - Cascades to related data\n   - Requires careful consideration\n\n### Important Notes\n- 👑 **Admin Only**: All user management operations require admin privileges\n- 🌍 Country assignments control access scope for managers and members\n- 🔄 Role changes take effect immediately\n- ⚠️ User deletion is permanent and cascades to related data\n- 📊 User details include order history and payment methods\n- 🚫 Deactivation recommended over deletion for data retention\n- 🔐 Account status controls login access\n- 📈 User management supports system scaling and access control",
             "item": [
                 {
                     "name": "Get All Users",
@@ -987,7 +911,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Get detailed information about a specific user including their order history and payment methods.\n\n**Permissions:** Admin only\n\n**Includes:**\n- User profile information\n- Recent orders (last 10)\n- Saved payment methods"
+                        "description": "Get comprehensive profile and activity information for a specific user.\n\n**Includes:**\n- Complete user profile (name, email, role, country)\n- Account status and activity flags\n- Recent order history (last orders)\n- Saved payment methods\n- Account creation and update timestamps\n\n**Permissions:** Admin only\n\n**Use Cases:**\n- Customer support investigations\n- Account verification\n- User behavior analysis"
                     }
                 },
                 {

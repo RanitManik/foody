@@ -26,6 +26,7 @@ import {
     validateEmail,
 } from "../../lib/shared/validation";
 import { GraphQLContext, RegisterInput, LoginInput } from "../../types/graphql";
+import { deleteCacheByPattern } from "../../lib/shared/cache";
 
 export const authResolvers = {
     Mutation: {
@@ -105,6 +106,9 @@ export const authResolvers = {
                     email: email,
                     role: user.role,
                 });
+
+                // Invalidate user caches since a new user was added
+                await deleteCacheByPattern("user:*");
 
                 return {
                     token,

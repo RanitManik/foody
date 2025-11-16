@@ -33,7 +33,7 @@ import { GraphQLErrors } from "../../lib/shared/errors";
 import { validationSchemas, UserRoleEnum, CountryEnum } from "../../lib/shared/validation";
 import { parsePagination } from "../../lib/shared/pagination";
 import { GraphQLContext } from "../../types/graphql";
-import { UserRole, Country } from "@prisma/client";
+import { UserRole, Country, payment_methods } from "@prisma/client";
 import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
 export const userResolvers = {
@@ -481,6 +481,17 @@ export const userResolvers = {
                 });
                 throw error;
             }
+        },
+    },
+
+    // User type resolvers to handle field mapping and null safety
+    User: {
+        /**
+         * Ensure paymentMethods always returns an array (never null)
+         * GraphQL schema defines this as [PaymentMethod!]! (non-nullable array)
+         */
+        paymentMethods: (parent: { payment_methods?: payment_methods[] }) => {
+            return parent.payment_methods || [];
         },
     },
 };

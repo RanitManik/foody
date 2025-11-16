@@ -36,7 +36,7 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 ### Automated Complete Flow Collection
 
-- `Foody_Complete_Flow_Automated.json` - **Complete automated flow** (~30 requests) - Tests all roles (Admin, Manager, Member) in one sequential run
+- `Foody_API_Postman_Automated.json` - **Complete automated flow** (44 requests) - Tests all roles (Admin, Manager, Member) in one sequential run with comprehensive user management testing
 
 > [!IMPORTANT]
 > **Before using these collections**, ensure you have seeded the database with test data by running:
@@ -81,23 +81,21 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 ## Environment Variables
 
-| Variable            | Collection             | Default Value              | Description                              |
-| ------------------- | ---------------------- | -------------------------- | ---------------------------------------- |
-| `baseUrl`           | All                    | `http://localhost:4000`    | API server base URL                      |
-| `graphql`           | All                    | `{{baseUrl}}/graphql`      | GraphQL endpoint URL                     |
-| `auth_token`        | All                    | `""`                       | JWT token (auto-set after login)         |
-| `user_id`           | Manual, Admin          | `""`                       | User ID for testing operations           |
-| `restaurant_id`     | All                    | `""`                       | Restaurant ID for testing operations     |
-| `menu_item_id`      | All                    | `""`                       | Menu item ID for testing operations      |
-| `order_id`          | Manual, Admin, Manager | `""`                       | Order ID for testing operations          |
-| `payment_method_id` | Manual, Admin, Manager | `""`                       | Payment method ID for testing operations |
-| `payment_id`        | Admin                  | `""`                       | Payment ID for testing operations        |
-| `admin_email`       | Admin                  | `admin@foody.com`          | Admin login email address                |
-| `admin_password`    | Admin                  | `ChangeMe123!`             | Admin login password                     |
-| `manager_email`     | Manager                | `captain.marvel@foody.com` | Manager India login email address        |
-| `manager_password`  | Manager                | `ChangeMe123!`             | Manager India login password             |
-| `member_email`      | Member                 | `thanos@foody.com`         | Member India login email address         |
-| `member_password`   | Member                 | `ChangeMe123!`             | Member India login password              |
+| Variable            | Collection | Default Value           | Description                              |
+| ------------------- | ---------- | ----------------------- | ---------------------------------------- |
+| `baseUrl`           | All        | `http://localhost:4000` | API server base URL                      |
+| `graphql`           | All        | `{{baseUrl}}/graphql`   | GraphQL endpoint URL                     |
+| `auth_token`        | All        | `""`                    | JWT token (auto-set after login)         |
+| `admin_token`       | Automated  | `""`                    | Admin JWT token                          |
+| `manager_token`     | Automated  | `""`                    | Manager JWT token                        |
+| `member_token`      | Automated  | `""`                    | Member JWT token                         |
+| `user_id`           | Automated  | `""`                    | Test user ID for management operations   |
+| `test_user_token`   | Automated  | `""`                    | Test user JWT token                      |
+| `restaurant_id`     | All        | `""`                    | Restaurant ID for testing operations     |
+| `menu_item_id`      | All        | `""`                    | Menu item ID for testing operations      |
+| `order_id`          | Automated  | `""`                    | Order ID for testing operations          |
+| `payment_method_id` | Automated  | `""`                    | Payment method ID for testing operations |
+| `payment_id`        | Automated  | `""`                    | Payment ID for testing operations        |
 
 > [!NOTE]
 > **Variable Availability:** Not all variables are present in every collection. The "Collection" column indicates which collections include each variable. For example, `admin_email` and `admin_password` are only available in the Admin collection, while `auth_token` is available in all the collections. Each collection includes only the variables relevant to its testing scope.
@@ -116,9 +114,10 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 - ✅ No dependency issues (admin creates all necessary data first)
 - ✅ Tests all 5 problem statement functions for all 3 roles in one run
-- ✅ Sequential execution: Admin Setup → Manager Tests → Member Tests
+- ✅ Sequential execution: Admin Setup → Manager Tests → Member Tests → User Management Tests
 - ✅ Create → Verify pattern for data consistency
-- ✅ ~30 comprehensive tests covering complete functionality
+- ✅ 44 comprehensive tests covering complete functionality including user management
+- ✅ Dedicated test user creation and cleanup for safe user management testing
 
 **Key Features:**
 
@@ -130,16 +129,17 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 ### Admin Flow
 
-**User:** Nick Fury (admin@foody.com) | **Role:** ADMIN | **Tests:** 12
+**User:** Nick Fury (admin@foody.com) | **Role:** ADMIN | **Tests:** 16
 
 **Capabilities:**
 
 - Full CRUD on all entities
-- User management (create, update, delete)
+- User management (list, view, update, delete users)
 - Global restaurant access (all countries)
 - Payment method management
 - Order lifecycle management
 - Payment processing
+- Test user creation and cleanup
 
 **Test Flow:**
 
@@ -148,14 +148,17 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 4. Create Restaurant → 5. Create Menu Item → 6. Create Payment Method (Function 5)
 7. Create & Place Order (Functions 2 & 3) → 8. Verify Order in List
 9. Process Payment → 10. Update Order Status → 11. Cancel Order (Function 4)
-12. Update Payment Method (Function 5)
+12. Update Payment Method (Function 5) → 13. Register Test User for Management
+14. Get All Users → 15. Get User Details → 16. Update User → 17. Delete User
 ```
 
 **Expected Results:**
 
-- ✅ All 12 tests pass
-- ✅ All CRUD operations succeed
+- ✅ All 17 tests pass
+- ✅ All CRUD operations succeed including user management
 - ✅ Admin can view and manage all resources
+- ✅ Test user created and safely deleted
+- ✅ Complete user lifecycle management validated
 
 ---
 
@@ -235,11 +238,11 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 ### Option 1: Collection Runner (Recommended)
 
-1. Import `Foody_Complete_Flow_Automated.json`
+1. Import `Foody_API_Postman_Automated.json`
 2. Click collection name → **"Run"** button
 3. Ensure all requests/folders selected
-4. Click **"Run Foody API - Complete Flow (Automated)"**
-5. View automated execution results (all ~30 tests run sequentially)
+4. Click **"Run Foody API - Complete Automated Collection"**
+5. View automated execution results (all 44 tests run sequentially)
 
 ### Option 2: Newman CLI (CI/CD)
 
@@ -248,7 +251,7 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 npm install -g newman
 
 # Run complete flow
-newman run Foody_Complete_Flow_Automated.json
+newman run Foody_API_Postman_Automated.json --environment Foody_API_Postman_Environment.postman_environment.json
 ```
 
 ### Option 3: Manual Execution
@@ -293,8 +296,8 @@ newman run Foody_Complete_Flow_Automated.json
 
 | Collection     | Tests | Duration | Auto-Login   | Folders |
 | -------------- | ----- | -------- | ------------ | ------- |
-| Complete Flow  | ~30   | ~3-5s    | ✅ (3 roles) | ✅ (3)  |
-| - Admin Flow   | 12    | ~2s      | ✅           | -       |
+| Complete Flow  | 44    | ~5-7s    | ✅ (3 roles) | ✅ (3)  |
+| - Admin Flow   | 17    | ~3s      | ✅           | -       |
 | - Manager Flow | 8     | ~1s      | ✅           | -       |
 | - Member Flow  | 7     | ~1s      | ✅           | -       |
 

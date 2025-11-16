@@ -1,7 +1,7 @@
 {
     "info": {
-        "name": "Foody API - Complete Collection (Automated)",
-        "description": "**Complete Automated Test Flow**\n\nThis collection tests the entire Foody API in a single, sequential flow without dependency issues.\n\n## Problem Statement Validation\n\n### Test Flow\n1. **Admin Setup** (Nick Fury)\n   - Login as admin\n   - Create restaurants\n   - Create menu items\n   - Create payment methods\n   - Create orders and place them\n   - Process payments\n   - Cancel orders\n   - Update payment methods\n\n2. **Manager Tests** (Captain Marvel - India)\n   - Login as manager\n   - View restaurants (India only)\n   - Create menu items (India restaurants)\n   - View orders (India members)\n   - Update order status\n   - **BLOCKED**: Create payment methods\n   - **BLOCKED**: Update payment methods\n   - **ALLOWED**: Read payment methods\n\n3. **Member Tests** (Thanos - India)\n   - Login as member\n   - View restaurants (read-only)\n   - View menu items (read-only)\n   - **BLOCKED**: Create orders (cannot checkout & pay)\n   - **BLOCKED**: Create payment methods\n   - **BLOCKED**: Update menu items\n   - **BLOCKED**: Delete menu items\n\n## Problem Statement Compliance Matrix\n\n| S.NO | FUNCTION | ADMIN | MANAGER | MEMBER | STATUS |\n|------|----------|-------|---------|--------|--------|\n| 1 | View restaurants & menu items | ✅ | ✅ | ✅ | Tested |\n| 2 | Create order (add food items) | ✅ | ✅ | ✅* | Tested |\n| 3 | Place order (checkout & pay) | ✅ | ✅ | ❌ | Tested |\n| 4 | Cancel order | ✅ | ✅ | ❌ | Tested |\n| 5 | Update payment method | ✅ | ❌ | ❌ | Tested |\n\n*Members can add items but cannot checkout (blocked by payment requirement)\n\n## Key Features\n- ✅ Single file, complete flow\n- ✅ No dependency issues\n- ✅ Tests all 5 problem statement functions\n- ✅ Tests all 3 user roles\n- ✅ Create → Verify → Update → Verify pattern\n- ✅ Comprehensive validation\n\n## Usage\nRun the entire collection using Collection Runner. All tests will execute in sequence.\n\n**Version:** 1.0.0\n**Total Requests:** ~30\n**Last Updated:** November 2025",
+        "name": "Foody API - Complete Automated Collection",
+        "description": "**Complete Automated Test Suite for Foody API**\n\n## Overview\nComprehensive automated testing collection that validates all core business functions across Admin, Manager, and Member roles. Tests role-based access control, data isolation, business logic compliance, and complete user management operations.\n\n## Test Coverage Matrix\n\n| S.No | Function | Admin | Manager (INDIA) | Member (INDIA) |\n|------|----------|-------|-----------------|----------------|\n| 1 | View restaurants & menu items | ✅ Global | ✅ INDIA only | ✅ INDIA only |\n| 2 | Create order (add food items) | ✅ | ✅ INDIA orders | ❌ BLOCKED |\n| 3 | Place order (checkout & pay) | ✅ | ✅ INDIA orders | ❌ BLOCKED |\n| 4 | Cancel order | ✅ | ✅ INDIA orders | ❌ BLOCKED |\n| 5 | Update payment method | ✅ | ❌ BLOCKED | ❌ BLOCKED |\n| 6 | User management (CRUD) | ✅ Admin only | ❌ BLOCKED | ❌ BLOCKED |\n\n### Additional Security Tests\n- ✅ **Geographic Restrictions**: Country-based access control\n- ✅ **Permission Boundaries**: Role-based operation blocking\n- ✅ **Error Message Validation**: Proper error responses for blocked operations\n- ✅ **Data Isolation**: Users can only access authorized data\n- ✅ **Business Logic**: Order flow and payment processing tested\n- ✅ **User Management**: Admin-only CRUD operations on user accounts\n\n## Test Flow Architecture\n\n### Admin Flow (Setup & Full Access)\n**Role**: `ADMIN` - Complete system access\n**User**: Nick Fury (admin@foody.com)\n**Capabilities**: All functions enabled\n**Purpose**: Establishes test data and validates admin privileges\n\n### Manager Flow (Country-Restricted Operations)\n**Role**: `MANAGER_INDIA` - Country-specific management\n**User**: Captain Marvel (captain.marvel@foody.com)\n**Capabilities**: Functions 1-4 within INDIA scope\n**Purpose**: Validates geographic access control and manager permissions\n\n### Member Flow (Read-Only Access)\n**Role**: `MEMBER_INDIA` - Read-only access\n**User**: Thanos (thanos@foody.com)\n**Capabilities**: Function 1 only (view data)\n**Purpose**: Validates member restrictions and read permissions\n\n## Key Testing Features\n- ✅ **Sequential Execution**: Tests run in dependency order\n- ✅ **State Management**: Variables persist across requests\n- ✅ **Role Validation**: Each role tested against all functions\n- ✅ **Error Testing**: Blocked operations validated with proper errors\n- ✅ **Data Isolation**: Country-based access control verified\n- ✅ **Business Logic**: Order flow and payment processing tested\n\n## Execution Requirements\n- **Database**: Must be seeded with test users\n- **Environment**: Local development server running\n- **Order**: Run collection in Postman Collection Runner\n- **Variables**: Auto-managed, no manual setup required\n\n## Test Data Created\n- Restaurants: Test Restaurant - Automated\n- Menu Items: Test Dish - Automated\n- Payment Methods: Automated test tokens\n- Orders: Complete order lifecycle examples\n\n## Validation Points\n- **Authentication**: JWT token management\n- **Authorization**: Role-based access control\n- **Data Filtering**: Country-based restrictions\n- **Business Rules**: Order and payment workflows\n- **Error Handling**: Proper error responses for blocked operations\n- **User Management**: Admin-only user account operations\n\n**Version:** 2.2.0\n**Total Requests:** 44\n**Last Updated:** November 16, 2025\n**Test Duration:** ~50 seconds",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "auth": {
@@ -79,9 +79,10 @@
     "item": [
         {
             "name": "ADMIN FLOW (Nick Fury)",
+            "description": "## Admin Test Suite - Complete System Access\n\n**Role**: `ADMIN` - Full system administrator with global access\n**User**: Nick Fury (admin@foody.com)\n**Capabilities**: All 6 business functions enabled\n\n### Test Sequence\n1. **Authentication**: Login and token management\n2. **Data Setup**: Create restaurants, menu items, payment methods\n3. **Order Processing**: Create, verify, and process orders\n4. **Payment Handling**: Process payments and update methods\n5. **Order Management**: Update status and cancel orders\n6. **User Management**: CRUD operations on user accounts\n\n### Functions Tested\n- ✅ Function 1: View restaurants & menu items (global)\n- ✅ Function 2: Create order with items\n- ✅ Function 3: Place order (checkout & pay)\n- ✅ Function 4: Cancel order\n- ✅ Function 5: Update payment method\n- ✅ Function 6: User management (CRUD operations)\n\n### Key Validations\n- Global data access (all countries)\n- Full CRUD operations on all entities\n- Order lifecycle management\n- Payment processing workflow\n- Administrative controls\n- User account management (create, read, update, delete)\n\n### Test Data Created\n- Restaurant: \"Test Restaurant - Automated\"\n- Menu Item: \"Test Dish - Automated\" ($15.99)\n- Payment Method: Stripe test token\n- Order: Complete order with 2 items\n- Payment: Processed transaction\n- User Management: Complete CRUD operations on user accounts",
             "item": [
                 {
-                    "name": "ADMIN-01: Login as Admin",
+                    "name": "01: Login as Admin",
                     "event": [
                         {
                             "listen": "test",
@@ -96,7 +97,7 @@
                                     "    const token = response.data.login.token;",
                                     "    pm.collectionVariables.set('auth_token', token);",
                                     "    pm.collectionVariables.set('admin_token', token);",
-                                    "    console.log('✅ Admin authenticated');",
+                                    "    console.log('✅ Admin authenticated - Function 1 access granted');",
                                     "});"
                                 ]
                             }
@@ -123,11 +124,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Admin Authentication**\n\nAuthenticates as system administrator with full access to all functions.\n\n**Validates**:\n- Successful login with admin credentials\n- JWT token generation\n- Role verification (ADMIN)\n- Token storage for subsequent requests\n\n**Function**: Authentication setup for admin operations"
                     }
                 },
                 {
-                    "name": "ADMIN-02: View Restaurants",
+                    "name": "02: View Restaurants (Global Access)",
                     "event": [
                         {
                             "listen": "test",
@@ -144,7 +146,7 @@
                                     "    ",
                                     "    // Save first restaurant ID",
                                     "    pm.collectionVariables.set('restaurant_id', response.data.restaurants[0].id);",
-                                    "    console.log('✅ Function 1: Admin can view restaurants');",
+                                    "    console.log('✅ Function 1: Admin can view restaurants (global access)');",
                                     "});"
                                 ]
                             }
@@ -167,11 +169,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 1: View Restaurants (Global Access)**\n\nTests admin ability to view all restaurants across all countries.\n\n**Validates**:\n- Successful data retrieval\n- Global access (no country filtering)\n- Restaurant data structure\n- Variable storage for subsequent tests\n\n**Expected**: All restaurants visible regardless of country"
                     }
                 },
                 {
-                    "name": "ADMIN-03: View Menu Items",
+                    "name": "03: View Menu Items (Global Access)",
                     "event": [
                         {
                             "listen": "test",
@@ -184,7 +187,7 @@
                                     "    if (response.data.menuItems.length > 0) {",
                                     "        pm.collectionVariables.set('menu_item_id', response.data.menuItems[0].id);",
                                     "    }",
-                                    "    console.log('✅ Function 1: Admin can view menu items');",
+                                    "    console.log('✅ Function 1: Admin can view menu items (global access)');",
                                     "});"
                                 ]
                             }
@@ -207,11 +210,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 1: View Menu Items (Global Access)**\n\nTests admin ability to view all menu items across all restaurants.\n\n**Validates**:\n- Menu item data retrieval\n- Restaurant relationship data\n- Global access to all items\n- Variable storage for order creation\n\n**Expected**: All menu items visible regardless of restaurant country"
                     }
                 },
                 {
-                    "name": "ADMIN-04: Create Restaurant",
+                    "name": "04: Create Restaurant",
                     "event": [
                         {
                             "listen": "test",
@@ -245,11 +249,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Setup: Create Test Restaurant**\n\nCreates a test restaurant for subsequent menu item and order testing.\n\n**Validates**:\n- Admin can create restaurants\n- Restaurant data structure\n- ID generation and storage\n\n**Test Data**: INDIA-based restaurant for manager testing"
                     }
                 },
                 {
-                    "name": "ADMIN-05: Create Menu Item",
+                    "name": "05: Create Menu Item",
                     "event": [
                         {
                             "listen": "test",
@@ -283,11 +288,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Setup: Create Test Menu Item**\n\nCreates a test menu item for order testing.\n\n**Validates**:\n- Admin can create menu items\n- Restaurant relationship\n- Price and category handling\n\n**Test Data**: $15.99 main course for order calculations"
                     }
                 },
                 {
-                    "name": "ADMIN-06: Create Payment Method",
+                    "name": "06: Create Payment Method",
                     "event": [
                         {
                             "listen": "test",
@@ -321,11 +327,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 5: Create Payment Method**\n\nTests admin ability to create payment methods.\n\n**Validates**:\n- Payment method creation\n- Token processing\n- Provider integration\n- Admin-only access to payment management\n\n**Note**: Uses test token for automated testing"
                     }
                 },
                 {
-                    "name": "ADMIN-07: Create & Place Order",
+                    "name": "07: Create & Place Order",
                     "event": [
                         {
                             "listen": "test",
@@ -361,11 +368,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Functions 2 & 3: Create Order & Place Order**\n\nTests admin ability to create orders and complete checkout/payment.\n\n**Validates**:\n- Function 2: Order creation with items\n- Function 3: Payment processing integration\n- Order status (PENDING)\n- Total calculation (2 × $15.99 = $31.98)\n- Payment method validation\n\n**Order Flow**: Items added → Payment processed → Order placed"
                     }
                 },
                 {
-                    "name": "ADMIN-08: Verify Order in List",
+                    "name": "08: Verify Order in List",
                     "event": [
                         {
                             "listen": "test",
@@ -399,11 +407,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Order Verification**\n\nVerifies that created order appears in the orders list.\n\n**Validates**:\n- Order persistence\n- List query functionality\n- Order data integrity\n- Admin can view all orders\n\n**Purpose**: Confirms order was properly saved to database"
                     }
                 },
                 {
-                    "name": "ADMIN-09: Process Payment",
+                    "name": "09: Process Payment",
                     "event": [
                         {
                             "listen": "test",
@@ -438,11 +447,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Payment Processing**\n\nProcesses payment for the created order.\n\n**Validates**:\n- Payment gateway integration\n- Amount validation ($31.98)\n- Order-payment relationship\n- Transaction status (COMPLETED)\n- Payment record creation\n\n**Note**: Uses test payment processing in development"
                     }
                 },
                 {
-                    "name": "ADMIN-10: Update Order Status",
+                    "name": "10: Update Order Status",
                     "event": [
                         {
                             "listen": "test",
@@ -475,11 +485,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 4: Update Order Status**\n\nTests admin ability to update order status.\n\n**Validates**:\n- Status transition (PENDING → CONFIRMED)\n- Admin authority for status changes\n- Order state management\n- Status update permissions\n\n**Order Flow**: PENDING → CONFIRMED → PREPARING → etc."
                     }
                 },
                 {
-                    "name": "ADMIN-11: Cancel Order",
+                    "name": "11: Cancel Order",
                     "event": [
                         {
                             "listen": "test",
@@ -512,11 +523,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 4: Cancel Order**\n\nTests admin ability to cancel orders.\n\n**Validates**:\n- Order cancellation capability\n- Status change to CANCELLED\n- Admin override permissions\n- Order lifecycle termination\n\n**Note**: Cancelled orders may trigger refund processes"
                     }
                 },
                 {
-                    "name": "ADMIN-12: Update Payment Method",
+                    "name": "12: Update Payment Method",
                     "event": [
                         {
                             "listen": "prerequest",
@@ -563,16 +575,257 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
+                        },
+                        "description": "**Function 5: Update Payment Method**\n\nTests admin ability to update payment method settings.\n\n**Validates**:\n- Payment method modification\n- Default status management\n- Admin-only access to updates\n- Settings persistence\n\n**Note**: Setting as default unsets other default methods"
+                    }
+                },
+                {
+                    "name": "12.5: Register Test User for Management",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Test user registered successfully\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const response = pm.response.json();",
+                                    "    ",
+                                    "    // Check for GraphQL errors",
+                                    "    if (response.errors) {",
+                                    "        pm.expect.fail('GraphQL errors found: ' + JSON.stringify(response.errors));",
+                                    "    }",
+                                    "    ",
+                                    "    pm.expect(response.data).to.have.property('register');",
+                                    "    pm.expect(response.data.register).to.have.property('user');",
+                                    "    pm.expect(response.data.register.user).to.have.property('id');",
+                                    "    ",
+                                    "    // Store test user ID for user management tests",
+                                    "    pm.collectionVariables.set('user_id', response.data.register.user.id);",
+                                    "    pm.collectionVariables.set('test_user_token', response.data.register.token);",
+                                    "    console.log('✅ Test user registered for management tests:', response.data.register.user.id);",
+                                    "});"
+                                ]
+                            }
                         }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation RegisterTestUser($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      role\n    }\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"email\": \"test.user.management@foody.com\",\n    \"password\": \"TestPass123!\",\n    \"firstName\": \"Test\",\n    \"lastName\": \"User\",\n    \"role\": \"MEMBER_INDIA\",\n    \"country\": \"INDIA\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Setup: Register Test User for Management Tests**\n\nCreates a dedicated test user for user management operations.\n\n**Validates**:\n- User registration works\n- Test user created with predictable data\n- User ID stored for subsequent tests\n\n**Test User Details**:\n- Email: test.user.management@foody.com\n- Role: MEMBER_INDIA\n- Safe to delete after tests"
+                    }
+                },
+                {
+                    "name": "13: Get All Users",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get all users successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const response = pm.response.json();",
+                                    "    ",
+                                    "    // Check for GraphQL errors",
+                                    "    if (response.errors) {",
+                                    "        pm.expect.fail('GraphQL errors found: ' + JSON.stringify(response.errors));",
+                                    "    }",
+                                    "    ",
+                                    "    pm.expect(response.data).to.have.property('users');",
+                                    "    ",
+                                    "    // Verify test user was created",
+                                    "    const testUserExists = response.data.users.some(user => user.email === 'test.user.management@foody.com');",
+                                    "    pm.expect(testUserExists).to.be.true;",
+                                    "    ",
+                                    "    console.log('✅ Admin retrieved all users - User management access granted');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query GetAllUsers {\n  users(first: 10, skip: 0) {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    orders {\n      id\n      status\n      totalAmount\n    }\n    paymentMethods {\n      id\n      type\n      provider\n      isDefault\n    }\n  }\n}",
+                                "variables": "{}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**User Management - Get All Users**\n\nTests admin ability to retrieve paginated list of all users in the system.\n\n**Validates**:\n- Admin-only access to user management\n- Paginated user retrieval\n- User data structure (profile, orders, payment methods)\n- Role and country information visibility\n- Active status tracking\n\n**Admin Permissions**:\n- View all user profiles globally\n- Access user order history\n- View payment method details\n- Monitor user account status\n\n**Data Included**:\n- User profile information\n- Recent orders with status and amounts\n- Payment methods with provider details\n- Account activation status"
+                    }
+                },
+                {
+                    "name": "14: Get User Details",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Get user details successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const response = pm.response.json();",
+                                    "    ",
+                                    "    // Check for GraphQL errors",
+                                    "    if (response.errors) {",
+                                    "        pm.expect.fail('GraphQL errors found: ' + JSON.stringify(response.errors));",
+                                    "    }",
+                                    "    ",
+                                    "    pm.expect(response.data).to.have.property('user');",
+                                    "    console.log('✅ Admin retrieved user details - Individual user access granted');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "query GetUserDetails($id: ID!) {\n  user(id: $id) {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    orders {\n      id\n      status\n      totalAmount\n      createdAt\n    }\n    paymentMethods {\n      id\n      type\n      isDefault\n      createdAt\n    }\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{user_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**User Management - Get User Details**\n\nTests admin ability to retrieve detailed information for a specific user.\n\n**Validates**:\n- Admin access to individual user profiles\n- User ID validation and lookup\n- Complete user data retrieval\n- Order history access\n- Payment method visibility\n\n**Admin Capabilities**:\n- View any user's complete profile\n- Access detailed order history\n- Review payment method configurations\n- Monitor user account details\n\n**Data Retrieved**:\n- Full user profile information\n- Complete order history (limited to recent)\n- All payment methods with details\n- Account status and metadata"
+                    }
+                },
+                {
+                    "name": "15: Update User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Update user successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const response = pm.response.json();",
+                                    "    ",
+                                    "    // Check for GraphQL errors",
+                                    "    if (response.errors) {",
+                                    "        pm.expect.fail('GraphQL errors found: ' + JSON.stringify(response.errors));",
+                                    "    }",
+                                    "    ",
+                                    "    pm.expect(response.data).to.have.property('updateUser');",
+                                    "    console.log('✅ Admin updated user - User management permissions granted');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateUser($id: ID!, $role: UserRole, $country: Country, $isActive: Boolean) {\n  updateUser(id: $id, role: $role, country: $country, isActive: $isActive) {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{user_id}}\",\n  \"role\": \"MEMBER_AMERICA\",\n  \"country\": \"AMERICA\",\n  \"isActive\": true\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**User Management - Update User**\n\nTests admin ability to modify user account properties and permissions.\n\n**Validates**:\n- Admin-only user modification access\n- Role change capabilities\n- Country reassignment\n- Account activation/deactivation\n- Partial update functionality\n\n**Admin Controls**:\n- Change user roles (MEMBER → MANAGER → ADMIN)\n- Reassign user countries\n- Activate/deactivate accounts\n- Update user permissions\n\n**Update Fields**:\n- **role**: Change access level\n- **country**: Geographic reassignment\n- **isActive**: Account status control\n\n**Business Impact**:\n- Role changes affect system access\n- Country changes affect data visibility\n- Deactivation prevents login"
+                    }
+                },
+                {
+                    "name": "16: Delete User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Delete user successful\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const response = pm.response.json();",
+                                    "    ",
+                                    "    // Check for GraphQL errors",
+                                    "    if (response.errors) {",
+                                    "        pm.expect.fail('GraphQL errors found: ' + JSON.stringify(response.errors));",
+                                    "    }",
+                                    "    ",
+                                    "    pm.expect(response.data).to.have.property('deleteUser');",
+                                    "    console.log('✅ Admin deleted user - Complete user management access');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation DeleteUser($id: ID!) {\n  deleteUser(id: $id)\n}",
+                                "variables": "{\n  \"id\": \"{{user_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**User Management - Delete User**\n\nTests admin ability to permanently remove user accounts from the system.\n\n**Validates**:\n- Admin-only user deletion access\n- User existence verification\n- Cascade deletion of related data\n- Permanent removal confirmation\n\n**Admin Authority**:\n- Complete account removal\n- Data cleanup across all entities\n- Audit trail maintenance\n\n**Cascade Effects**:\n- User profile deletion\n- Associated orders removal\n- Payment methods cleanup\n- Payment records deletion\n\n**Critical Operation**:\n- **Permanent and irreversible**\n- Requires careful admin oversight\n- Complete data removal from system\n\n**Production Note**: Consider soft deletion for compliance"
                     }
                 }
             ]
         },
         {
             "name": "MANAGER FLOW (Captain Marvel)",
+            "description": "## Manager Test Suite - Country-Restricted Operations\n\n**Role**: `MANAGER_INDIA` - Country-specific restaurant and order management\n**User**: Captain Marvel (captain.marvel@foody.com)\n**Capabilities**: Functions 1-4 within INDIA scope, blocked from Function 5\n\n### Test Sequence\n1. **Authentication**: Login and token management\n2. **Data Access**: View INDIA restaurants and menu items only\n3. **Order Management**: Create orders, update status, cancel orders\n4. **Payment Restrictions**: Blocked from payment method management\n5. **Menu Management**: Create menu items for INDIA restaurants\n\n### Functions Tested\n- ✅ Function 1: View restaurants & menu items (INDIA only)\n- ✅ Function 2: Create order with items (INDIA restaurants)\n- ✅ Function 3: Place order (checkout & pay) (INDIA scope)\n- ✅ Function 4: Cancel order (INDIA orders)\n- ❌ Function 5: Update payment method (blocked)\n\n### Key Validations\n- Geographic access control (INDIA only)\n- Order creation and management within scope\n- Payment method restrictions\n- Menu item management for assigned country\n- Status update permissions\n\n### Geographic Restrictions\n- **Restaurants**: Only INDIA restaurants visible\n- **Orders**: Only orders from INDIA members\n- **Menu Items**: Create/update only for INDIA restaurants\n- **Payments**: Cannot manage payment methods",
             "item": [
                 {
-                    "name": "MANAGER-01: Login as Manager India",
+                    "name": "01: Login as Manager India",
                     "event": [
                         {
                             "listen": "test",
@@ -586,7 +839,7 @@
                                     "    const token = response.data.login.token;",
                                     "    pm.collectionVariables.set('auth_token', token);",
                                     "    pm.collectionVariables.set('manager_token', token);",
-                                    "    console.log('✅ Manager India authenticated');",
+                                    "    console.log('✅ Manager India authenticated - Country-restricted access');",
                                     "});"
                                 ]
                             }
@@ -613,11 +866,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Manager Authentication**\n\nAuthenticates as INDIA manager with country-restricted access.\n\n**Validates**:\n- Successful login with manager credentials\n- Role verification (MANAGER_INDIA)\n- Country assignment (INDIA)\n- Token storage for subsequent operations\n\n**Access Scope**: All operations limited to INDIA country"
                     }
                 },
                 {
-                    "name": "MANAGER-02: View India Restaurants Only",
+                    "name": "02: View India Restaurants Only",
                     "event": [
                         {
                             "listen": "test",
@@ -629,7 +883,7 @@
                                     "    response.data.restaurants.forEach(r => {",
                                     "        pm.expect(r.country).to.equal('INDIA');",
                                     "    });",
-                                    "    console.log('✅ Function 1: Manager can view (India only)');",
+                                    "    console.log('✅ Function 1: Manager can view (India only) - Geographic restriction enforced');",
                                     "});"
                                 ]
                             }
@@ -652,11 +906,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 1: View Restaurants (Country-Restricted)**\n\nTests manager ability to view only INDIA restaurants.\n\n**Validates**:\n- Geographic access control\n- Country filtering (INDIA only)\n- No access to AMERICA restaurants\n- Manager read permissions\n\n**Expected**: Only restaurants with country=INDIA visible"
                     }
                 },
                 {
-                    "name": "MANAGER-03: View Menu Items",
+                    "name": "03: View Menu Items",
                     "event": [
                         {
                             "listen": "test",
@@ -688,21 +943,61 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 1: View Menu Items**\n\nTests manager ability to view menu items.\n\n**Validates**:\n- Menu item access permissions\n- No geographic restrictions on viewing\n- Read-only access to all items\n\n**Note**: Managers can view all menu items but can only modify INDIA restaurant items"
                     }
                 },
                 {
-                    "name": "MANAGER-04: BLOCKED - Create Payment Method",
+                    "name": "04: Create Menu Item (India Restaurant)",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Manager CANNOT create payment method\", function () {",
+                                    "pm.test(\"Menu item created for India restaurant\", function () {",
                                     "    const response = pm.response.json();",
-                                    "    pm.expect(response.errors).to.be.an('array');",
-                                    "    pm.expect(response.errors[0].message).to.include('Only admins can manage payment methods');",
-                                    "    console.log('✅ Function 5: Manager blocked from creating payment methods');",
+                                    "    pm.expect(response.data.createMenuItem).to.have.property('id');",
+                                    "    pm.collectionVariables.set('manager_menu_item_id', response.data.createMenuItem.id);",
+                                    "    console.log('✅ Manager created menu item for India restaurant');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateMenuItem($input: CreateMenuItemInput!) {\n  createMenuItem(input: $input) {\n    id\n    name\n    price\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Manager Test Dish\",\n    \"description\": \"Created by India manager\",\n    \"price\": 12.99,\n    \"category\": \"Appetizer\",\n    \"restaurantId\": \"{{restaurant_id}}\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Manager Menu Management**\n\nTests manager ability to create menu items for INDIA restaurants.\n\n**Validates**:\n- Country-based creation permissions\n- Restaurant ownership validation\n- Menu item data structure\n- Geographic access control\n\n**Scope**: INDIA restaurants only"
+                    }
+                },
+                {
+                    "name": "05: Create Payment Method (ALLOWED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Manager CAN create payment method\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.createPaymentMethod).to.have.property('id');",
+                                    "    pm.collectionVariables.set('manager_payment_method_id', response.data.createPaymentMethod.id);",
+                                    "    console.log('✅ Function 5: Manager created payment method');",
                                     "});"
                                 ]
                             }
@@ -726,11 +1021,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 5: Create Payment Method (ALLOWED)**\n\nTests that managers can create payment methods for order processing.\n\n**Validates**:\n- Manager payment method creation permissions\n- Payment method data structure\n- Token processing capability\n- Payment method ownership\n\n**Note**: Managers need payment methods to create orders"
                     }
                 },
                 {
-                    "name": "MANAGER-05: BLOCKED - Update Payment Method",
+                    "name": "06: Update Payment Method (BLOCKED)",
                     "event": [
                         {
                             "listen": "test",
@@ -739,6 +1035,7 @@
                                     "pm.test(\"Manager CANNOT update payment method\", function () {",
                                     "    const response = pm.response.json();",
                                     "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Admin access required to update payment methods');",
                                     "    console.log('✅ Function 5: Manager blocked from updating payment methods');",
                                     "});"
                                 ]
@@ -763,11 +1060,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 5: Update Payment Method (BLOCKED)**\n\nTests that managers cannot update payment methods.\n\n**Validates**:\n- Payment method modification restrictions\n- Admin-only update permissions\n- Error handling for unauthorized access\n\n**Expected**: GraphQL error preventing modification"
                     }
                 },
                 {
-                    "name": "MANAGER-06: Read Payment Methods",
+                    "name": "07: Read Payment Methods (ALLOWED)",
                     "event": [
                         {
                             "listen": "test",
@@ -799,11 +1097,59 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 5: Read Payment Methods (ALLOWED)**\n\nTests that managers can read payment methods (view-only).\n\n**Validates**:\n- Read access to payment methods\n- No modification capabilities\n- Information access for order processing\n\n**Note**: Managers can view but not modify payment methods"
                     }
                 },
                 {
-                    "name": "MANAGER-07: View Orders & Extract ID",
+                    "name": "08: Create Order (India Restaurant)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Manager can create order\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    ",
+                                    "    // Check for GraphQL errors",
+                                    "    if (response.errors) {",
+                                    "        pm.expect.fail('GraphQL errors found: ' + JSON.stringify(response.errors));",
+                                    "    }",
+                                    "    ",
+                                    "    pm.expect(response.data.createOrder).to.have.property('id');",
+                                    "    pm.expect(response.data.createOrder.status).to.equal('PENDING');",
+                                    "    pm.collectionVariables.set('manager_order_id', response.data.createOrder.id);",
+                                    "    console.log('✅ Function 2: Manager added items to order');",
+                                    "    console.log('✅ Function 3: Manager placed order with payment');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n    totalAmount\n    status\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{manager_menu_item_id}}\",\n        \"quantity\": 1,\n        \"notes\": \"Manager order test\"\n      }\n    ],\n    \"deliveryAddress\": \"Manager Test Address, Mumbai\",\n    \"phone\": \"+91-9876543210\",\n    \"paymentMethodId\": \"{{manager_payment_method_id}}\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Functions 2 & 3: Create & Place Order**\n\nTests manager ability to create orders for INDIA restaurants.\n\n**Validates**:\n- Function 2: Order creation with items\n- Function 3: Payment processing for orders\n- Geographic scope validation\n- Manager ordering permissions\n- Order status (PENDING)\n\n**Scope**: Orders must use INDIA restaurant items"
+                    }
+                },
+                {
+                    "name": "09: View Orders & Extract ID",
                     "event": [
                         {
                             "listen": "test",
@@ -840,11 +1186,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Order Management Access**\n\nTests manager ability to view orders within their scope.\n\n**Validates**:\n- Order visibility permissions\n- Geographic filtering (INDIA orders)\n- Order data access\n- Variable storage for updates\n\n**Scope**: INDIA member orders only"
                     }
                 },
                 {
-                    "name": "MANAGER-08: Update Order Status",
+                    "name": "10: Update Order Status",
                     "event": [
                         {
                             "listen": "test",
@@ -886,16 +1233,140 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
+                        },
+                        "description": "**Function 4: Update Order Status**\n\nTests manager ability to update order status within scope.\n\n**Validates**:\n- Status update permissions\n- Geographic restrictions\n- Order lifecycle management\n- Manager authority for status changes\n\n**Scope**: INDIA orders only"
+                    }
+                },
+                {
+                    "name": "11: Cancel Order",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Manager can cancel order\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    ",
+                                    "    // Check for GraphQL errors",
+                                    "    if (response.errors) {",
+                                    "        pm.expect.fail('GraphQL errors found: ' + JSON.stringify(response.errors));",
+                                    "    }",
+                                    "    ",
+                                    "    pm.expect(response.data.updateOrderStatus.status).to.equal('CANCELLED');",
+                                    "    console.log('✅ Function 4: Manager cancelled order');",
+                                    "});"
+                                ]
+                            }
                         }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateOrderStatus($id: ID!, $status: OrderStatus!) {\n  updateOrderStatus(id: $id, status: $status) {\n    id\n    status\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{manager_order_id}}\",\n  \"status\": \"CANCELLED\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Function 4: Cancel Order**\n\nTests manager ability to cancel orders within scope.\n\n**Validates**:\n- Order cancellation permissions\n- Geographic restrictions\n- Status change to CANCELLED\n- Manager override capabilities\n\n**Scope**: Orders created by INDIA members"
+                    }
+                },
+                {
+                    "name": "12: Delete Menu Item (BLOCKED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Manager CANNOT delete menu items (referenced by orders)\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Foreign key constraint');",
+                                    "    console.log('✅ Manager blocked from deleting menu items referenced by orders');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation DeleteMenuItem($id: ID!) {\n  deleteMenuItem(id: $id)\n}",
+                                "variables": "{\n  \"id\": \"{{manager_menu_item_id}}\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Menu Item Deletion (BLOCKED)**\n\nTests that managers cannot delete menu items referenced by orders.\n\n**Validates**:\n- Foreign key constraint enforcement\n- Data integrity protection\n- Menu item deletion restrictions\n- Database relationship constraints\n\n**Expected**: Foreign key constraint error preventing deletion"
+                    }
+                },
+                {
+                    "name": "13: Create Restaurant (BLOCKED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Manager CANNOT create restaurant\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Admin access required to create restaurants');",
+                                    "    console.log('✅ Manager blocked from creating restaurants');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateRestaurant($input: CreateRestaurantInput!) {\n  createRestaurant(input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Manager Restaurant\",\n    \"country\": \"INDIA\",\n    \"city\": \"Delhi\",\n    \"address\": \"Test Address\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Restaurant Creation (BLOCKED)**\n\nTests that managers cannot create restaurants.\n\n**Validates**:\n- Restaurant creation restrictions\n- Admin-only permissions\n- Error handling for unauthorized access\n\n**Expected**: GraphQL error preventing restaurant creation"
                     }
                 }
             ]
         },
         {
             "name": "MEMBER FLOW (Thanos)",
+            "description": "## Member Test Suite - Read-Only Access\n\n**Role**: `MEMBER_INDIA` - Read-only access\n**User**: Thanos (thanos@foody.com)\n**Capabilities**: Function 1 only (view data)\n\n### Test Sequence\n1. **Authentication**: Login and token management\n2. **Data Access**: View restaurants and menu items\n3. **Blocked Operations**: Attempt restricted actions\n\n### Functions Tested\n- ✅ Function 1: View restaurants & menu items (INDIA only)\n- ❌ Function 2: Create order (BLOCKED)\n- ❌ Function 3: Place order (checkout & pay) - BLOCKED\n- ❌ Function 4: Cancel order - BLOCKED\n- ❌ Function 5: Update payment method - BLOCKED\n\n### Key Validations\n- Geographic data filtering (INDIA restaurants only)\n- Read-only access to menu items\n- Proper error responses for blocked operations\n- Security boundary enforcement\n\n### Test Data Used\n- Restaurants: INDIA restaurants only\n- Menu Items: All items (read-only)\n\n### Member Restrictions\nMembers can browse menu items but cannot:\n- Create orders\n- Complete payment transactions\n- Cancel orders\n- Modify menu items\n- Create payment methods\n- Access admin/management functions",
             "item": [
                 {
-                    "name": "MEMBER-01: Login as Member India",
+                    "name": "01: Login as Member India",
                     "event": [
                         {
                             "listen": "test",
@@ -904,11 +1375,12 @@
                                     "pm.test(\"Member login successful\", function () {",
                                     "    const response = pm.response.json();",
                                     "    pm.expect(response.data.login.user.role).to.equal('MEMBER_INDIA');",
+                                    "    pm.expect(response.data.login.user.country).to.equal('INDIA');",
                                     "    ",
                                     "    const token = response.data.login.token;",
                                     "    pm.collectionVariables.set('auth_token', token);",
                                     "    pm.collectionVariables.set('member_token', token);",
-                                    "    console.log('✅ Member India authenticated');",
+                                    "    console.log('✅ Member India authenticated - Read-only access');",
                                     "});"
                                 ]
                             }
@@ -928,27 +1400,31 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      role\n    }\n  }\n}",
+                                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      role\n      country\n    }\n  }\n}",
                                 "variables": "{\n  \"input\": {\n    \"email\": \"thanos@foody.com\",\n    \"password\": \"ChangeMe123!\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Member Authentication**\n\nAuthenticates as INDIA member with read-only access.\n\n**Validates**:\n- Successful login with member credentials\n- Role verification (MEMBER_INDIA)\n- Country assignment (INDIA)\n- Token storage for subsequent operations\n\n**Access Scope**: Read-only access to INDIA data"
                     }
                 },
                 {
-                    "name": "MEMBER-02: View Restaurants",
+                    "name": "02: View India Restaurants Only",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Member can view restaurants\", function () {",
+                                    "pm.test(\"Only India restaurants visible\", function () {",
                                     "    const response = pm.response.json();",
                                     "    pm.expect(response.data.restaurants).to.be.an('array');",
-                                    "    console.log('✅ Function 1: Member can view restaurants');",
+                                    "    response.data.restaurants.forEach(r => {",
+                                    "        pm.expect(r.country).to.equal('INDIA');",
+                                    "    });",
+                                    "    console.log('✅ Function 1: Member can view (India only) - Geographic restriction enforced');",
                                     "});"
                                 ]
                             }
@@ -965,17 +1441,18 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Restaurants {\n  restaurants {\n    id\n    name\n  }\n}"
+                                "query": "query Restaurants {\n  restaurants {\n    id\n    name\n    country\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 1: View Restaurants (Country-Restricted)**\n\nTests member ability to view only INDIA restaurants.\n\n**Validates**:\n- Geographic access control\n- Country filtering (INDIA only)\n- No access to AMERICA restaurants\n- Member read permissions\n\n**Expected**: Only restaurants with country=INDIA visible"
                     }
                 },
                 {
-                    "name": "MEMBER-03: View Menu Items",
+                    "name": "03: View Menu Items",
                     "event": [
                         {
                             "listen": "test",
@@ -1007,11 +1484,55 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 1: View Menu Items**\n\nTests member ability to view menu items.\n\n**Validates**:\n- Menu item access permissions\n- No geographic restrictions on viewing\n- Read-only access to all items\n\n**Note**: Members can view all menu items but cannot modify them"
                     }
                 },
                 {
-                    "name": "MEMBER-04: BLOCKED - Place Order",
+                    "name": "04: Create Order (BLOCKED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT create orders (blocked)\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const response = pm.response.json();",
+                                    "    ",
+                                    "    // Should get GraphQL error for forbidden access",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Members cannot place orders');",
+                                    "    pm.expect(response.data).to.be.null;",
+                                    "    console.log('✅ Function 2: Order creation blocked for members');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n    totalAmount\n    status\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{menu_item_id}}\",\n        \"quantity\": 1,\n        \"notes\": \"Member order test\"\n      }\n    ],\n    \"deliveryAddress\": \"123 Member Street, Mumbai\",\n    \"phone\": \"+91-9876543210\",\n    \"paymentMethodId\": \"dummy-payment-method-id\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Function 2: Create Order (BLOCKED)**\n\nTests member inability to create orders.\n\n**Validates**:\n- Order creation permissions\n- Member restrictions on ordering\n- Proper null response for blocked operations\n\n**Expected**: Members cannot create orders, response should be null"
+                    }
+                },
+                {
+                    "name": "05: Place Order (BLOCKED)",
                     "event": [
                         {
                             "listen": "test",
@@ -1045,11 +1566,50 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 3: Place Order (BLOCKED)**\n\nTests that members cannot complete order placement.\n\n**Validates**:\n- Payment processing restrictions\n- Order completion blocking\n- Proper error messaging\n- Security boundary enforcement\n\n**Expected**: GraphQL error preventing order completion"
                     }
                 },
                 {
-                    "name": "MEMBER-05: BLOCKED - Create Payment Method",
+                    "name": "07: Cancel Order (BLOCKED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT cancel order\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    console.log('✅ Function 4: Member blocked from cancelling orders');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateOrderStatus($id: ID!, $status: OrderStatus!) {\n  updateOrderStatus(id: $id, status: $status) {\n    id\n  }\n}",
+                                "variables": "{\n  \"id\": \"dummy-order-id\",\n  \"status\": \"CANCELLED\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Function 4: Cancel Order (BLOCKED)**\n\nTests that members cannot cancel orders.\n\n**Validates**:\n- Order cancellation restrictions\n- Status update blocking\n- Error handling for unauthorized access\n\n**Expected**: GraphQL error preventing order cancellation"
+                    }
+                },
+                {
+                    "name": "08: Create Payment Method (BLOCKED)",
                     "event": [
                         {
                             "listen": "test",
@@ -1082,11 +1642,12 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Function 5: Create Payment Method (BLOCKED)**\n\nTests that members cannot create payment methods.\n\n**Validates**:\n- Payment method creation restrictions\n- Admin-only access control\n- Proper error messaging\n- Security boundary enforcement\n\n**Expected**: GraphQL error preventing payment method creation"
                     }
                 },
                 {
-                    "name": "MEMBER-06: BLOCKED - Update Menu Item",
+                    "name": "09: Update Menu Item (BLOCKED)",
                     "event": [
                         {
                             "listen": "test",
@@ -1095,6 +1656,7 @@
                                     "pm.test(\"Member CANNOT update menu items\", function () {",
                                     "    const response = pm.response.json();",
                                     "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Not authorized to update menu items');",
                                     "    console.log('✅ Member blocked from updating menu items');",
                                     "});"
                                 ]
@@ -1119,11 +1681,246 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Menu Management (BLOCKED)**\n\nTests that members cannot modify menu items.\n\n**Validates**:\n- Menu item modification restrictions\n- Manager/Admin-only permissions\n- Error handling for unauthorized access\n\n**Expected**: GraphQL error preventing menu item updates"
                     }
                 },
                 {
-                    "name": "MEMBER-07: BLOCKED - Delete Menu Item",
+                    "name": "10: Cancel Order (BLOCKED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT cancel order\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Members cannot update order status');",
+                                    "    console.log('✅ Function 4: Member blocked from cancelling orders');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdateOrderStatus($id: ID!, $status: OrderStatus!) {\n  updateOrderStatus(id: $id, status: $status) {\n    id\n  }\n}",
+                                "variables": "{\n  \"id\": \"dummy-order-id\",\n  \"status\": \"CANCELLED\"\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Function 4: Cancel Order (BLOCKED)**\n\nTests that members cannot cancel orders.\n\n**Validates**:\n- Order cancellation restrictions\n- Status update blocking for members\n- Error handling for unauthorized access\n\n**Expected**: GraphQL error preventing order cancellation"
+                    }
+                },
+                {
+                    "name": "11: Create Payment Method (BLOCKED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT create payment method\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Only admins and managers can manage payment methods');",
+                                    "    console.log('✅ Function 5: Member blocked from creating payment methods');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {\n  createPaymentMethod(input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"type\": \"CREDIT_CARD\",\n    \"provider\": \"STRIPE\",\n    \"token\": \"tok_member\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Function 5: Create Payment Method (BLOCKED)**\n\nTests that members cannot create payment methods.\n\n**Validates**:\n- Payment method creation restrictions\n- Admin-only access control\n- Proper error messaging\n- Security boundary enforcement\n\n**Expected**: GraphQL error preventing payment method creation"
+                    }
+                },
+                {
+                    "name": "12: Update Payment Method (BLOCKED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT update payment method\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Admin access required to update payment methods');",
+                                    "    console.log('✅ Function 5: Member blocked from updating payment methods');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation UpdatePaymentMethod($id: ID!, $input: UpdatePaymentMethodInput!) {\n  updatePaymentMethod(id: $id, input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"id\": \"dummy-id\",\n  \"input\": {\n    \"isDefault\": true\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Function 5: Update Payment Method (BLOCKED)**\n\nTests that members cannot update payment methods.\n\n**Validates**:\n- Payment method modification restrictions\n- Admin-only update permissions\n- Error handling for unauthorized access\n\n**Expected**: GraphQL error preventing payment method updates"
+                    }
+                },
+                {
+                    "name": "13: Process Payment (BLOCKED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT process payment\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Only admins and managers can process payments');",
+                                    "    console.log('✅ Member blocked from processing payments');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation ProcessPayment($input: ProcessPaymentInput!) {\n  processPayment(input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"orderId\": \"dummy-order-id\",\n    \"paymentMethodId\": \"{{payment_method_id}}\",\n    \"amount\": 25.99\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Payment Processing (BLOCKED)**\n\nTests that members cannot process payments.\n\n**Validates**:\n- Payment processing restrictions\n- Admin/Manager-only permissions\n- Error handling for unauthorized access\n\n**Expected**: GraphQL error preventing payment processing"
+                    }
+                },
+                {
+                    "name": "14: Create Restaurant (BLOCKED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT create restaurant\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Admin access required to create restaurants');",
+                                    "    console.log('✅ Member blocked from creating restaurants');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateRestaurant($input: CreateRestaurantInput!) {\n  createRestaurant(input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Member Restaurant\",\n    \"country\": \"INDIA\",\n    \"city\": \"Mumbai\",\n    \"address\": \"Test Address\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Restaurant Creation (BLOCKED)**\n\nTests that members cannot create restaurants.\n\n**Validates**:\n- Restaurant creation restrictions\n- Admin-only permissions\n- Error handling for unauthorized access\n\n**Expected**: GraphQL error preventing restaurant creation"
+                    }
+                },
+                {
+                    "name": "15: Create Menu Item (BLOCKED)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Member CANNOT create menu items\", function () {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Not authorized to create menu items');",
+                                    "    console.log('✅ Member blocked from creating menu items');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "graphql",
+                            "graphql": {
+                                "query": "mutation CreateMenuItem($input: CreateMenuItemInput!) {\n  createMenuItem(input: $input) {\n    id\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Member Dish\",\n    \"description\": \"Created by member\",\n    \"price\": 15.99,\n    \"category\": \"Main Course\",\n    \"restaurantId\": \"{{restaurant_id}}\"\n  }\n}"
+                            }
+                        },
+                        "url": {
+                            "raw": "{{graphql}}",
+                            "host": ["{{graphql}}"]
+                        },
+                        "description": "**Menu Item Creation (BLOCKED)**\n\nTests that members cannot create menu items.\n\n**Validates**:\n- Menu item creation restrictions\n- Manager/Admin-only permissions\n- Error handling for unauthorized access\n\n**Expected**: GraphQL error preventing menu item creation"
+                    }
+                },
+                {
+                    "name": "16: Delete Menu Item (BLOCKED)",
                     "event": [
                         {
                             "listen": "test",
@@ -1132,6 +1929,7 @@
                                     "pm.test(\"Member CANNOT delete menu items\", function () {",
                                     "    const response = pm.response.json();",
                                     "    pm.expect(response.errors).to.be.an('array');",
+                                    "    pm.expect(response.errors[0].message).to.include('Not authorized to delete menu items');",
                                     "    console.log('✅ Member blocked from deleting menu items');",
                                     "});"
                                 ]
@@ -1156,7 +1954,8 @@
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
-                        }
+                        },
+                        "description": "**Menu Item Deletion (BLOCKED)**\n\nTests that members cannot delete menu items.\n\n**Validates**:\n- Menu item deletion restrictions\n- Manager/Admin-only permissions\n- Error handling for unauthorized access\n\n**Expected**: GraphQL error preventing menu item deletion"
                     }
                 }
             ]

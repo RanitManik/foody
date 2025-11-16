@@ -418,13 +418,20 @@ export const paymentResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
-            // Only admins can manage payment methods
-            if (context.user.role !== "ADMIN") {
+            // Only admins and managers can manage payment methods
+            if (
+                context.user.role !== "ADMIN" &&
+                context.user.role !== "MANAGER_INDIA" &&
+                context.user.role !== "MANAGER_AMERICA"
+            ) {
                 logger.warn("Payment method creation failed: insufficient permissions", {
                     userId: context.user.id,
                     role: context.user.role,
                 });
-                throw GraphQLErrors.forbidden("Only admins can manage payment methods");
+
+                throw GraphQLErrors.forbidden(
+                    "Only admins and managers can manage payment methods",
+                );
             }
 
             try {
