@@ -4,8 +4,7 @@ Complete Postman collections for testing all endpoints of the Foody GraphQL API 
 
 <details>
 <summary><strong>Table of Contents</strong> (Click to Expand)</summary>
-
-#### Table of Contents
+<br/>
 
 - [**Files**](#files)
     - [Manual Testing Collection](#manual-testing-collection)
