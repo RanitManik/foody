@@ -55,6 +55,7 @@ import { logger } from "../../lib/shared/logger";
 import { GraphQLErrors } from "../../lib/shared/errors";
 import { validateInput, validateEmail } from "../../lib/shared/validation";
 import bcrypt from "bcryptjs";
+import type { GraphQLContext } from "../../types/graphql";
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 const mockGenerateToken = generateToken as jest.Mock;
@@ -63,6 +64,12 @@ const mockGraphQLErrors = GraphQLErrors as jest.Mocked<typeof GraphQLErrors>;
 const mockValidateInput = validateInput as jest.Mock;
 const mockValidateEmail = validateEmail as jest.Mock;
 const mockBcryptCompare = bcrypt.compare as jest.Mock;
+
+const createContext = (overrides: Partial<GraphQLContext> = {}): GraphQLContext => ({
+    prisma: mockPrisma as unknown as GraphQLContext["prisma"],
+    user: null,
+    ...overrides,
+});
 
 describe("Auth Resolvers", () => {
     beforeEach(() => {
@@ -96,20 +103,21 @@ describe("Auth Resolvers", () => {
                     firstName: "Test",
                     lastName: "User",
                     isActive: true,
+                    password: "hashed-password",
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 };
 
-                const context = { user: mockUser, prisma: mockPrisma };
-                const result = authResolvers.Query?.me?.(null, {}, context as any);
+                const context = createContext({ user: mockUser });
+                const result = authResolvers.Query?.me?.(null, {}, context);
 
                 expect(result).toEqual(mockUser);
             });
 
             it("should throw unauthenticated error when not authenticated", () => {
-                const context = { user: null, prisma: mockPrisma };
+                const context = createContext();
 
-                expect(() => authResolvers.Query?.me?.(null, {}, context as any)).toThrow(
+                expect(() => authResolvers.Query?.me?.(null, {}, context)).toThrow(
                     "Not authenticated",
                 );
                 expect(mockGraphQLErrors.unauthenticated).toHaveBeenCalled();
@@ -140,9 +148,13 @@ describe("Auth Resolvers", () => {
                 (mockPrisma.users.findUnique as jest.Mock).mockResolvedValue(null); // No existing user
                 (mockPrisma.users.create as jest.Mock).mockResolvedValue(mockCreatedUser);
 
-                const result = await authResolvers.Mutation?.register?.(null, {
-                    input: validInput,
-                });
+                const result = await authResolvers.Mutation?.register?.(
+                    null,
+                    {
+                        input: validInput,
+                    },
+                    createContext(),
+                );
 
                 expect(mockValidateInput).toHaveBeenCalled();
                 expect(mockPrisma.users.findUnique).toHaveBeenCalledWith({
@@ -163,7 +175,11 @@ describe("Auth Resolvers", () => {
                 (mockPrisma.users.findUnique as jest.Mock).mockResolvedValue(existingUser);
 
                 await expect(
-                    authResolvers.Mutation?.register?.(null, { input: validInput }),
+                    authResolvers.Mutation?.register?.(
+                        null,
+                        { input: validInput },
+                        createContext(),
+                    ),
                 ).rejects.toThrow();
 
                 expect(mockGraphQLErrors.badInput).toHaveBeenCalledWith("User already exists");
@@ -176,7 +192,11 @@ describe("Auth Resolvers", () => {
                 });
 
                 await expect(
-                    authResolvers.Mutation?.register?.(null, { input: validInput }),
+                    authResolvers.Mutation?.register?.(
+                        null,
+                        { input: validInput },
+                        createContext(),
+                    ),
                 ).rejects.toThrow("Validation failed");
 
                 expect(mockLogger.error).toHaveBeenCalled();
@@ -239,6 +259,7 @@ describe("Auth Resolvers", () => {
                     id: "user-123",
                     email: validInput.email,
                     isActive: false,
+                    password: "hashed-password",
                 };
 
                 (mockPrisma.users.findUnique as jest.Mock).mockResolvedValue(inactiveUser);

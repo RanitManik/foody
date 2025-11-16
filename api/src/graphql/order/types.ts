@@ -30,5 +30,5 @@ export interface CreateOrderInput {
     deliveryAddress: string;
     phone: string;
     specialInstructions?: string;
-    paymentMethodId: string;
+    paymentMethodId?: string;
 }

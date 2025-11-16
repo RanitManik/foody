@@ -209,7 +209,7 @@ export const CreateOrderInputSchema = z.object({
     deliveryAddress: z.string().min(1, "Delivery address is required").max(500, "Address too long"),
     phone: validationSchemas.phone,
     specialInstructions: z.string().max(1000, "Special instructions too long").optional(),
-    paymentMethodId: validationSchemas.id,
+    paymentMethodId: validationSchemas.id.optional(),
 });
 
 /**

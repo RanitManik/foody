@@ -37,6 +37,8 @@ import {
     validationSchemas,
 } from "../../lib/shared/validation";
 import { GraphQLContext, CreatePaymentMethodInput } from "../../types/graphql";
+import { deleteCacheByPattern } from "../../lib/shared/cache";
+import { UserRole, OrderStatus } from "@prisma/client";
 
 export const paymentResolvers = {
     Query: {
@@ -718,8 +720,9 @@ export const paymentResolvers = {
          * 9. Returns complete payment details
          *
          * @permissions
-         * - **Any authenticated user**: Can process payment for their own orders
-         * - Must own both the order and the payment method
+         * - **Admins**: Can process any payment
+         * - **Managers**: Can process payments for their own orders or members in their country
+         * - **Members**: Cannot process payments
          *
          * @security
          * - User ownership of order and payment method verified
@@ -774,15 +777,17 @@ export const paymentResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
+            const role = context.user.role as UserRole;
+
             // Only admins and managers can process payments
             if (
-                context.user.role !== "ADMIN" &&
-                context.user.role !== "MANAGER_INDIA" &&
-                context.user.role !== "MANAGER_AMERICA"
+                role !== UserRole.ADMIN &&
+                role !== UserRole.MANAGER_INDIA &&
+                role !== UserRole.MANAGER_AMERICA
             ) {
                 logger.warn("Payment processing failed: insufficient permissions", {
                     userId: context.user.id,
-                    role: context.user.role,
+                    role,
                 });
                 throw GraphQLErrors.forbidden("Only admins and managers can process payments");
             }
@@ -794,20 +799,54 @@ export const paymentResolvers = {
                 const validatedOrderId = validationSchemas.id.parse(orderId);
                 const validatedPaymentMethodId = validationSchemas.id.parse(paymentMethodId);
 
-                // Verify order exists and belongs to user
-                const order = await prisma.orders.findFirst({
+                // Verify order exists
+                const order = await prisma.orders.findUnique({
                     where: {
                         id: validatedOrderId,
-                        userId: context.user.id,
+                    },
+                    include: {
+                        users: {
+                            select: {
+                                id: true,
+                                role: true,
+                                country: true,
+                            },
+                        },
                     },
                 });
 
                 if (!order) {
-                    logger.warn("Payment processing failed: order not found or not owned by user", {
+                    logger.warn("Payment processing failed: order not found", {
                         userId: context.user.id,
                         orderId: validatedOrderId,
                     });
                     throw GraphQLErrors.notFound("Order not found");
+                }
+
+                const isOrderOwner = order.userId === context.user.id;
+                let canProcess = role === UserRole.ADMIN || isOrderOwner;
+
+                if (
+                    !canProcess &&
+                    (role === UserRole.MANAGER_INDIA || role === UserRole.MANAGER_AMERICA)
+                ) {
+                    const expectedMemberRole =
+                        role === UserRole.MANAGER_INDIA
+                            ? UserRole.MEMBER_INDIA
+                            : UserRole.MEMBER_AMERICA;
+                    if (order.users?.role === expectedMemberRole) {
+                        canProcess = true;
+                    }
+                }
+
+                if (!canProcess) {
+                    logger.warn("Payment processing failed: access denied to order", {
+                        userId: context.user.id,
+                        orderOwnerId: order.userId,
+                        orderOwnerRole: order.users?.role,
+                        requesterRole: role,
+                    });
+                    throw GraphQLErrors.forbidden("Access denied to this order");
                 }
 
                 // Verify payment method exists and belongs to user
@@ -857,18 +896,27 @@ export const paymentResolvers = {
                 // For now, we'll simulate payment processing
                 const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-                const payment = await prisma.payments.create({
-                    data: {
-                        orderId: validatedOrderId,
-                        paymentMethodId: validatedPaymentMethodId,
-                        amount,
-                        status: "COMPLETED",
-                        transactionId,
-                    },
-                    include: {
-                        payment_methods: true,
-                        orders: true,
-                    },
+                const payment = await prisma.$transaction(async (tx) => {
+                    const paymentRecord = await tx.payments.create({
+                        data: {
+                            orderId: validatedOrderId,
+                            paymentMethodId: validatedPaymentMethodId,
+                            amount,
+                            status: "COMPLETED",
+                            transactionId,
+                        },
+                        include: {
+                            payment_methods: true,
+                            orders: true,
+                        },
+                    });
+
+                    await tx.orders.update({
+                        where: { id: validatedOrderId },
+                        data: { status: OrderStatus.CONFIRMED },
+                    });
+
+                    return paymentRecord;
                 });
 
                 logger.info("Payment processed successfully", {
@@ -879,6 +927,12 @@ export const paymentResolvers = {
                     transactionId: payment.transactionId,
                     paymentMethod: paymentMethod.provider,
                 });
+
+                await Promise.all([
+                    deleteCacheByPattern(`order:${validatedOrderId}:*`),
+                    deleteCacheByPattern(`orders:${order.userId}:*`),
+                    deleteCacheByPattern(`orders:${context.user.id}:*`),
+                ]);
 
                 return payment;
             } catch (error) {

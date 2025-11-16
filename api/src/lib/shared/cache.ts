@@ -46,9 +46,30 @@ export const getRedisClient = (): RedisClientType | null => {
 
 // Cache key generators
 export const createCacheKey = {
-    menuItems: (restaurantId?: string) => `menuItems:${restaurantId || "all"}`,
+    menuItems: (
+        params?:
+            | string
+            | {
+                  restaurantId?: string;
+                  country?: string | null;
+              },
+    ) => {
+        if (typeof params === "string" || params === undefined) {
+            return `menuItems:all:${params || "all"}`;
+        }
+
+        const { restaurantId, country } = params;
+        return `menuItems:${country ?? "all"}:${restaurantId ?? "all"}`;
+    },
     menuItem: (id: string) => `menuItem:${id}`,
-    restaurants: (country?: string) => `restaurants:${country || "all"}`,
+    restaurants: (param?: string | { country?: string | null }) => {
+        if (typeof param === "string" || param === undefined) {
+            return `restaurants:${param || "all"}`;
+        }
+
+        const { country } = param;
+        return `restaurants:${country ?? "all"}`;
+    },
     restaurant: (id: string) => `restaurant:${id}`,
     user: (id: string) => `user:${id}`,
 };

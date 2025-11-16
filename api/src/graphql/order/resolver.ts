@@ -3,7 +3,7 @@
  * @module graphql/order/resolver
  * @description Handles complete order lifecycle including creation, tracking, status updates,
  * and cancellation. Implements strict role-based access control with critical business rule:
- * **MEMBERS CANNOT CREATE ORDERS** - only Managers and Admin can place orders.
+ * **Only managers/admins can complete checkout** while members are limited to cart creation.
  *
  * @features
  * - Order creation with multiple menu items
@@ -366,37 +366,29 @@ export const orderResolvers = {
          * @returns {Promise<Order>} Newly created order with all details
          *
          * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
-         * @throws {GraphQLError} FORBIDDEN - If member tries to create order or country restriction
+         * @throws {GraphQLError} FORBIDDEN - If country access fails or members attach payment methods
          * @throws {GraphQLError} BAD_INPUT - If validation fails or menu items unavailable
          *
          * @description
-         * **CRITICAL BUSINESS RULE: MEMBERS CANNOT CREATE ORDERS**
-         *
-         * Creates a new order with strict validation and transaction safety:
-         * 1. **Blocks members from creating orders** (critical restriction)
-         * 2. Validates all input data
-         * 3. Verifies payment method ownership
-         * 4. Batch fetches all menu items (prevents N+1 queries)
-         * 5. Validates all items are available
-         * 6. For managers, validates restaurants are in their country
-         * 7. Calculates total amount server-side (security)
-         * 8. Creates order in database transaction (atomicity)
-         * 9. Re-checks item availability in transaction (race condition prevention)
-         * 10. Invalidates order caches
-         * 11. Logs order creation with metadata
+         * Creates a new order (cart) while enforcing RBAC and country rules:
+         * 1. Validates all input data
+         * 2. Verifies optional payment method ownership (admins/managers only)
+         * 3. Batch fetches menu items to avoid N+1 queries
+         * 4. Ensures menu items are available and belong to the caller's country
+         * 5. Calculates totals server-side
+         * 6. Persists the order inside a transaction
+         * 7. Invalidates cached order lists for the caller
          *
          * @permissions
-         * - **Admin**: Can order from any restaurant
-         * - **Manager India**: Can only order from INDIA restaurants
-         * - **Manager America**: Can only order from AMERICA restaurants
-         * - **Members**: **CANNOT CREATE ORDERS** (forbidden)
+         * - **Admin**: Can order from any restaurant and attach payment method
+         * - **Manager India/America**: Limited to their country, may attach payment method
+         * - **Members**: Limited to their country, cannot attach payment method (checkout requires manager/admin)
          *
          * @security
          * - Total amount calculated server-side (never trust client)
          * - Transaction ensures data consistency
          * - Race condition prevention via availability recheck
-         * - Payment method ownership validated
-         * - Menu item prices locked at order time
+         * - Payment method ownership validated when provided
          *
          * @example
          * mutation {
@@ -408,7 +400,6 @@ export const orderResolvers = {
          *     deliveryAddress: "123 Main St, Apt 4B, Mumbai 400001"
          *     phone: "+91-98765-43210"
          *     specialInstructions: "Ring doorbell twice"
-         *     paymentMethodId: "pm123"
          *   }) {
          *     id totalAmount status
          *   }
@@ -424,40 +415,49 @@ export const orderResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
-            // Members cannot place orders (checkout & pay)
-            if (
-                context.user.role === UserRole.MEMBER_INDIA ||
-                context.user.role === UserRole.MEMBER_AMERICA
-            ) {
-                logger.warn("Order creation failed: members cannot place orders", {
-                    userId: context.user.id,
-                    role: context.user.role,
-                });
-                throw GraphQLErrors.forbidden(
-                    "Members cannot place orders. Please contact your manager.",
-                );
-            }
-
             try {
                 // Validate input
                 const validated = validateInput(CreateOrderInputSchema, input);
                 const { items, deliveryAddress, phone, specialInstructions, paymentMethodId } =
                     validated;
 
-                // Validate payment method belongs to user
-                const paymentMethod = await prisma.payment_methods.findFirst({
-                    where: {
-                        id: paymentMethodId,
-                        userId: context.user.id,
-                    },
-                });
+                const role = context.user.role;
+                const userCountry = context.user.country;
 
-                if (!paymentMethod) {
-                    logger.warn("Order creation failed: invalid payment method", {
+                if (!userCountry && role !== UserRole.ADMIN) {
+                    logger.warn("Order creation failed: user missing country", {
                         userId: context.user.id,
-                        paymentMethodId,
+                        role,
                     });
-                    throw GraphQLErrors.badInput("Invalid payment method");
+                    throw GraphQLErrors.forbidden("Country assignment required for ordering");
+                }
+
+                if (paymentMethodId) {
+                    if (role === UserRole.MEMBER_INDIA || role === UserRole.MEMBER_AMERICA) {
+                        logger.warn("Order creation failed: member attached payment method", {
+                            userId: context.user.id,
+                            role,
+                            paymentMethodId,
+                        });
+                        throw GraphQLErrors.forbidden(
+                            "Members cannot attach payment methods during order creation",
+                        );
+                    }
+
+                    const paymentMethod = await prisma.payment_methods.findFirst({
+                        where: {
+                            id: paymentMethodId,
+                            userId: context.user.id,
+                        },
+                    });
+
+                    if (!paymentMethod) {
+                        logger.warn("Order creation failed: invalid payment method", {
+                            userId: context.user.id,
+                            paymentMethodId,
+                        });
+                        throw GraphQLErrors.badInput("Invalid payment method");
+                    }
                 }
 
                 // Fetch all menu items in a single query to avoid N+1 problem
@@ -502,26 +502,30 @@ export const orderResolvers = {
                         );
                     }
 
-                    // Check country access for managers (members are already blocked)
-                    if (context.user.role !== UserRole.ADMIN) {
-                        if (context.user.role === UserRole.MANAGER_INDIA) {
-                            if (menuItem.restaurants.country !== "INDIA") {
-                                logger.warn("Order creation failed: country access denied", {
-                                    userId: context.user.id,
-                                    userRole: context.user.role,
-                                    restaurantCountry: menuItem.restaurants.country,
-                                });
-                                throw GraphQLErrors.forbidden("Cannot order from this restaurant");
-                            }
-                        } else if (context.user.role === UserRole.MANAGER_AMERICA) {
-                            if (menuItem.restaurants.country !== "AMERICA") {
-                                logger.warn("Order creation failed: country access denied", {
-                                    userId: context.user.id,
-                                    userRole: context.user.role,
-                                    restaurantCountry: menuItem.restaurants.country,
-                                });
-                                throw GraphQLErrors.forbidden("Cannot order from this restaurant");
-                            }
+                    if (role !== UserRole.ADMIN) {
+                        if (
+                            (role === UserRole.MANAGER_INDIA || role === UserRole.MEMBER_INDIA) &&
+                            menuItem.restaurants.country !== Country.INDIA
+                        ) {
+                            logger.warn("Order creation failed: country access denied", {
+                                userId: context.user.id,
+                                userRole: role,
+                                restaurantCountry: menuItem.restaurants.country,
+                            });
+                            throw GraphQLErrors.forbidden("Cannot order from this restaurant");
+                        }
+
+                        if (
+                            (role === UserRole.MANAGER_AMERICA ||
+                                role === UserRole.MEMBER_AMERICA) &&
+                            menuItem.restaurants.country !== Country.AMERICA
+                        ) {
+                            logger.warn("Order creation failed: country access denied", {
+                                userId: context.user.id,
+                                userRole: role,
+                                restaurantCountry: menuItem.restaurants.country,
+                            });
+                            throw GraphQLErrors.forbidden("Cannot order from this restaurant");
                         }
                     }
 
@@ -584,6 +588,7 @@ export const orderResolvers = {
                     userId: context.user.id,
                     totalAmount: order.totalAmount,
                     itemCount: orderItems.length,
+                    paymentAttached: Boolean(paymentMethodId),
                 });
 
                 // Invalidate order caches for the user

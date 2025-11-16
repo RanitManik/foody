@@ -1,7 +1,7 @@
 {
     "info": {
         "name": "Foody API - Complete Automated Collection",
-        "description": "**Complete Automated Test Suite for Foody API**\n\n## Overview\nComprehensive automated testing collection that validates all core business functions across Admin, Manager, and Member roles. Tests role-based access control, data isolation, business logic compliance, and complete user management operations.\n\n## Test Coverage Matrix\n\n| S.No | Function | Admin | Manager (INDIA) | Member (INDIA) |\n|------|----------|-------|-----------------|----------------|\n| 1 | View restaurants & menu items | ✅ Global | ✅ INDIA only | ✅ INDIA only |\n| 2 | Create order (add food items) | ✅ | ✅ INDIA orders | ❌ BLOCKED |\n| 3 | Place order (checkout & pay) | ✅ | ✅ INDIA orders | ❌ BLOCKED |\n| 4 | Cancel order | ✅ | ✅ INDIA orders | ❌ BLOCKED |\n| 5 | Update payment method | ✅ | ❌ BLOCKED | ❌ BLOCKED |\n| 6 | User management (CRUD) | ✅ Admin only | ❌ BLOCKED | ❌ BLOCKED |\n\n### Additional Security Tests\n- ✅ **Geographic Restrictions**: Country-based access control\n- ✅ **Permission Boundaries**: Role-based operation blocking\n- ✅ **Error Message Validation**: Proper error responses for blocked operations\n- ✅ **Data Isolation**: Users can only access authorized data\n- ✅ **Business Logic**: Order flow and payment processing tested\n- ✅ **User Management**: Admin-only CRUD operations on user accounts\n\n## Test Flow Architecture\n\n### Admin Flow (Setup & Full Access)\n**Role**: `ADMIN` - Complete system access\n**User**: Nick Fury (admin@foody.com)\n**Capabilities**: All functions enabled\n**Purpose**: Establishes test data and validates admin privileges\n\n### Manager Flow (Country-Restricted Operations)\n**Role**: `MANAGER_INDIA` - Country-specific management\n**User**: Captain Marvel (captain.marvel@foody.com)\n**Capabilities**: Functions 1-4 within INDIA scope\n**Purpose**: Validates geographic access control and manager permissions\n\n### Member Flow (Read-Only Access)\n**Role**: `MEMBER_INDIA` - Read-only access\n**User**: Thanos (thanos@foody.com)\n**Capabilities**: Function 1 only (view data)\n**Purpose**: Validates member restrictions and read permissions\n\n## Key Testing Features\n- ✅ **Sequential Execution**: Tests run in dependency order\n- ✅ **State Management**: Variables persist across requests\n- ✅ **Role Validation**: Each role tested against all functions\n- ✅ **Error Testing**: Blocked operations validated with proper errors\n- ✅ **Data Isolation**: Country-based access control verified\n- ✅ **Business Logic**: Order flow and payment processing tested\n\n## Execution Requirements\n- **Database**: Must be seeded with test users\n- **Environment**: Local development server running\n- **Order**: Run collection in Postman Collection Runner\n- **Variables**: Auto-managed, no manual setup required\n\n## Test Data Created\n- Restaurants: Test Restaurant - Automated\n- Menu Items: Test Dish - Automated\n- Payment Methods: Automated test tokens\n- Orders: Complete order lifecycle examples\n\n## Validation Points\n- **Authentication**: JWT token management\n- **Authorization**: Role-based access control\n- **Data Filtering**: Country-based restrictions\n- **Business Rules**: Order and payment workflows\n- **Error Handling**: Proper error responses for blocked operations\n- **User Management**: Admin-only user account operations\n\n**Version:** 2.2.0\n**Total Requests:** 44\n**Last Updated:** November 16, 2025\n**Test Duration:** ~50 seconds",
+        "description": "**Complete Automated Test Suite for Foody API**\n\n## Overview\nComprehensive automated testing collection that validates all core business functions across Admin, Manager, and Member roles. Tests role-based access control, data isolation, business logic compliance, and complete user management operations.\n\n## Test Coverage Matrix\n\n| S.No | Function | Admin | Manager (INDIA) | Member (INDIA) |\n|------|----------|-------|-----------------|----------------|\n| 1 | View restaurants & menu items | ✅ Global | ✅ INDIA only | ✅ INDIA only |\n| 2 | Create order (add food items) | ✅ | ✅ INDIA orders | ✅ Without payment method |\n| 3 | Place order (checkout & pay) | ✅ | ✅ INDIA orders | ❌ BLOCKED |\n| 4 | Cancel order | ✅ | ✅ INDIA orders | ❌ BLOCKED |\n| 5 | Update payment method | ✅ | ❌ BLOCKED | ❌ BLOCKED |\n| 6 | User management (CRUD) | ✅ Admin only | ❌ BLOCKED | ❌ BLOCKED |\n\n### Additional Security Tests\n- ✅ **Geographic Restrictions**: Country-based access control\n- ✅ **Permission Boundaries**: Role-based operation blocking\n- ✅ **Error Message Validation**: Proper error responses for blocked operations\n- ✅ **Data Isolation**: Users can only access authorized data\n- ✅ **Business Logic**: Order flow and payment processing tested\n- ✅ **User Management**: Admin-only CRUD operations on user accounts\n\n## Test Flow Architecture\n\n### Admin Flow (Setup & Full Access)\n**Role**: `ADMIN` - Complete system access\n**User**: Nick Fury (admin@foody.com)\n**Capabilities**: All functions enabled\n**Purpose**: Establishes test data and validates admin privileges\n\n### Manager Flow (Country-Restricted Operations)\n**Role**: `MANAGER_INDIA` - Country-specific management\n**User**: Captain Marvel (captain.marvel@foody.com)\n**Capabilities**: Functions 1-4 within INDIA scope\n**Purpose**: Validates geographic access control and manager permissions\n\n### Member Flow (Read + Draft Order Access)\n**Role**: `MEMBER_INDIA` - Read access with pending order creation\n**User**: Thanos (thanos@foody.com)\n**Capabilities**: Function 1 (view data) + create pending order without payment\n**Purpose**: Validates member restrictions, read access, and pending order creation rule\n\n## Key Testing Features\n- ✅ **Sequential Execution**: Tests run in dependency order\n- ✅ **State Management**: Variables persist across requests\n- ✅ **Role Validation**: Each role tested against all functions\n- ✅ **Error Testing**: Blocked operations validated with proper errors\n- ✅ **Data Isolation**: Country-based access control verified\n- ✅ **Business Logic**: Order flow and payment processing tested\n\n## Execution Requirements\n- **Database**: Must be seeded with test users\n- **Environment**: Local development server running\n- **Order**: Run collection in Postman Collection Runner\n- **Variables**: Auto-managed, no manual setup required\n\n## Test Data Created\n- Restaurants: Test Restaurant - Automated\n- Menu Items: Test Dish - Automated\n- Payment Methods: Automated test tokens\n- Orders: Complete order lifecycle examples\n\n## Validation Points\n- **Authentication**: JWT token management\n- **Authorization**: Role-based access control\n- **Data Filtering**: Country-based restrictions\n- **Business Rules**: Order and payment workflows\n- **Error Handling**: Proper error responses for blocked operations\n- **User Management**: Admin-only user account operations\n\n**Version:** 2.2.0\n**Total Requests:** 44\n**Last Updated:** November 16, 2025\n**Test Duration:** ~50 seconds",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "auth": {
@@ -1363,7 +1363,7 @@
         },
         {
             "name": "MEMBER FLOW (Thanos)",
-            "description": "## Member Test Suite - Read-Only Access\n\n**Role**: `MEMBER_INDIA` - Read-only access\n**User**: Thanos (thanos@foody.com)\n**Capabilities**: Function 1 only (view data)\n\n### Test Sequence\n1. **Authentication**: Login and token management\n2. **Data Access**: View restaurants and menu items\n3. **Blocked Operations**: Attempt restricted actions\n\n### Functions Tested\n- ✅ Function 1: View restaurants & menu items (INDIA only)\n- ❌ Function 2: Create order (BLOCKED)\n- ❌ Function 3: Place order (checkout & pay) - BLOCKED\n- ❌ Function 4: Cancel order - BLOCKED\n- ❌ Function 5: Update payment method - BLOCKED\n\n### Key Validations\n- Geographic data filtering (INDIA restaurants only)\n- Read-only access to menu items\n- Proper error responses for blocked operations\n- Security boundary enforcement\n\n### Test Data Used\n- Restaurants: INDIA restaurants only\n- Menu Items: All items (read-only)\n\n### Member Restrictions\nMembers can browse menu items but cannot:\n- Create orders\n- Complete payment transactions\n- Cancel orders\n- Modify menu items\n- Create payment methods\n- Access admin/management functions",
+            "description": "## Member Test Suite - Read + Draft Order Access\n\n**Role**: `MEMBER_INDIA` - Read access with pending order creation\n**User**: Thanos (thanos@foody.com)\n**Capabilities**: Function 1 (view data) + create pending order without payment\n\n### Test Sequence\n1. **Authentication**: Login and token management\n2. **Data Access**: View restaurants and menu items\n3. **Pending Order**: Create order draft without payment method\n4. **Blocked Operations**: Attempt restricted actions (checkout, payments, cancellations)\n\n### Functions Tested\n- ✅ Function 1: View restaurants & menu items (INDIA only)\n- ✅ Function 2: Create order without payment method\n- ❌ Function 3: Attach payment / checkout (blocked)\n- ❌ Function 4: Cancel order - BLOCKED\n- ❌ Function 5: Update payment method - BLOCKED\n\n### Key Validations\n- Geographic data filtering (INDIA restaurants only)\n- Pending order creation without payment method\n- Proper error responses for restricted payment operations\n- Security boundary enforcement\n\n### Test Data Used\n- Restaurants: INDIA restaurants only\n- Menu Items: All items (read access)\n\n### Member Restrictions\nMembers can browse menu items and start pending orders but cannot:\n- Attach payment methods during order creation\n- Complete payment transactions\n- Cancel orders\n- Modify menu items\n- Create payment methods\n- Access admin/management functions",
             "item": [
                 {
                     "name": "01: Login as Member India",
@@ -1380,7 +1380,7 @@
                                     "    const token = response.data.login.token;",
                                     "    pm.collectionVariables.set('auth_token', token);",
                                     "    pm.collectionVariables.set('member_token', token);",
-                                    "    console.log('✅ Member India authenticated - Read-only access');",
+                                    "    console.log('✅ Member India authenticated - Read + draft order access');",
                                     "});"
                                 ]
                             }
@@ -1408,7 +1408,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "**Member Authentication**\n\nAuthenticates as INDIA member with read-only access.\n\n**Validates**:\n- Successful login with member credentials\n- Role verification (MEMBER_INDIA)\n- Country assignment (INDIA)\n- Token storage for subsequent operations\n\n**Access Scope**: Read-only access to INDIA data"
+                        "description": "**Member Authentication**\n\nAuthenticates as INDIA member with read access plus pending order privileges.\n\n**Validates**:\n- Successful login with member credentials\n- Role verification (MEMBER_INDIA)\n- Country assignment (INDIA)\n- Token storage for subsequent operations\n\n**Access Scope**: Read access to INDIA data + pending order creation without payment"
                     }
                 },
                 {
@@ -1489,21 +1489,20 @@
                     }
                 },
                 {
-                    "name": "04: Create Order (BLOCKED)",
+                    "name": "04: Create Order",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Member CANNOT create orders (blocked)\", function () {",
+                                    "pm.test(\"Member can create an order draft without payment method\", function () {",
                                     "    pm.response.to.have.status(200);",
                                     "    const response = pm.response.json();",
-                                    "    ",
-                                    "    // Should get GraphQL error for forbidden access",
-                                    "    pm.expect(response.errors).to.be.an('array');",
-                                    "    pm.expect(response.errors[0].message).to.include('Members cannot place orders');",
-                                    "    pm.expect(response.data).to.be.null;",
-                                    "    console.log('✅ Function 2: Order creation blocked for members');",
+                                    "    pm.expect(response).to.not.have.property('errors');",
+                                    "    pm.expect(response.data.createOrder).to.be.an('object');",
+                                    "    pm.expect(response.data.createOrder.status).to.equal('PENDING');",
+                                    "    pm.collectionVariables.set('member_order_id', response.data.createOrder.id);",
+                                    "    console.log('✅ Function 2: Member order creation allowed without payment method');",
                                     "});"
                                 ]
                             }
@@ -1521,14 +1520,14 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n    totalAmount\n    status\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{menu_item_id}}\",\n        \"quantity\": 1,\n        \"notes\": \"Member order test\"\n      }\n    ],\n    \"deliveryAddress\": \"123 Member Street, Mumbai\",\n    \"phone\": \"+91-9876543210\",\n    \"paymentMethodId\": \"dummy-payment-method-id\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{menu_item_id}}\",\n        \"quantity\": 1,\n        \"notes\": \"Member pending order creation test\"\n      }\n    ],\n    \"deliveryAddress\": \"123 Member Street, Mumbai\",\n    \"phone\": \"+91-9876543210\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "**Function 2: Create Order (BLOCKED)**\n\nTests member inability to create orders.\n\n**Validates**:\n- Order creation permissions\n- Member restrictions on ordering\n- Proper null response for blocked operations\n\n**Expected**: Members cannot create orders, response should be null"
+                        "description": "**Function 2: Create Order**\n\nValidates the business rule that members may open an order draft when no payment method is attached.\n\n**Validates**:\n- Order creation succeeds without payment method\n- Server-calculated totals and status\n- Variable storage for follow-up checks\n\n**Expected**: Order created with status=PENDING and no errors"
                     }
                 },
                 {
@@ -1538,11 +1537,11 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Member CANNOT place order (checkout & pay)\", function () {",
+                                    "pm.test(\"Member blocked when attempting to place order with payment method\", function () {",
                                     "    const response = pm.response.json();",
                                     "    pm.expect(response.errors).to.be.an('array');",
-                                    "    pm.expect(response.errors[0].message).to.include('Members cannot place orders');",
-                                    "    console.log('✅ Function 3: Member blocked from placing orders');",
+                                    "    pm.expect(response.errors[0].message).to.include('Members cannot attach payment methods during order creation');",
+                                    "    console.log('✅ Function 3: Member cannot place order with payment method');",
                                     "});"
                                 ]
                             }
@@ -1567,7 +1566,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "**Function 3: Place Order (BLOCKED)**\n\nTests that members cannot complete order placement.\n\n**Validates**:\n- Payment processing restrictions\n- Order completion blocking\n- Proper error messaging\n- Security boundary enforcement\n\n**Expected**: GraphQL error preventing order completion"
+                        "description": "**Function 3: Place Order (BLOCKED)**\n\nEnsures members remain blocked from placing orders that require attaching a payment method.\n\n**Validates**:\n- Payment method restriction enforced for members\n- Error messaging aligned with RBAC rules\n- Security boundary maintained\n\n**Expected**: GraphQL error highlighting payment attachment restriction"
                     }
                 },
                 {

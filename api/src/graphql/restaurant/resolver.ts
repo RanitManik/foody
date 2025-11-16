@@ -108,8 +108,11 @@ export const restaurantResolvers = {
                 whereClause.country = country;
             }
 
+            const effectiveCountry =
+                typeof whereClause.country === "string" ? (whereClause.country as string) : country;
+
             // Use Redis caching for restaurants queries
-            const cacheKey = createCacheKey.restaurants(country);
+            const cacheKey = createCacheKey.restaurants({ country: effectiveCountry ?? null });
             return await withCache(
                 cacheKey,
                 async () => {

@@ -27,6 +27,7 @@ import {
 } from "../../lib/shared/validation";
 import { GraphQLContext, RegisterInput, LoginInput } from "../../types/graphql";
 import { deleteCacheByPattern } from "../../lib/shared/cache";
+import { UserRole, Country } from "@prisma/client";
 
 export const authResolvers = {
     Mutation: {
@@ -66,12 +67,46 @@ export const authResolvers = {
          *   }
          * }
          */
-        register: async (_parent: unknown, { input }: { input: RegisterInput }) => {
+        register: async (
+            _parent: unknown,
+            { input }: { input: RegisterInput },
+            context: GraphQLContext,
+        ) => {
             try {
                 // Validate and sanitize input
                 const validated = validateInput(RegisterInputSchema, input);
                 const email = validateEmail(validated.email);
                 const { password, firstName, lastName, role, country } = validated;
+
+                const isAdminContext = context?.user?.role === UserRole.ADMIN;
+                const selfAssignableRoles = new Set<UserRole>([
+                    UserRole.MEMBER_INDIA,
+                    UserRole.MEMBER_AMERICA,
+                ]);
+
+                if (!isAdminContext && !selfAssignableRoles.has(role)) {
+                    logger.warn("Registration failed: attempted privileged role assignment", {
+                        email,
+                        requestedRole: role,
+                    });
+                    throw GraphQLErrors.forbidden("Only admins can assign privileged roles");
+                }
+
+                if (role === UserRole.MEMBER_INDIA && country !== Country.INDIA) {
+                    throw GraphQLErrors.badInput(
+                        "Country must be INDIA for MEMBER_INDIA registrations",
+                    );
+                }
+
+                if (role === UserRole.MEMBER_AMERICA && country !== Country.AMERICA) {
+                    throw GraphQLErrors.badInput(
+                        "Country must be AMERICA for MEMBER_AMERICA registrations",
+                    );
+                }
+
+                if (!country && selfAssignableRoles.has(role)) {
+                    throw GraphQLErrors.badInput("Country is required for member registrations");
+                }
 
                 // Check if user already exists
                 const existingUser = await prisma.users.findUnique({

@@ -63,8 +63,8 @@ export const typeDefs = `#graphql
         phone: String!
         "Special instructions for the order (optional)"
         specialInstructions: String
-        "ID of the payment method to use"
-        paymentMethodId: ID!
+        "Optional payment method to associate when managers/admins place orders"
+        paymentMethodId: ID
     }
 
     """
@@ -113,8 +113,8 @@ export const typeDefs = `#graphql
     type Mutation {
         """
         Create a new order with menu items and delivery details.
-        Validates menu item availability and payment method ownership.
-        Only ADMIN and MANAGER roles can place orders. Members cannot place orders.
+    Validates menu item availability and (optionally) payment method ownership.
+    All roles can create orders, but only admins/managers can attach payment methods.
         """
         createOrder(input: CreateOrderInput!): Order!
         """

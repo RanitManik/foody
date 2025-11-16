@@ -34,7 +34,7 @@ import {
 } from "../../lib/shared/validation";
 import { parsePagination } from "../../lib/shared/pagination";
 import { GraphQLContext, CreateMenuItemInput } from "../../types/graphql";
-import { UserRole } from "@prisma/client";
+import { UserRole, Country } from "@prisma/client";
 import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
 export const menuResolvers = {
@@ -81,8 +81,25 @@ export const menuResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
+            const currentUser = context.user;
+
             const pagination = parsePagination({ first, skip });
             const whereClause: Record<string, unknown> = { isAvailable: true };
+
+            let countryFilter: Country | undefined;
+            if (currentUser.role !== UserRole.ADMIN) {
+                if (!currentUser.country) {
+                    logger.warn("Menu items query failed: user missing country assignment", {
+                        userId: currentUser.id,
+                        role: currentUser.role,
+                    });
+                    throw GraphQLErrors.forbidden("Country assignment required for this action");
+                }
+                countryFilter = currentUser.country;
+                whereClause.restaurants = {
+                    country: countryFilter,
+                };
+            }
 
             if (restaurantId) {
                 const validatedRestaurantId = validationSchemas.id.parse(restaurantId);
@@ -90,7 +107,10 @@ export const menuResolvers = {
             }
 
             // Use Redis caching for menu items queries
-            const cacheKey = createCacheKey.menuItems(restaurantId);
+            const cacheKey = createCacheKey.menuItems({
+                restaurantId,
+                country: countryFilter ?? null,
+            });
             return await withCache(
                 cacheKey,
                 async () => {
@@ -165,6 +185,8 @@ export const menuResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
+            const currentUser = context.user;
+
             // Validate ID
             const validatedId = validationSchemas.id.parse(id);
 
@@ -201,6 +223,24 @@ export const menuResolvers = {
 
                     if (!menuItem) {
                         throw GraphQLErrors.notFound("Menu item not found");
+                    }
+
+                    if (currentUser.role !== UserRole.ADMIN) {
+                        if (!currentUser.country) {
+                            throw GraphQLErrors.forbidden(
+                                "Country assignment required for this action",
+                            );
+                        }
+
+                        if (menuItem.restaurants.country !== currentUser.country) {
+                            logger.warn("Menu item access denied due to country restriction", {
+                                userId: currentUser.id,
+                                menuItemId: validatedId,
+                                userCountry: currentUser.country,
+                                restaurantCountry: menuItem.restaurants.country,
+                            });
+                            throw GraphQLErrors.forbidden("Access denied to this menu item");
+                        }
                     }
 
                     return menuItem;
@@ -242,8 +282,21 @@ export const menuResolvers = {
 
             const whereClause: Record<string, unknown> = {};
 
+            let countryFilter: Country | undefined;
+            const currentUser = context.user;
+            if (currentUser.role !== UserRole.ADMIN) {
+                if (!currentUser.country) {
+                    throw GraphQLErrors.forbidden("Country assignment required for this action");
+                }
+                countryFilter = currentUser.country;
+                whereClause.restaurants = {
+                    country: countryFilter,
+                };
+            }
+
             if (restaurantId) {
-                whereClause.restaurantId = restaurantId;
+                const validatedRestaurantId = validationSchemas.id.parse(restaurantId);
+                whereClause.restaurantId = validatedRestaurantId;
             }
 
             // Get distinct categories from menu items
