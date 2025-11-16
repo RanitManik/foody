@@ -3,7 +3,9 @@
 Complete Postman collections for testing all endpoints of the Foody GraphQL API with automated role-based testing.
 
 <details>
-<summary><strong>Table of Contents</strong>(Click to Expand)</summary>
+<summary><strong>Table of Contents</strong> (Click to Expand)</summary>
+
+#### Table of Contents
 
 - [**Files**](#files)
     - [Manual Testing Collection](#manual-testing-collection)
@@ -76,6 +78,15 @@ Complete Postman collections for testing all endpoints of the Foody GraphQL API 
 - `Foody_Admin_Collection.json` - **Admin** automated flow (17 requests) - Full CRUD access
 - `Foody_Manager_Collection.json` - **Manager India** automated flow (13 requests) - Country-based restrictions
 - `Foody_Member_Collection.json` - **Member India** automated flow (10 requests) - Read-only + blocks validation
+
+> [!NOTE]
+> **Before using these collections**, ensure you have seeded the database with test data by running:
+>
+> ```bash
+> npm run db:seed
+> ```
+>
+> This will create all test users with the password `ChangeMe123!` and populate sample restaurants and menu items.
 
 ## Quick Start
 
@@ -262,8 +273,6 @@ All collections now feature automatic token management:
 - Postman (latest version recommended)
 - Foody API server running on `http://localhost:4000`
 
----
-
 ## Automated Role-Based Collections
 
 ### Overview
@@ -281,8 +290,6 @@ Each collection:
 - ✅ **Sequential execution** designed for Collection Runner
 - ✅ **Response validation** with automated tests
 - ✅ **Self-contained** - no manual token management needed
-
----
 
 ### Admin Collection (Foody_Admin_Collection.json)
 
@@ -309,8 +316,6 @@ Each collection:
 - ✅ All 17 requests pass
 - ✅ All CRUD operations succeed
 - ✅ Automatic cleanup at end
-
----
 
 ### Manager Collection (Foody_Manager_Collection.json)
 
@@ -343,8 +348,6 @@ Each collection:
 - ✅ Only INDIA restaurants visible
 - ✅ Menu items created/updated successfully
 
----
-
 ### Member Collection (Foody_Member_Collection.json)
 
 **User:** Thanos (thanos@foody.com)  
@@ -374,8 +377,6 @@ Each collection:
 - ✅ All 10 requests pass (blocks are validated as successes)
 - ✅ Read operations succeed
 - ✅ Write operations properly blocked with error messages
-
----
 
 ## How to Run Automated Collections
 
@@ -411,8 +412,6 @@ newman run Foody_Member_Collection.json -e Foody_API_Postman_Environment.postman
 3. Token is automatically captured after login
 4. All subsequent requests use the stored token
 
----
-
 ## Test User Credentials
 
 | Role            | Email                     | Password     | Country      |
@@ -423,8 +422,6 @@ newman run Foody_Member_Collection.json -e Foody_API_Postman_Environment.postman
 | Member India    | thanos@foody.com          | ChangeMe123! | INDIA        |
 | Member India    | thor@foody.com            | ChangeMe123! | INDIA        |
 | Member America  | travis@foody.com          | ChangeMe123! | AMERICA      |
-
----
 
 ## Validation Summary
 
@@ -451,8 +448,6 @@ newman run Foody_Member_Collection.json -e Foody_API_Postman_Environment.postman
 - ✅ Blocked from payment operations
 - ✅ Blocked from all write operations
 
----
-
 ## Troubleshooting
 
 **Issue:** Token not captured after login  
@@ -470,8 +465,6 @@ newman run Foody_Member_Collection.json -e Foody_API_Postman_Environment.postman
 **Issue:** Newman CLI errors  
 **Solution:** Ensure environment file is provided with `-e` flag
 
----
-
 ## Quick Stats
 
 | Collection | Requests | Duration | Auto-Login | Auto-Cleanup |
@@ -480,13 +473,9 @@ newman run Foody_Member_Collection.json -e Foody_API_Postman_Environment.postman
 | Manager    | 13       | ~1-2s    | ✅         | ✅           |
 | Member     | 10       | ~1s      | ✅         | N/A          |
 
----
-
 **Last Updated:** 16th November 2025  
 **API Version:** 1.0.0
 
 - Valid user credentials for testing
-
----
 
 Happy API Testing!

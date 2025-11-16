@@ -1,56 +1,38 @@
 import { PrismaClient, UserRole, Country } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
-// Generate secure random password or use environment variable
-function getSecurePassword(envVar: string, defaultPassword: string): string {
-    const envPassword = process.env[envVar];
-    if (envPassword && envPassword.length >= 8) {
-        return envPassword;
-    }
-    // Generate a secure random password if not provided
-    return crypto.randomBytes(16).toString("hex");
-}
+const DEFAULT_PASSWORD = "ChangeMe123!";
 
 async function main() {
     console.log("🌱 Starting database seeding...");
-    console.log("🔐 Using secure passwords from environment variables or generated randomly");
-    console.log(
-        "📝 Set ADMIN_PASSWORD, MANAGER_PASSWORD, MEMBER_PASSWORD env vars for custom passwords",
-    );
+    console.log(`🔐 Using default password: ${DEFAULT_PASSWORD}`);
+    console.log("📝 Users can change their passwords after first login");
 
     // Create admin user
-    const adminPasswordPlain = getSecurePassword("ADMIN_PASSWORD", "ChangeMe123!");
-    const adminPassword = await bcrypt.hash(adminPasswordPlain, 12);
-    const admin = await prisma.users.upsert({
+    const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 12);
+    await prisma.users.upsert({
         where: { email: "admin@foody.com" },
         update: {},
         create: {
             email: "admin@foody.com",
-            password: adminPassword,
+            password: hashedPassword,
             firstName: "Nick",
             lastName: "Fury",
             role: UserRole.ADMIN,
         },
     });
 
-    console.log(
-        `✅ Admin user created: admin@foody.com / ${process.env.ADMIN_PASSWORD ? "[SET VIA ENV]" : adminPasswordPlain}`,
-    );
+    console.log(`✅ Admin user created: admin@foody.com / ${DEFAULT_PASSWORD}`);
 
     // Create managers
-    const managerPassword = await bcrypt.hash(
-        getSecurePassword("MANAGER_PASSWORD", "ChangeMe123!"),
-        12,
-    );
-    const managerIndia = await prisma.users.upsert({
+    await prisma.users.upsert({
         where: { email: "captain.marvel@foody.com" },
         update: {},
         create: {
             email: "captain.marvel@foody.com",
-            password: managerPassword,
+            password: hashedPassword,
             firstName: "Captain",
             lastName: "Marvel",
             role: UserRole.MANAGER_INDIA,
@@ -58,12 +40,12 @@ async function main() {
         },
     });
 
-    const managerAmerica = await prisma.users.upsert({
+    await prisma.users.upsert({
         where: { email: "captain.america@foody.com" },
         update: {},
         create: {
             email: "captain.america@foody.com",
-            password: managerPassword,
+            password: hashedPassword,
             firstName: "Captain",
             lastName: "America",
             role: UserRole.MANAGER_AMERICA,
@@ -72,16 +54,12 @@ async function main() {
     });
 
     // Create team members
-    const memberPassword = await bcrypt.hash(
-        getSecurePassword("MEMBER_PASSWORD", "ChangeMe123!"),
-        12,
-    );
-    const memberIndia1 = await prisma.users.upsert({
+    await prisma.users.upsert({
         where: { email: "thanos@foody.com" },
         update: {},
         create: {
             email: "thanos@foody.com",
-            password: memberPassword,
+            password: hashedPassword,
             firstName: "Thanos",
             lastName: "Titan",
             role: UserRole.MEMBER_INDIA,
@@ -89,12 +67,12 @@ async function main() {
         },
     });
 
-    const memberIndia2 = await prisma.users.upsert({
+    await prisma.users.upsert({
         where: { email: "thor@foody.com" },
         update: {},
         create: {
             email: "thor@foody.com",
-            password: memberPassword,
+            password: hashedPassword,
             firstName: "Thor",
             lastName: "Odinson",
             role: UserRole.MEMBER_INDIA,
@@ -102,12 +80,12 @@ async function main() {
         },
     });
 
-    const memberAmerica = await prisma.users.upsert({
+    await prisma.users.upsert({
         where: { email: "travis@foody.com" },
         update: {},
         create: {
             email: "travis@foody.com",
-            password: memberPassword,
+            password: hashedPassword,
             firstName: "Travis",
             lastName: "Scott",
             role: UserRole.MEMBER_AMERICA,
@@ -257,13 +235,13 @@ async function main() {
     });
 
     console.log("✅ Database seeding completed!");
-    console.log("\n📋 Test Accounts:");
-    console.log("Admin: admin@foody.com / admin123");
-    console.log("Manager India: captain.marvel@foody.com / manager123");
-    console.log("Manager America: captain.america@foody.com / manager123");
-    console.log("Member India 1: thanos@foody.com / member123");
-    console.log("Member India 2: thor@foody.com / member123");
-    console.log("Member America: travis@foody.com / member123");
+    console.log("\n📋 Test Accounts (All passwords: ChangeMe123!):");
+    console.log("Admin: admin@foody.com");
+    console.log("Manager India: captain.marvel@foody.com");
+    console.log("Manager America: captain.america@foody.com");
+    console.log("Member India 1: thanos@foody.com");
+    console.log("Member India 2: thor@foody.com");
+    console.log("Member America: travis@foody.com");
 }
 
 main()
