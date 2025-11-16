@@ -141,23 +141,31 @@ Three automated collections for comprehensive RBAC testing with automatic authen
 **Execution Flow:**
 
 ```mermaid
-graph LR
-    A[Login] --> B[Get Current User]
-    B --> C[Create User]
-    C --> D[Get All Users]
-    D --> E[Update User]
-    E --> F[Create Restaurant]
-    F --> G[Get Restaurants]
-    G --> H[Create Menu Item]
-    H --> I[Update Menu Item]
-    I --> J[Create Payment Method]
-    J --> K[Get Payment Methods]
-    K --> L[Create Order]
-    L --> M[Get Orders]
-    M --> N[Update Order Status]
-    N --> O[Process Payment]
-    O --> P[Delete Menu Item]
-    P --> Q[Delete User]
+graph TD
+    subgraph "Authentication & User Management"
+        A[Login] --> B[Get Current User]
+        B --> C[Create User]
+        C --> D[Get All Users]
+        D --> E[Update User]
+    end
+
+    subgraph "Restaurant & Menu Management"
+        E --> F[Create Restaurant]
+        F --> G[Get Restaurants]
+        G --> H[Create Menu Item]
+        H --> I[Update Menu Item]
+    end
+
+    subgraph "Payment & Order Processing"
+        I --> J[Create Payment Method]
+        J --> K[Get Payment Methods]
+        K --> L[Create Order]
+        L --> M[Get Orders]
+        M --> N[Update Order Status]
+        N --> O[Process Payment]
+        O --> P[Delete Menu Item]
+        P --> Q[Delete User]
+    end
 ```
 
 **Expected Results:**
@@ -187,19 +195,27 @@ graph LR
 **Execution Flow:**
 
 ```mermaid
-graph LR
-    A[Login] --> B[Get Current User]
-    B --> C[Get India Restaurants]
-    C --> D[Get Menu Items]
-    D --> E[Create Menu Item]
-    E --> F[Update Menu Item]
-    F --> G[Create Payment Method]
-    G --> H[Create Order]
-    H --> I[Get Orders]
-    I --> J[Update Order Status]
-    J --> K[Process Payment]
-    K --> L[Get Payment Methods]
-    L --> M[Delete Menu Item]
+graph TD
+    subgraph "Authentication & Data Access"
+        A[Login] --> B[Get Current User]
+        B --> C[Get India Restaurants]
+        C --> D[Get Menu Items]
+    end
+
+    subgraph "Content Management"
+        D --> E[Create Menu Item]
+        E --> F[Update Menu Item]
+        F --> G[Create Payment Method]
+        G --> H[Create Order]
+    end
+
+    subgraph "Order Processing"
+        H --> I[Get Orders]
+        I --> J[Update Order Status]
+        J --> K[Process Payment]
+        K --> L[Get Payment Methods]
+        L --> M[Delete Menu Item]
+    end
 ```
 
 **Expected Results:**
@@ -229,16 +245,21 @@ graph LR
 **Execution Flow:**
 
 ```mermaid
-graph LR
-    A[Login] --> B[Get Current User]
-    B --> C[Get Restaurants]
-    C --> D[Get Menu Items]
-    D --> E[BLOCKED: Create Payment]
-    E --> F[BLOCKED: Create Order]
-    F --> G[BLOCKED: Cancel Order]
-    G --> H[BLOCKED: Update Menu]
-    H --> I[BLOCKED: Delete Menu]
-    I --> J[BLOCKED: Create Restaurant]
+graph TD
+    subgraph "Authentication & Read Access"
+        A[Login] --> B[Get Current User]
+        B --> C[Get Restaurants]
+        C --> D[Get Menu Items]
+    end
+
+    subgraph "Blocked Write Operations"
+        D --> E[BLOCKED: Create Payment]
+        E --> F[BLOCKED: Create Order]
+        F --> G[BLOCKED: Cancel Order]
+        G --> H[BLOCKED: Update Menu]
+        H --> I[BLOCKED: Delete Menu]
+        I --> J[BLOCKED: Create Restaurant]
+    end
 ```
 
 **Expected Results:**
