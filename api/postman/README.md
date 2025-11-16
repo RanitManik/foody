@@ -40,7 +40,7 @@ Complete Postman collections for testing all endpoints of the Foody GraphQL API 
 - `Foody_Manager_Collection.json` - **Manager India** automated flow (13 requests) - Country-based restrictions
 - `Foody_Member_Collection.json` - **Member India** automated flow (10 requests) - Read-only + blocks validation
 
-> [!NOTE]
+> [!IMPORTANT]
 > **Before using these collections**, ensure you have seeded the database with test data by running:
 >
 > ```bash
