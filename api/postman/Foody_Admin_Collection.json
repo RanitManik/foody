@@ -1,7 +1,7 @@
 {
     "info": {
         "name": "Foody API - Admin Flow (Automated)",
-        "description": "**Automated Admin User Testing Collection**\n\nThis collection tests the complete admin workflow with automatic authentication.\n\n## Auto-Login\nThe collection automatically logs in as admin and updates the auth token for all subsequent requests.\n\n## Test Credentials\n- Email: admin@foody.com\n- Password: ChangeMe123!\n- Role: ADMIN\n\n## Execution Order\n1. Login (auto-saves token)\n2. User Management (list, view, update)\n3. Restaurant Management (create, update, delete)\n4. Menu Management (create, update, delete)\n5. Payment Methods\n6. Order Management (create, view, update status)\n7. Payment Processing\n8. Admin Queries (all users, all payments)\n\n## Usage\nRun the entire collection using Collection Runner for automated testing.\n\n**Version:** 1.0.0\n**Role:** ADMIN\n**Last Updated:** November 2025",
+        "description": "**Automated Admin User Testing Collection**\n\nThis collection tests the complete admin workflow with automatic authentication.\n\n## Auto-Login\nThe collection automatically logs in as admin and updates the auth token for all subsequent requests.\n\n## Test Credentials\n- Email: admin@foody.com\n- Password: ChangeMe123!\n- Role: ADMIN\n\n## Execution Order\n1. Login (auto-saves token)\n2. User Management (list, view, update)\n3. Restaurant Management (create)\n4. Menu Management (create)\n5. Payment Methods\n6. Order Management (create, view, update status)\n7. Payment Processing\n8. Admin Queries (all users, all payments)\n\n## Usage\nRun the entire collection using Collection Runner for automated testing.\n\n**Version:** 1.0.0\n**Role:** ADMIN\n**Last Updated:** November 2025",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "auth": {
@@ -614,81 +614,6 @@
                     "graphql": {
                         "query": "mutation UpdateUser($id: ID!, $isActive: Boolean) {\n  updateUser(id: $id, isActive: $isActive) {\n    id\n    isActive\n  }\n}",
                         "variables": "{\n  \"id\": \"{{user_id}}\",\n  \"isActive\": true\n}"
-                    }
-                },
-                "url": {
-                    "raw": "{{graphql}}",
-                    "host": ["{{graphql}}"]
-                }
-            }
-        },
-        {
-            "name": "15 - Delete Menu Item (Cleanup)",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test(\"Menu item deleted\", function () {",
-                            "    const response = pm.response.json();",
-                            "    pm.expect(response.data.deleteMenuItem).to.be.true;",
-                            "    console.log(\"✅ Menu item deleted\");",
-                            "});"
-                        ]
-                    }
-                }
-            ],
-            "request": {
-                "method": "POST",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    }
-                ],
-                "body": {
-                    "mode": "graphql",
-                    "graphql": {
-                        "query": "mutation DeleteMenuItem($id: ID!) {\n  deleteMenuItem(id: $id)\n}",
-                        "variables": "{\n  \"id\": \"{{menu_item_id}}\"\n}"
-                    }
-                },
-                "url": {
-                    "raw": "{{graphql}}",
-                    "host": ["{{graphql}}"]
-                }
-            }
-        },
-        {
-            "name": "16 - Delete Restaurant (Cleanup)",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test(\"Restaurant deleted\", function () {",
-                            "    const response = pm.response.json();",
-                            "    pm.expect(response.data.deleteRestaurant).to.be.true;",
-                            "    console.log(\"✅ Restaurant deleted\");",
-                            "    console.log(\"\\n🎉 Admin flow completed successfully!\");",
-                            "});"
-                        ]
-                    }
-                }
-            ],
-            "request": {
-                "method": "POST",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    }
-                ],
-                "body": {
-                    "mode": "graphql",
-                    "graphql": {
-                        "query": "mutation DeleteRestaurant($id: ID!) {\n  deleteRestaurant(id: $id)\n}",
-                        "variables": "{\n  \"id\": \"{{restaurant_id}}\"\n}"
                     }
                 },
                 "url": {

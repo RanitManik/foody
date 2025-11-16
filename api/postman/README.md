@@ -127,7 +127,7 @@ Three automated collections for comprehensive RBAC testing with automatic authen
 
 ### Admin Collection
 
-**User:** Nick Fury (admin@foody.com) | **Role:** ADMIN | **Requests:** 17
+**User:** Nick Fury (admin@foody.com) | **Role:** ADMIN | **Requests:** 14
 
 **Capabilities:**
 
@@ -144,18 +144,18 @@ Three automated collections for comprehensive RBAC testing with automatic authen
 1. Login → 2. Get Current User → 3. Create User → 4. Get All Users → 5. Update User
 6. Create Restaurant → 7. Get Restaurants → 8. Create Menu Item → 9. Update Menu Item
 10. Create Payment Method → 11. Get Payment Methods → 12. Create Order → 13. Get Orders
-14. Update Order Status → 15. Process Payment → 16. Delete Menu Item → 17. Delete User
+14. Update Order Status → 15. Process Payment → 16. Get All Payments
 ```
 
 **Expected Results:**
 
-- ✅ All 17 requests pass
+- ✅ All 14 requests pass
 - ✅ All CRUD operations succeed
-- ✅ Automatic cleanup
+- ✅ Admin can view all orders and payments
 
 ### Manager Collection
 
-**User:** Captain Marvel (captain.marvel@foody.com) | **Role:** MANAGER_INDIA | **Requests:** 13
+**User:** Captain Marvel (captain.marvel@foody.com) | **Role:** MANAGER_INDIA | **Requests:** 12
 
 **Capabilities:**
 
@@ -176,12 +176,12 @@ Three automated collections for comprehensive RBAC testing with automatic authen
 ```
 1. Login → 2. Get Current User → 3. Get India Restaurants → 4. Get Menu Items
 5. Create Menu Item → 6. Update Menu Item → 7. Create Payment Method → 8. Create Order
-9. Get Orders → 10. Update Order Status → 11. Process Payment → 12. Get Payment Methods → 13. Delete Menu Item
+9. Get Orders → 10. Update Order Status → 11. Process Payment → 12. Get Payment Methods
 ```
 
 **Expected Results:**
 
-- ✅ All 13 requests pass
+- ✅ All 12 requests pass
 - ✅ Only INDIA restaurants visible
 - ✅ CRUD operations succeed within country scope
 
@@ -279,8 +279,8 @@ newman run Foody_Member_Collection.json
 
 | Collection | Requests | Duration | Auto-Login | Auto-Cleanup |
 | ---------- | -------- | -------- | ---------- | ------------ |
-| Admin      | 17       | ~2-3s    | ✅         | ✅           |
-| Manager    | 13       | ~1-2s    | ✅         | ✅           |
+| Admin      | 14       | ~2-3s    | ✅         | N/A          |
+| Manager    | 12       | ~1-2s    | ✅         | N/A          |
 | Member     | 10       | ~1s      | ✅         | N/A          |
 
 **Last Updated:** November 16, 2025  

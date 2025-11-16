@@ -155,6 +155,7 @@ export const orderResolvers = {
                                     firstName: true,
                                     lastName: true,
                                     email: true,
+                                    role: true,
                                 },
                             },
                             order_items: {

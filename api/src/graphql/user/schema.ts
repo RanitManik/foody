@@ -63,7 +63,7 @@ export const typeDefs = `#graphql
         Update a user's profile information.
         Only admins can update user information.
         """
-        updateUser(id: ID!, input: UpdateUserInput!): User!
+        updateUser(id: ID!, role: UserRole, country: Country, isActive: Boolean): User!
         """
         Delete a user account.
         Only admins can delete users.

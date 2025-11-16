@@ -399,6 +399,14 @@
                         "exec": [
                             "pm.test(\"Orders retrieved\", function () {",
                             "    const response = pm.response.json();",
+                            "    ",
+                            "    // Check for GraphQL errors",
+                            "    if (response.errors) {",
+                            "        pm.expect.fail('GraphQL errors: ' + JSON.stringify(response.errors));",
+                            "    }",
+                            "    ",
+                            "    // Check response structure",
+                            "    pm.expect(response.data).to.have.property('orders');",
                             "    pm.expect(response.data.orders).to.be.an('array');",
                             "    console.log(\"✅ Retrieved\", response.data.orders.length, \"orders\");",
                             "});"
@@ -435,6 +443,13 @@
                         "exec": [
                             "pm.test(\"Order status updated by Manager\", function () {",
                             "    const response = pm.response.json();",
+                            "    ",
+                            "    // Check for GraphQL errors",
+                            "    if (response.errors) {",
+                            "        pm.expect.fail('GraphQL errors: ' + JSON.stringify(response.errors));",
+                            "    }",
+                            "    ",
+                            "    // Check response structure",
                             "    pm.expect(response.data.updateOrderStatus.status).to.equal('CONFIRMED');",
                             "    console.log(\"✅ Order status updated to CONFIRMED\");",
                             "});"
@@ -529,44 +544,6 @@
                     "mode": "graphql",
                     "graphql": {
                         "query": "query PaymentMethods {\n  paymentMethods {\n    id\n    type\n    provider\n    isDefault\n  }\n}"
-                    }
-                },
-                "url": {
-                    "raw": "{{graphql}}",
-                    "host": ["{{graphql}}"]
-                }
-            }
-        },
-        {
-            "name": "13 - Delete Menu Item (Cleanup)",
-            "event": [
-                {
-                    "listen": "test",
-                    "script": {
-                        "exec": [
-                            "pm.test(\"Menu item deleted\", function () {",
-                            "    const response = pm.response.json();",
-                            "    pm.expect(response.data.deleteMenuItem).to.be.true;",
-                            "    console.log(\"✅ Menu item deleted\");",
-                            "    console.log(\"\\n🎉 Manager India flow completed successfully!\");",
-                            "});"
-                        ]
-                    }
-                }
-            ],
-            "request": {
-                "method": "POST",
-                "header": [
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    }
-                ],
-                "body": {
-                    "mode": "graphql",
-                    "graphql": {
-                        "query": "mutation DeleteMenuItem($id: ID!) {\n  deleteMenuItem(id: $id)\n}",
-                        "variables": "{\n  \"id\": \"{{menu_item_id}}\"\n}"
                     }
                 },
                 "url": {

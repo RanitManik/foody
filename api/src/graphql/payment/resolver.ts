@@ -203,7 +203,19 @@ export const paymentResolvers = {
                 const payments = await prisma.payments.findMany({
                     include: {
                         payment_methods: true,
-                        orders: true,
+                        orders: {
+                            include: {
+                                users: {
+                                    select: {
+                                        id: true,
+                                        firstName: true,
+                                        lastName: true,
+                                        email: true,
+                                        role: true,
+                                    },
+                                },
+                            },
+                        },
                     },
                     orderBy: { createdAt: "desc" },
                 });
@@ -389,6 +401,15 @@ export const paymentResolvers = {
             if (!context.user) {
                 logger.warn("Payment method creation failed: not authenticated");
                 throw GraphQLErrors.unauthenticated();
+            }
+
+            // Only admins can manage payment methods
+            if (context.user.role !== "ADMIN") {
+                logger.warn("Payment method creation failed: insufficient permissions", {
+                    userId: context.user.id,
+                    role: context.user.role,
+                });
+                throw GraphQLErrors.forbidden("Only admins can manage payment methods");
             }
 
             try {
