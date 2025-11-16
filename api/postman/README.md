@@ -3,9 +3,7 @@
 Complete Postman collections for testing all endpoints of the Foody GraphQL API with automated role-based testing.
 
 <details>
-<summary><strong>Table of Contents (Click to Expand)</strong></summary>
-
-## Table of Contents
+<summary><strong>Table of Contents</strong>(Click to Expand)</summary>
 
 - [**Files**](#files)
     - [Manual Testing Collection](#manual-testing-collection)
