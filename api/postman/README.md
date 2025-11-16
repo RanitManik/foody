@@ -36,7 +36,7 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 ### Automated Complete Flow Collection
 
-- `Foody_API_Postman_Automated.json` - **Complete automated flow** (44 requests) - Tests all roles (Admin, Manager, Member) in one sequential run with comprehensive user management testing
+- `Foody_API_Postman_Automated.json` - **Complete automated flow** (45 requests) - Tests all roles (Admin, Manager, Member) in one sequential run with comprehensive user management testing
 
 > [!IMPORTANT]
 > **Before using these collections**, ensure you have seeded the database with test data by running:
@@ -51,22 +51,25 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 1. **Install Postman** from [https://www.postman.com/](https://www.postman.com/)
 
-2. **Import the Collection:**
-    - Open Postman
-    - Click **"Import"** (top left corner)
-    - Select **"File"** tab
-    - Choose `Foody_API_Postman_Collection.json`
+2. **Choose Your Testing Approach:**
 
-3. **Import the Environment (Optional):**
-    - Click **"Import"** again
-    - Choose `Foody_API_Postman_Environment.postman_environment.json`
-    - Select **"Foody API Environment"** from the environment dropdown
-    - **Note:** The manual collection now uses collection variables, so environment is optional
+    **For Automated Testing (Recommended):**
+    - Import `Foody_API_Postman_Automated.json`
+    - Click collection name → **"Run"** button
+    - All 45 tests run automatically with role-based validation
 
-4. **Configure Environment:**
+    **For Manual Testing:**
+    - Import `Foody_API_Postman_Collection.json`
+    - Import `Foody_API_Postman_Environment.postman_environment.json` (optional)
+
+3. **Configure Environment:**
     - The `baseUrl` is set to `http://localhost:4000` by default in collection variables
     - Update if your API runs on a different port/host
     - JWT tokens are automatically captured and injected after login
+
+4. **Run Tests:**
+    - **Automated:** Click "Run" on the collection for complete validation
+    - **Manual:** Execute requests within each folder
 
 ## API Endpoints
 
@@ -116,7 +119,7 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 - ✅ Tests all 5 problem statement functions for all 3 roles in one run
 - ✅ Sequential execution: Admin Setup → Manager Tests → Member Tests → User Management Tests
 - ✅ Create → Verify pattern for data consistency
-- ✅ 44 comprehensive tests covering complete functionality including user management
+- ✅ 45 comprehensive tests covering complete functionality including user management
 - ✅ Dedicated test user creation and cleanup for safe user management testing
 
 **Key Features:**
@@ -129,7 +132,7 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 ### Admin Flow
 
-**User:** Nick Fury (admin@foody.com) | **Role:** ADMIN | **Tests:** 16
+**User:** Nick Fury (admin@foody.com) | **Role:** ADMIN | **Tests:** 17
 
 **Capabilities:**
 
@@ -144,17 +147,17 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 **Test Flow:**
 
 ```
-1. Login → 2. View Restaurants (Function 1) → 3. View Menu Items (Function 1)
-4. Create Restaurant → 5. Create Menu Item → 6. Create Payment Method (Function 5)
-7. Create & Place Order (Functions 2 & 3) → 8. Verify Order in List
-9. Process Payment → 10. Update Order Status → 11. Cancel Order (Function 4)
-12. Update Payment Method (Function 5) → 13. Register Test User for Management
-14. Get All Users → 15. Get User Details → 16. Update User → 17. Delete User
+1. Login as Admin → 2. View Restaurants (Global Access) → 3. View Menu Items (Global Access)
+4. Create Restaurant → 5. Create Menu Item → 6. Create Payment Method
+7. Create & Place Order → 8. Verify Order in List → 9. Process Payment
+10. Update Order Status → 11. Cancel Order → 12. Update Payment Method
+12.5. Register Test User for Management → 13. Get All Users → 14. Get User Details
+15. Update User → 16. Delete User
 ```
 
 **Expected Results:**
 
-- ✅ All 17 tests pass
+- ✅ All 16 tests pass
 - ✅ All CRUD operations succeed including user management
 - ✅ Admin can view and manage all resources
 - ✅ Test user created and safely deleted
@@ -164,44 +167,50 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 ### Manager Flow
 
-**User:** Captain Marvel (captain.marvel@foody.com) | **Role:** MANAGER_INDIA | **Tests:** 8
+**User:** Captain Marvel (captain.marvel@foody.com) | **Role:** MANAGER_INDIA | **Tests:** 13
 
 **Capabilities:**
 
 - Country-based restaurant filtering (INDIA only)
-- Menu item viewing (read-only for testing)
-- Order status updates
-- Payment method viewing (read-only)
+- Menu item viewing and creation for INDIA restaurants
+- Order creation, status updates, and cancellation
+- Payment method creation (but not updates)
+- Cannot create restaurants
 
 **Restrictions:**
 
-- ❌ Cannot create payment methods (admin-only)
 - ❌ Cannot update payment methods (admin-only)
+- ❌ Cannot delete menu items referenced by orders
+- ❌ Cannot create restaurants (admin-only)
 - ❌ Cannot access other countries' restaurants
-- ✅ Can view payment methods
-- ✅ Can update order status
+- ✅ Can create payment methods for orders
+- ✅ Can manage orders within INDIA scope
 
 **Test Flow:**
 
 ```
-1. Login → 2. View India Restaurants Only (Function 1) → 3. View Menu Items (Function 1)
-4. BLOCKED Create Payment Method (Function 5) → 5. BLOCKED Update Payment Method (Function 5)
-6. ALLOWED Read Payment Methods (Function 5) → 7. View Orders & Extract ID
-8. Update Order Status (Function 4)
+1. Login as Manager India → 2. View India Restaurants Only → 3. View Menu Items
+4. Create Menu Item (India Restaurant) → 5. Create Payment Method (ALLOWED)
+6. Update Payment Method (BLOCKED) → 7. Read Payment Methods (ALLOWED)
+8. Create Order (India Restaurant) → 9. View Orders & Extract ID
+10. Update Order Status → 11. Cancel Order → 12. Delete Menu Item (BLOCKED)
+13. Create Restaurant (BLOCKED)
 ```
 
 **Expected Results:**
 
-- ✅ All 8 tests pass
+- ✅ All 13 tests pass
 - ✅ Only INDIA restaurants visible
-- ✅ Payment method operations correctly blocked
-- ✅ Order status updates succeed
+- ✅ Payment method operations correctly restricted
+- ✅ Order management within INDIA scope succeeds
+- ✅ Menu item management for INDIA restaurants works
+- ✅ Restaurant creation properly blocked
 
 ---
 
 ### Member Flow
 
-**User:** Thanos (thanos@foody.com) | **Role:** MEMBER_INDIA | **Tests:** 7
+**User:** Thanos (thanos@foody.com) | **Role:** MEMBER_INDIA | **Tests:** 16
 
 **Capabilities:**
 
@@ -211,26 +220,35 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 **Restrictions (Validated):**
 
+- ❌ Cannot create orders
 - ❌ Cannot place orders (checkout & pay blocked)
+- ❌ Cannot cancel orders
 - ❌ Cannot create payment methods
+- ❌ Cannot update payment methods
+- ❌ Cannot process payments
+- ❌ Cannot create restaurants
+- ❌ Cannot create menu items
 - ❌ Cannot update menu items
 - ❌ Cannot delete menu items
-- ❌ Cannot modify menu items
-- ❌ Cannot create restaurants
 
 **Test Flow:**
 
 ```
-1. Login → 2. View Restaurants (Function 1) → 3. View Menu Items (Function 1)
-4. BLOCKED Place Order (Function 3) → 5. BLOCKED Create Payment Method (Function 5)
-6. BLOCKED Update Menu Item → 7. BLOCKED Delete Menu Item
+1. Login as Member India → 2. View India Restaurants Only → 3. View Menu Items
+4. Create Order (BLOCKED) → 5. Place Order (BLOCKED) → 6. Cancel Order (BLOCKED)
+7. Create Payment Method (BLOCKED) → 8. Update Menu Item (BLOCKED)
+9. Cancel Order (BLOCKED) → 10. Create Payment Method (BLOCKED)
+11. Update Payment Method (BLOCKED) → 12. Process Payment (BLOCKED)
+13. Create Restaurant (BLOCKED) → 14. Create Menu Item (BLOCKED)
+15. Delete Menu Item (BLOCKED)
 ```
 
 **Expected Results:**
 
-- ✅ All 7 tests pass (blocks validated as successes)
+- ✅ All 16 tests pass (blocks validated as successes)
 - ✅ Read operations succeed
 - ✅ Write operations properly blocked with error messages
+- ✅ Comprehensive security boundary validation
 
 ---
 
@@ -242,7 +260,7 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 2. Click collection name → **"Run"** button
 3. Ensure all requests/folders selected
 4. Click **"Run Foody API - Complete Automated Collection"**
-5. View automated execution results (all 44 tests run sequentially)
+5. View automated execution results (all 45 tests run sequentially)
 
 ### Option 2: Newman CLI (CI/CD)
 
@@ -296,10 +314,10 @@ newman run Foody_API_Postman_Automated.json --environment Foody_API_Postman_Envi
 
 | Collection     | Tests | Duration | Auto-Login   | Folders |
 | -------------- | ----- | -------- | ------------ | ------- |
-| Complete Flow  | 44    | ~5-7s    | ✅ (3 roles) | ✅ (3)  |
-| - Admin Flow   | 17    | ~3s      | ✅           | -       |
-| - Manager Flow | 8     | ~1s      | ✅           | -       |
-| - Member Flow  | 7     | ~1s      | ✅           | -       |
+| Complete Flow  | 45    | ~50s     | ✅ (3 roles) | ✅ (3)  |
+| - Admin Flow   | 16    | ~20s     | ✅           | -       |
+| - Manager Flow | 13    | ~15s     | ✅           | -       |
+| - Member Flow  | 16    | ~15s     | ✅           | -       |
 
 **Last Updated:** November 16, 2025  
 **API Version:** 1.0.0
