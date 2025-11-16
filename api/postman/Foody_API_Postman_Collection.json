@@ -1,9 +1,19 @@
 {
     "info": {
-        "name": "Foody API - Complete Collection",
-        "description": "Comprehensive GraphQL API collection for the Foody food ordering platform.\n\n## Overview\nThis collection provides complete API endpoints for:\n- User authentication and authorization\n- Restaurant management and discovery\n- Menu item browsing and management\n- Order creation and tracking\n- Payment processing and methods\n- User administration (admin only)\n\n## Authentication\nMost endpoints require JWT authentication. Use the Login mutation to obtain a token, which will be automatically saved to the environment/collection variables.\n\n## Workflow\n1. Register or Login to get authentication token\n2. Browse restaurants and menu items\n3. Create payment method\n4. Create order with items\n5. Process payment\n6. Track order status\n\n## Roles & Permissions\n- **ADMIN**: Full access to all operations\n- **MANAGER_INDIA/MANAGER_AMERICA**: Manage restaurants and orders in their country\n- **MEMBER_INDIA/MEMBER_AMERICA**: Read-only access to their country's restaurants\n\n## Support\nFor issues or questions, contact the Foody development team.\n\n**Version:** 2.0.0\n**Last Updated:** November 2025",
+        "name": "Foody API - Complete Collection (Manual Testing)",
+        "description": "**Comprehensive GraphQL API Collection for Manual Testing**\n\nThis collection provides complete API endpoints for testing all features of the Foody food ordering platform.\n\n## Overview\nComplete endpoint coverage for:\n- User authentication and authorization\n- Restaurant management and discovery\n- Menu item browsing and management\n- Order creation and tracking\n- Payment processing and methods\n- User administration (admin only)\n\n## Authentication\nMost endpoints require JWT authentication. The Login request automatically captures and saves the JWT token for use in all subsequent requests.\n\n## Auto-Token Management\n✅ Login request automatically extracts token\n✅ Token auto-injected in all authenticated requests\n✅ Token stored in collection variables\n✅ No manual token copying required\n\n## Testing Workflow\n1. Register or Login to get authentication token (auto-saved)\n2. Browse restaurants and menu items\n3. Create payment method\n4. Create order with items\n5. Process payment\n6. Track order status\n\n## Roles & Permissions\n- **ADMIN**: Full access to all operations globally\n- **MANAGER_INDIA/MANAGER_AMERICA**: Manage restaurants and orders in their assigned country\n- **MEMBER_INDIA/MEMBER_AMERICA**: Read-only access to their country's restaurants\n\n## Related Collections\nFor automated testing, see:\n- `Foody_Admin_Collection.json` - Automated admin flow\n- `Foody_Manager_Collection.json` - Automated manager flow\n- `Foody_Member_Collection.json` - Automated member flow\n\n**Version:** 2.1.0\n**Last Updated:** November 2025\n**Type:** Manual Testing Collection",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "_exporter_id": "foody-api-v2"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{auth_token}}",
+                "type": "string"
+            }
+        ]
     },
     "variable": [
         {
@@ -73,19 +83,19 @@
                                     "    pm.expect(response.data.register).to.have.property('token');",
                                     "    pm.expect(response.data.register).to.have.property('user');",
                                     "    ",
-                                    "    // Save token and user ID for subsequent requests",
                                     "    const token = response.data.register.token;",
                                     "    const userId = response.data.register.user.id;",
+                                    "    const userRole = response.data.register.user.role;",
+                                    "    const userCountry = response.data.register.user.country;",
                                     "    ",
-                                    "    if (pm.environment.name) {",
-                                    "        pm.environment.set(\"auth_token\", token);",
-                                    "        pm.environment.set(\"user_id\", userId);",
-                                    "    } else {",
-                                    "        pm.collectionVariables.set(\"auth_token\", token);",
-                                    "        pm.collectionVariables.set(\"user_id\", userId);",
-                                    "    }",
+                                    "    pm.collectionVariables.set(\"auth_token\", token);",
+                                    "    pm.collectionVariables.set(\"user_id\", userId);",
                                     "    ",
-                                    "    console.log(\"✅ User registered with ID:\", userId);",
+                                    "    console.log(\"✅ User registered successfully - Token automatically saved\");",
+                                    "    console.log(\"🆔 User ID:\", userId);",
+                                    "    console.log(\"📧 Email:\", response.data.register.user.email);",
+                                    "    console.log(\"👤 Role:\", userRole);",
+                                    "    console.log(\"🌍 Country:\", userCountry);",
                                     "});"
                                 ],
                                 "type": "text/javascript"
@@ -125,20 +135,20 @@
                                     "    pm.response.to.have.status(200);",
                                     "    const response = pm.response.json();",
                                     "    pm.expect(response.data.login).to.have.property('token');",
+                                    "    pm.expect(response.data.login).to.have.property('user');",
                                     "    ",
                                     "    const token = response.data.login.token;",
                                     "    const userId = response.data.login.user.id;",
+                                    "    const userRole = response.data.login.user.role;",
+                                    "    const userCountry = response.data.login.user.country;",
                                     "    ",
-                                    "    if (pm.environment.name) {",
-                                    "        pm.environment.set(\"auth_token\", token);",
-                                    "        pm.environment.set(\"user_id\", userId);",
-                                    "    } else {",
-                                    "        pm.collectionVariables.set(\"auth_token\", token);",
-                                    "        pm.collectionVariables.set(\"user_id\", userId);",
-                                    "    }",
+                                    "    pm.collectionVariables.set(\"auth_token\", token);",
+                                    "    pm.collectionVariables.set(\"user_id\", userId);",
                                     "    ",
-                                    "    console.log(\"✅ Login successful. Token saved.\");",
-                                    "    console.log(\"User role:\", response.data.login.user.role);",
+                                    "    console.log(\"✅ Login successful - Token automatically saved\");",
+                                    "    console.log(\"📧 Email:\", response.data.login.user.email);",
+                                    "    console.log(\"👤 Role:\", userRole);",
+                                    "    console.log(\"🌍 Country:\", userCountry || 'Global (Admin)');",
                                     "});"
                                 ],
                                 "type": "text/javascript"
@@ -169,6 +179,29 @@
                 },
                 {
                     "name": "Get Current User (Me)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Current user retrieved\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "    const response = pm.response.json();",
+                                    "    pm.expect(response.data.me).to.have.property('id');",
+                                    "    pm.expect(response.data.me).to.have.property('email');",
+                                    "    pm.expect(response.data.me).to.have.property('role');",
+                                    "    ",
+                                    "    console.log(\"✅ Current user verified\");",
+                                    "    console.log(\"👤 User:\", response.data.me.firstName, response.data.me.lastName);",
+                                    "    console.log(\"📧 Email:\", response.data.me.email);",
+                                    "    console.log(\"🔐 Role:\", response.data.me.role);",
+                                    "    console.log(\"🌍 Country:\", response.data.me.country || 'Global');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
                     "request": {
                         "method": "POST",
                         "header": [

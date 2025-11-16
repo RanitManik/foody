@@ -1,0 +1,469 @@
+{
+    "info": {
+        "name": "Foody API - Member India Flow (Automated)",
+        "description": "**Automated Member India User Testing Collection**\n\nThis collection tests the complete member workflow with automatic authentication and verifies member restrictions.\n\n## Auto-Login\nThe collection automatically logs in as Member India and updates the auth token for all subsequent requests.\n\n## Test Credentials\n- Email: thanos@foody.com\n- Password: ChangeMe123!\n- Role: MEMBER_INDIA\n- Country: INDIA\n\n## Execution Order\n1. Login (auto-saves token)\n2. View restaurants (read-only access)\n3. View menu items (read-only access)\n4. BLOCKED: Create payment method (members cannot)\n5. BLOCKED: Create order (members cannot place orders)\n6. BLOCKED: Cancel order (members cannot cancel)\n7. BLOCKED: Update menu item (members cannot modify)\n\n## Restrictions\n- Read-only access to restaurants and menu items\n- Cannot create/update/delete any entities\n- Cannot place or cancel orders\n- Cannot manage payment methods\n- Only see INDIA country data\n\n## Usage\nRun the entire collection using Collection Runner for automated testing.\n\n**Version:** 1.0.0\n**Role:** MEMBER_INDIA\n**Last Updated:** November 2025",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{auth_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:4000",
+            "type": "string",
+            "description": "Base URL for the API server"
+        },
+        {
+            "key": "graphql",
+            "value": "{{baseUrl}}/graphql",
+            "type": "string",
+            "description": "GraphQL endpoint URL"
+        },
+        {
+            "key": "auth_token",
+            "value": "",
+            "type": "string",
+            "description": "JWT authentication token (automatically set after login)"
+        },
+        {
+            "key": "member_email",
+            "value": "thanos@foody.com",
+            "type": "string",
+            "description": "Member India login email address"
+        },
+        {
+            "key": "member_password",
+            "value": "ChangeMe123!",
+            "type": "string",
+            "description": "Member India login password"
+        },
+        {
+            "key": "restaurant_id",
+            "value": "",
+            "type": "string",
+            "description": "Restaurant ID for testing read operations"
+        },
+        {
+            "key": "menu_item_id",
+            "value": "",
+            "type": "string",
+            "description": "Menu item ID for testing read operations"
+        }
+    ],
+    "item": [
+        {
+            "name": "01 - Login as Member India",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Member login successful\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response.data.login).to.have.property('token');",
+                            "    pm.expect(response.data.login.user.role).to.equal('MEMBER_INDIA');",
+                            "    pm.expect(response.data.login.user.country).to.equal('INDIA');",
+                            "    ",
+                            "    const token = response.data.login.token;",
+                            "    pm.collectionVariables.set(\"auth_token\", token);",
+                            "    console.log(\"✅ Member India authenticated successfully\");",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "auth": {
+                    "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "graphql",
+                    "graphql": {
+                        "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      role\n      country\n    }\n  }\n}",
+                        "variables": "{\n  \"input\": {\n    \"email\": \"{{member_email}}\",\n    \"password\": \"{{member_password}}\"\n  }\n}"
+                    }
+                },
+                "url": {
+                    "raw": "{{graphql}}",
+                    "host": ["{{graphql}}"]
+                }
+            }
+        },
+        {
+            "name": "02 - Get Current User (Verify Member)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Current user is Member India\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response.data.me.role).to.equal('MEMBER_INDIA');",
+                            "    pm.expect(response.data.me.country).to.equal('INDIA');",
+                            "    console.log(\"✅ Member India role verified\");",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "graphql",
+                    "graphql": {
+                        "query": "query Me {\n  me {\n    id\n    email\n    role\n    country\n  }\n}"
+                    }
+                },
+                "url": {
+                    "raw": "{{graphql}}",
+                    "host": ["{{graphql}}"]
+                }
+            }
+        },
+        {
+            "name": "03 - Get India Restaurants (Read-Only)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Member can view India restaurants\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response.data.restaurants).to.be.an('array');",
+                            "    response.data.restaurants.forEach(restaurant => {",
+                            "        pm.expect(restaurant.country).to.equal('INDIA');",
+                            "    });",
+                            "    if (response.data.restaurants.length > 0) {",
+                            "        pm.collectionVariables.set(\"restaurant_id\", response.data.restaurants[0].id);",
+                            "        console.log(\"✅ Member can view restaurants (read-only)\");",
+                            "    }",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "graphql",
+                    "graphql": {
+                        "query": "query Restaurants {\n  restaurants {\n    id\n    name\n    country\n    city\n    description\n  }\n}"
+                    }
+                },
+                "url": {
+                    "raw": "{{graphql}}",
+                    "host": ["{{graphql}}"]
+                }
+            }
+        },
+        {
+            "name": "04 - Get India Menu Items (Read-Only)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Member can view menu items\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response.data.menuItems).to.be.an('array');",
+                            "    if (response.data.menuItems.length > 0) {",
+                            "        const indiaItem = response.data.menuItems.find(item => item.restaurant.country === 'INDIA');",
+                            "        if (indiaItem) {",
+                            "            pm.collectionVariables.set(\"menu_item_id\", indiaItem.id);",
+                            "            console.log(\"✅ Member can view menu items (read-only)\");",
+                            "        }",
+                            "    }",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "graphql",
+                    "graphql": {
+                        "query": "query MenuItems {\n  menuItems {\n    id\n    name\n    description\n    price\n    category\n    restaurant {\n      id\n      name\n      country\n    }\n  }\n}"
+                    }
+                },
+                "url": {
+                    "raw": "{{graphql}}",
+                    "host": ["{{graphql}}"]
+                }
+            }
+        },
+        {
+            "name": "05 - BLOCKED: Create Payment Method",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Member CANNOT create payment method\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response.errors).to.be.an('array');",
+                            "    pm.expect(response.errors[0].message).to.include('Only admins can manage payment methods');",
+                            "    console.log(\"✅ Member correctly blocked from creating payment methods\");",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "graphql",
+                    "graphql": {
+                        "query": "mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {\n  createPaymentMethod(input: $input) {\n    id\n  }\n}",
+                        "variables": "{\n  \"input\": {\n    \"type\": \"CREDIT_CARD\",\n    \"provider\": \"STRIPE\",\n    \"token\": \"tok_member_test\"\n  }\n}"
+                    }
+                },
+                "url": {
+                    "raw": "{{graphql}}",
+                    "host": ["{{graphql}}"]
+                }
+            }
+        },
+        {
+            "name": "06 - BLOCKED: Create Order",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Member CANNOT place order\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response.errors).to.be.an('array');",
+                            "    pm.expect(response.errors[0].message).to.include('Members cannot place orders');",
+                            "    console.log(\"✅ Member correctly blocked from placing orders\");",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "graphql",
+                    "graphql": {
+                        "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n  }\n}",
+                        "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{menu_item_id}}\",\n        \"quantity\": 1\n      }\n    ],\n    \"deliveryAddress\": \"Test Address\",\n    \"phone\": \"+91-1234567890\",\n    \"paymentMethodId\": \"dummy-payment-id\"\n  }\n}"
+                    }
+                },
+                "url": {
+                    "raw": "{{graphql}}",
+                    "host": ["{{graphql}}"]
+                }
+            }
+        },
+        {
+            "name": "07 - BLOCKED: Cancel Order",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Member CANNOT cancel order\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response.errors).to.be.an('array');",
+                            "    pm.expect(response.errors[0].message).to.include('Members cannot cancel orders');",
+                            "    console.log(\"✅ Member correctly blocked from canceling orders\");",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "graphql",
+                    "graphql": {
+                        "query": "mutation CancelOrder($id: ID!) {\n  cancelOrder(id: $id)\n}",
+                        "variables": "{\n  \"id\": \"dummy-order-id\"\n}"
+                    }
+                },
+                "url": {
+                    "raw": "{{graphql}}",
+                    "host": ["{{graphql}}"]
+                }
+            }
+        },
+        {
+            "name": "08 - BLOCKED: Update Menu Item",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Member CANNOT update menu item\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response.errors).to.be.an('array');",
+                            "    const errorMsg = response.errors[0].message;",
+                            "    const isBlocked = errorMsg.includes('Only admins and managers') || ",
+                            "                      errorMsg.includes('not authorized');",
+                            "    pm.expect(isBlocked).to.be.true;",
+                            "    console.log(\"✅ Member correctly blocked from updating menu items\");",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "graphql",
+                    "graphql": {
+                        "query": "mutation UpdateMenuItem($id: ID!, $input: UpdateMenuItemInput!) {\n  updateMenuItem(id: $id, input: $input) {\n    id\n  }\n}",
+                        "variables": "{\n  \"id\": \"{{menu_item_id}}\",\n  \"input\": {\n    \"price\": 999.99\n  }\n}"
+                    }
+                },
+                "url": {
+                    "raw": "{{graphql}}",
+                    "host": ["{{graphql}}"]
+                }
+            }
+        },
+        {
+            "name": "09 - BLOCKED: Delete Menu Item",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Member CANNOT delete menu item\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response.errors).to.be.an('array');",
+                            "    const errorMsg = response.errors[0].message;",
+                            "    const isBlocked = errorMsg.includes('Only admins and managers') || ",
+                            "                      errorMsg.includes('not authorized');",
+                            "    pm.expect(isBlocked).to.be.true;",
+                            "    console.log(\"✅ Member correctly blocked from deleting menu items\");",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "graphql",
+                    "graphql": {
+                        "query": "mutation DeleteMenuItem($id: ID!) {\n  deleteMenuItem(id: $id)\n}",
+                        "variables": "{\n  \"id\": \"{{menu_item_id}}\"\n}"
+                    }
+                },
+                "url": {
+                    "raw": "{{graphql}}",
+                    "host": ["{{graphql}}"]
+                }
+            }
+        },
+        {
+            "name": "10 - BLOCKED: Create Restaurant",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Member CANNOT create restaurant\", function () {",
+                            "    const response = pm.response.json();",
+                            "    pm.expect(response.errors).to.be.an('array');",
+                            "    const errorMsg = response.errors[0].message;",
+                            "    const isBlocked = errorMsg.includes('Only admins and managers') || ",
+                            "                      errorMsg.includes('not authorized');",
+                            "    pm.expect(isBlocked).to.be.true;",
+                            "    console.log(\"✅ Member correctly blocked from creating restaurants\");",
+                            "    console.log(\"\\n🎉 Member India flow completed successfully!\");",
+                            "    console.log(\"📋 All member restrictions properly enforced\");",
+                            "});"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "graphql",
+                    "graphql": {
+                        "query": "mutation CreateRestaurant($input: CreateRestaurantInput!) {\n  createRestaurant(input: $input) {\n    id\n  }\n}",
+                        "variables": "{\n  \"input\": {\n    \"name\": \"Member Test Restaurant\",\n    \"description\": \"Should not be created\",\n    \"address\": \"Test\",\n    \"city\": \"Test\",\n    \"country\": \"INDIA\",\n    \"phone\": \"+91-0000000000\"\n  }\n}"
+                    }
+                },
+                "url": {
+                    "raw": "{{graphql}}",
+                    "host": ["{{graphql}}"]
+                }
+            }
+        }
+    ]
+}
