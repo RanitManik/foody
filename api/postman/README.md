@@ -84,21 +84,23 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 ## Environment Variables
 
-| Variable            | Collection | Default Value           | Description                              |
-| ------------------- | ---------- | ----------------------- | ---------------------------------------- |
-| `baseUrl`           | All        | `http://localhost:4000` | API server base URL                      |
-| `graphql`           | All        | `{{baseUrl}}/graphql`   | GraphQL endpoint URL                     |
-| `auth_token`        | All        | `""`                    | JWT token (auto-set after login)         |
-| `admin_token`       | Automated  | `""`                    | Admin JWT token                          |
-| `manager_token`     | Automated  | `""`                    | Manager JWT token                        |
-| `member_token`      | Automated  | `""`                    | Member JWT token                         |
-| `user_id`           | Automated  | `""`                    | Test user ID for management operations   |
-| `test_user_token`   | Automated  | `""`                    | Test user JWT token                      |
-| `restaurant_id`     | All        | `""`                    | Restaurant ID for testing operations     |
-| `menu_item_id`      | All        | `""`                    | Menu item ID for testing operations      |
-| `order_id`          | Automated  | `""`                    | Order ID for testing operations          |
-| `payment_method_id` | Automated  | `""`                    | Payment method ID for testing operations |
-| `payment_id`        | Automated  | `""`                    | Payment ID for testing operations        |
+| Variable                    | Collection | Default Value           | Description                                         |
+| --------------------------- | ---------- | ----------------------- | --------------------------------------------------- |
+| `baseUrl`                   | All        | `http://localhost:4000` | API server base URL                                 |
+| `graphql`                   | All        | `{{baseUrl}}/graphql`   | GraphQL endpoint URL                                |
+| `auth_token`                | All        | `""`                    | JWT token (auto-set after login)                    |
+| `admin_token`               | Automated  | `""`                    | Cached admin JWT token                              |
+| `restaurant_id`             | All        | `""`                    | Restaurant ID for testing operations                |
+| `manager_restaurant_id`     | Automated  | `""`                    | Manager-scoped restaurant ID                        |
+| `menu_item_id`              | All        | `""`                    | Menu item ID for testing operations                 |
+| `manager_menu_item_id`      | Automated  | `""`                    | Manager-scoped menu item ID                         |
+| `payment_method_id`         | All        | `""`                    | Payment method ID for testing operations            |
+| `manager_payment_method_id` | Automated  | `""`                    | Manager-scoped payment method ID                    |
+| `order_id`                  | Automated  | `""`                    | Order ID for testing operations                     |
+| `manager_order_id`          | Automated  | `""`                    | Manager-scoped order ID                             |
+| `payment_id`                | Automated  | `""`                    | Payment ID for testing operations                   |
+| `user_id`                   | Automated  | `""`                    | Test user ID for admin management operations        |
+| `management_test_email`     | Automated  | `""`                    | Dynamic email generated for admin-created test user |
 
 > [!NOTE]
 > **Variable Availability:** Not all variables are present in every collection. The "Collection" column indicates which collections include each variable. For example, `admin_email` and `admin_password` are only available in the Admin collection, while `auth_token` is available in all the collections. Each collection includes only the variables relevant to its testing scope.
@@ -138,7 +140,7 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 - Full CRUD on all entities
 - User management (list, view, update, delete users)
-- Global restaurant access (all countries)
+- Global restaurant access (all locations)
 - Payment method management
 - Order lifecycle management
 - Payment processing
@@ -167,13 +169,13 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 ### Manager Flow
 
-**User:** Captain Marvel (captain.marvel@foody.com) | **Role:** MANAGER_INDIA | **Tests:** 13
+**User:** Captain Marvel (captain.marvel@foody.com) | **Role:** MANAGER (Spice Garden - Bangalore) | **Tests:** 13
 
 **Capabilities:**
 
-- Country-based restaurant filtering (INDIA only)
-- Menu item viewing and creation for INDIA restaurants
-- Order creation, status updates, and cancellation
+- Location-scoped restaurant filtering (Spice Garden only)
+- Menu item viewing and creation within assigned location
+- Order creation, status updates, and cancellation within assigned location
 - Payment method creation (but not updates)
 - Cannot create restaurants
 
@@ -182,17 +184,17 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 - ❌ Cannot update payment methods (admin-only)
 - ❌ Cannot delete menu items referenced by orders
 - ❌ Cannot create restaurants (admin-only)
-- ❌ Cannot access other countries' restaurants
+- ❌ Cannot access restaurants outside the assigned location
 - ✅ Can create payment methods for orders
-- ✅ Can manage orders within INDIA scope
+- ✅ Can manage orders within the assigned location
 
 **Test Flow:**
 
 ```
-1. Login as Manager India → 2. View India Restaurants Only → 3. View Menu Items
-4. Create Menu Item (India Restaurant) → 5. Create Payment Method (ALLOWED)
+1. Login as Manager (Spice Garden) → 2. View Assigned Location Restaurants → 3. View Menu Items
+4. Create Menu Item (Assigned Location) → 5. Create Payment Method (ALLOWED)
 6. Update Payment Method (BLOCKED) → 7. Read Payment Methods (ALLOWED)
-8. Create Order (India Restaurant) → 9. View Orders & Extract ID
+8. Create Order (Assigned Location) → 9. View Orders & Extract ID
 10. Update Order Status → 11. Cancel Order → 12. Delete Menu Item (BLOCKED)
 13. Create Restaurant (BLOCKED)
 ```
@@ -200,22 +202,22 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 **Expected Results:**
 
 - ✅ All 13 tests pass
-- ✅ Only INDIA restaurants visible
+- ✅ Only assigned-location restaurants visible
 - ✅ Payment method operations correctly restricted
-- ✅ Order management within INDIA scope succeeds
-- ✅ Menu item management for INDIA restaurants works
+- ✅ Order management within assigned location succeeds
+- ✅ Menu item management within assigned location works
 - ✅ Restaurant creation properly blocked
 
 ---
 
 ### Member Flow
 
-**User:** Thanos (thanos@foody.com) | **Role:** MEMBER_INDIA | **Tests:** 16
+**User:** Thanos (thanos@foody.com) | **Role:** MEMBER (Spice Garden - Bangalore) | **Tests:** 16
 
 **Capabilities:**
 
-- Read-only access to restaurants (country-filtered)
-- Read-only access to menu items (country-filtered)
+- Read-only access to restaurants within assigned location
+- Read-only access to menu items within assigned location
 - View operations only
 
 **Restrictions (Validated):**
@@ -234,7 +236,7 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 **Test Flow:**
 
 ```
-1. Login as Member India → 2. View India Restaurants Only → 3. View Menu Items
+1. Login as Member (Spice Garden) → 2. View Assigned Location Restaurants → 3. View Menu Items
 4. Create Order (BLOCKED) → 5. Place Order (BLOCKED) → 6. Cancel Order (BLOCKED)
 7. Create Payment Method (BLOCKED) → 8. Update Menu Item (BLOCKED)
 9. Cancel Order (BLOCKED) → 10. Create Payment Method (BLOCKED)
@@ -246,7 +248,7 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 **Expected Results:**
 
 - ✅ All 16 tests pass (blocks validated as successes)
-- ✅ Read operations succeed
+- ✅ Read operations succeed within assigned location
 - ✅ Write operations properly blocked with error messages
 - ✅ Comprehensive security boundary validation
 
@@ -282,33 +284,33 @@ newman run Foody_API_Postman_Automated.json --environment Foody_API_Postman_Envi
 
 ## Test User Credentials
 
-| Role            | Email                     | Password     | Country      |
-| --------------- | ------------------------- | ------------ | ------------ |
-| Admin           | admin@foody.com           | ChangeMe123! | N/A (Global) |
-| Manager India   | captain.marvel@foody.com  | ChangeMe123! | INDIA        |
-| Manager America | captain.america@foody.com | ChangeMe123! | AMERICA      |
-| Member India    | thanos@foody.com          | ChangeMe123! | INDIA        |
-| Member India    | thor@foody.com            | ChangeMe123! | INDIA        |
-| Member America  | travis@foody.com          | ChangeMe123! | AMERICA      |
+| Role                     | Email                     | Password     | Assigned Location         |
+| ------------------------ | ------------------------- | ------------ | ------------------------- |
+| Admin                    | admin@foody.com           | ChangeMe123! | All locations             |
+| Manager (Spice Garden)   | captain.marvel@foody.com  | ChangeMe123! | spice-garden-bangalore    |
+| Manager (Burger Haven)   | captain.america@foody.com | ChangeMe123! | burger-haven-new-york     |
+| Member (Spice Garden)    | thanos@foody.com          | ChangeMe123! | spice-garden-bangalore    |
+| Member (Tandoor Express) | thor@foody.com            | ChangeMe123! | tandoor-express-bangalore |
+| Member (Burger Haven)    | travis@foody.com          | ChangeMe123! | burger-haven-new-york     |
 
 ## Validation Summary
 
-| Role    | CRUD Access | Country Filtering | User Management | Payment Methods  | Order Management |
-| ------- | ----------- | ----------------- | --------------- | ---------------- | ---------------- |
-| Admin   | Full        | Global            | ✅              | ✅ Create/Update | All Users        |
-| Manager | Limited     | Country-specific  | ❌              | ✅ Read Only     | Country Members  |
-| Member  | Read-only   | Country-specific  | ❌              | ❌               | ❌               |
+| Role    | CRUD Access | Location Scope    | User Management | Payment Methods              | Order Management         |
+| ------- | ----------- | ----------------- | --------------- | ---------------------------- | ------------------------ |
+| Admin   | Full        | All locations     | ✅              | ✅ Create/Update             | All users & locations    |
+| Manager | Limited     | Assigned location | ❌              | ✅ Create (no update/delete) | Assigned-location orders |
+| Member  | Read-only   | Assigned location | ❌              | ❌                           | ❌                       |
 
 ## Troubleshooting
 
-| Issue                          | Solution                                           |
-| ------------------------------ | -------------------------------------------------- |
-| Token not captured after login | Verify API running on `http://localhost:4000`      |
-| "Unauthorized" errors          | Run requests in order (login first in each folder) |
-| Order creation fails           | Ensure database seeded (`npm run db:seed`)         |
-| Country filtering not working  | Verify user role/country in login response         |
-| Newman CLI errors              | Collections use variables, no env file needed      |
-| Manager order update fails     | This test auto-skips if no orders exist (expected) |
+| Issue                          | Solution                                             |
+| ------------------------------ | ---------------------------------------------------- |
+| Token not captured after login | Verify API running on `http://localhost:4000`        |
+| "Unauthorized" errors          | Run requests in order (login first in each folder)   |
+| Order creation fails           | Ensure database seeded (`npm run db:seed`)           |
+| Location filtering not working | Verify user role/assigned location in login response |
+| Newman CLI errors              | Collections use variables, no env file needed        |
+| Manager order update fails     | This test auto-skips if no orders exist (expected)   |
 
 ## Collection Stats
 

@@ -1,7 +1,7 @@
 {
     "info": {
         "name": "Foody API - Manual Testing Collection",
-        "description": "**Comprehensive GraphQL API Collection for Manual Testing**\n\n## Overview\nComplete endpoint coverage for testing all Foody API features:\n- User authentication & authorization\n- Restaurant management & discovery\n- Menu item browsing & management  \n- Order creation & tracking\n- Payment processing & methods\n- User administration (admin only)\n\n## Quick Start\n1. **Login First**: Use Login endpoint with admin@foody.com / ChangeMe123!\n2. **Copy Token**: From response, save JWT to `{{auth_token}}`\n3. **Use Variables**: All subsequent requests use collection variables\n4. **Execute Sequentially**: Follow the folder order for proper workflow\n\n## Key Features\n✅ Proper GraphQL variables - all requests use parameterized queries\n✅ Collection variables defined - restaurantId, menuItemId, orderId, paymentMethodId\n✅ Organized by feature folders (Authentication, Restaurants, Orders, etc.)\n✅ Flexible variable setup - manual copy/paste from responses\n✅ Built-in error handling and response validation\n✅ No hardcoded test data - use provided examples as templates\n\n## Authentication & Tokens\n- Most endpoints require Bearer token authentication\n- Login/Register requests return token in response\n- Copy token from response to `{{auth_token}}` variable\n- All authenticated requests use: `Authorization: Bearer {{auth_token}}`\n- Token valid for 24 hours\n\n## Roles & Permissions Matrix\n\n| Role | View Restaurants | Create/Edit Items | Create Orders | Update Orders | Admin Functions |\n|------|------------------|-------------------|---------------|----------------|-----------------|\n| ADMIN | All (Global) | Yes | Yes | Yes | Yes |\n| MANAGER_INDIA | INDIA only | INDIA only | INDIA only | INDIA only | No |\n| MANAGER_AMERICA | AMERICA only | AMERICA only | AMERICA only | AMERICA only | No |\n| MEMBER_INDIA | INDIA only | No | No | No | No |\n| MEMBER_AMERICA | AMERICA only | No | No | No | No |\n\n## Testing Workflow (Recommended Order)\n1. **Auth**: Login to get token (copy to `{{auth_token}}`)\n2. **Restaurants**: Browse/create restaurants (copy IDs to variables)\n3. **Menu Items**: Browse/create menu items (copy IDs to variables)\n4. **Payment Methods**: Create payment method (copy ID to variable)\n5. **Orders**: Create order with items (copy ID to variable)\n6. **Payments**: Process payment for order (copy ID to variable)\n7. **Tracking**: Update order status and view results\n\n## Important Notes\n- **Members CANNOT Create Orders**: Only Admin/Manager can create orders\n- **Country Restrictions**: Managers only see/manage their assigned country\n- **Variables Are Essential**: Copy IDs from Create responses to use in subsequent operations\n- **GraphQL Variables**: All requests use proper GraphQL variables (not inline values)\n- **No Auto-Capture**: Manually copy values from responses to collection variables\n- **Production Use**: Update email/password before using in production\n\n## Test User Credentials\n```\nAdmin: admin@foody.com / ChangeMe123!\nManager India: captain.marvel@foody.com / ChangeMe123!\nMember India: thanos@foody.com / ChangeMe123!\n```\n\n## Collection Variables\n- `{{baseUrl}}`: API base URL (default: http://localhost:4000)\n- `{{graphql}}`: GraphQL endpoint (default: {{baseUrl}}/graphql)\n- `{{auth_token}}`: JWT token (auto-set after login)\n- `{{restaurant_id}}`: Current restaurant ID (set after create/view)\n- `{{menu_item_id}}`: Current menu item ID (set after create/view)\n- `{{order_id}}`: Current order ID (set after create/view)\n- `{{payment_method_id}}`: Current payment method ID (set after create/view)\n- `{{user_id}}`: Current user ID (set after login)\n\n**Version:** 3.0.0  \n**Last Updated:** November 16, 2025  \n**Type:** Manual Testing Collection - Consistent & Variable-Based",
+        "description": "**Comprehensive GraphQL API Collection for Manual Testing**\n\n## Overview\nComplete endpoint coverage for testing all Foody API features:\n- User authentication & authorization\n- Restaurant management & discovery\n- Menu item browsing & management  \n- Order creation & tracking\n- Payment processing & methods\n- User administration (admin only)\n\n## Quick Start\n1. **Login First**: Use Login endpoint with admin@foody.com / ChangeMe123!\n2. **Copy Token**: From response, save JWT to `{{auth_token}}`\n3. **Use Variables**: All subsequent requests use collection variables\n4. **Execute Sequentially**: Follow the folder order for proper workflow\n\n## Key Features\n✅ Proper GraphQL variables - all requests use parameterized queries\n✅ Collection variables defined - restaurantId, menuItemId, orderId, paymentMethodId\n✅ Organized by feature folders (Authentication, Restaurants, Orders, etc.)\n✅ Flexible variable setup - manual copy/paste from responses\n✅ Built-in error handling and response validation\n✅ No hardcoded test data - use provided examples as templates\n\n## Authentication & Tokens\n- Most endpoints require Bearer token authentication\n- Login/Register requests return token in response\n- Copy token from response to `{{auth_token}}` variable\n- All authenticated requests use: `Authorization: Bearer {{auth_token}}`\n- Token valid for 24 hours\n\n## Roles & Permissions Matrix\n\n| Role | View Restaurants | Create/Edit Items | Create Orders | Update Orders | Admin Functions |\n|------|------------------|-------------------|---------------|----------------|-----------------|\n| ADMIN | All locations | Yes | Yes | Yes | Yes |\n| MANAGER | Assigned location only | Assigned location only | Assigned location only | Assigned location only | No |\n| MEMBER | Assigned location only | No | No | No | No |\n\n## Testing Workflow (Recommended Order)\n1. **Auth**: Login to get token (copy to `{{auth_token}}`)\n2. **Restaurants**: Browse/create restaurants (copy IDs to variables)\n3. **Menu Items**: Browse/create menu items (copy IDs to variables)\n4. **Payment Methods**: Create payment method (copy ID to variable)\n5. **Orders**: Create order with items (copy ID to variable)\n6. **Payments**: Process payment for order (copy ID to variable)\n7. **Tracking**: Update order status and view results\n\n## Important Notes\n- **Members CANNOT Create Orders**: Only Admin/Manager can create orders\n- **Location Restrictions**: Managers and members operate within their assigned location\n- **Variables Are Essential**: Copy IDs from Create responses to use in subsequent operations\n- **GraphQL Variables**: All requests use proper GraphQL variables (not inline values)\n- **No Auto-Capture**: Manually copy values from responses to collection variables\n- **Production Use**: Update email/password before using in production\n\n## Test User Credentials\n```\nAdmin (Global): admin@foody.com / ChangeMe123!\nManager (Spice Garden - Bangalore): captain.marvel@foody.com / ChangeMe123!\nMember (Spice Garden - Bangalore): thanos@foody.com / ChangeMe123!\n```\n\n## Collection Variables\n- `{{baseUrl}}`: API base URL (default: http://localhost:4000)\n- `{{graphql}}`: GraphQL endpoint (default: {{baseUrl}}/graphql)\n- `{{auth_token}}`: JWT token (auto-set after login)\n- `{{restaurant_id}}`: Current restaurant ID (set after create/view)\n- `{{menu_item_id}}`: Current menu item ID (set after create/view)\n- `{{order_id}}`: Current order ID (set after create/view)\n- `{{payment_method_id}}`: Current payment method ID (set after create/view)\n- `{{user_id}}`: Current user ID (set after login)\n\n**Version:** 3.1.0  \n**Last Updated:** November 17, 2025  \n**Type:** Manual Testing Collection - Consistent & Variable-Based",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "_exporter_id": "foody-api-v2"
     },
@@ -74,7 +74,7 @@
     "item": [
         {
             "name": "01 - Authentication",
-            "description": "## User Authentication & Session Management\n\n### Overview\nHandle user registration, login, and session management. All requests return JWT tokens for protected endpoint access.\n\n### Key Points\n- **Public Endpoints**: Register and Login require NO authentication\n- **Token in Response**: Token returned in response data\n- **Session Duration**: JWT tokens valid for 24 hours\n- **Manual Token Setup**: Copy token from response to `{{auth_token}}` variable\n\n### Test Users (Pre-seeded)\nUse these credentials if database is seeded:\n- **Admin**: admin@foody.com / ChangeMe123!\n- **Manager India**: captain.marvel@foody.com / ChangeMe123!\n- **Member India**: thanos@foody.com / ChangeMe123!\n\n### Workflow\n1. **Register** (optional): Create new test account\n   - Choose role and country\n   - Copy token from response\n2. **Login**: Authenticate with existing credentials\n   - Copy token from response to use in Authorization header\n   - Ready for protected endpoints\n3. **Me Query**: Verify authentication\n   - Confirms token validity\n   - Shows current user role and permissions\n\n### Response Handling\n- ✅ Token returned in response.data.register.token or response.data.login.token\n- ✅ Copy and save to `{{auth_token}}` variable for subsequent requests\n- ✅ User ID in response.data.register.user.id or response.data.login.user.id\n\n### Error Scenarios\n- **Invalid Credentials**: Generic error (prevents user enumeration)\n- **Inactive Account**: User cannot login if deactivated\n- **Token Expired**: Use Login again to get new token",
+            "description": "## User Authentication & Session Management\n\n### Overview\nHandle user registration, login, and session management. All requests return JWT tokens for protected endpoint access.\n\n### Key Points\n- **Public Endpoints**: Register and Login require NO authentication\n- **Token in Response**: Token returned in response data\n- **Session Duration**: JWT tokens valid for 24 hours\n- **Manual Token Setup**: Copy token from response to `{{auth_token}}` variable\n\n### Test Users (Pre-seeded)\nUse these credentials if database is seeded:\n- **Admin (Global)**: admin@foody.com / ChangeMe123!\n- **Manager (Spice Garden)**: captain.marvel@foody.com / ChangeMe123!\n- **Member (Spice Garden)**: thanos@foody.com / ChangeMe123!\n\n### Workflow\n1. **Register** (optional): Create new test account\n   - Choose role and assign a location for managers/members\n   - Copy token from response\n2. **Login**: Authenticate with existing credentials\n   - Copy token from response to use in Authorization header\n   - Ready for protected endpoints\n3. **Me Query**: Verify authentication\n   - Confirms token validity\n   - Shows current user role and permissions\n\n### Response Handling\n- ✅ Token returned in response.data.register.token or response.data.login.token\n- ✅ Copy and save to `{{auth_token}}` variable for subsequent requests\n- ✅ User ID in response.data.register.user.id or response.data.login.user.id\n\n### Error Scenarios\n- **Invalid Credentials**: Generic error (prevents user enumeration)\n- **Inactive Account**: User cannot login if deactivated\n- **Token Expired**: Use Login again to get new token",
             "item": [
                 {
                     "name": "Register User",
@@ -89,15 +89,15 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      country\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"email\": \"user@example.com\",\n    \"password\": \"SecurePassword123!\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"MEMBER_INDIA\",\n    \"country\": \"INDIA\"\n  }\n}"
+                                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      assignedLocation\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"email\": \"user@example.com\",\n    \"password\": \"SecurePassword123!\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"MEMBER\",\n    \"assignedLocation\": \"spice-garden-bangalore\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Register a new user account with email, password, and profile information.\n\n**Available Roles:**\n- ADMIN: Full system access\n- MANAGER_INDIA: Manage Indian restaurants\n- MANAGER_AMERICA: Manage American restaurants\n- MEMBER_INDIA: View Indian restaurants (read-only)\n- MEMBER_AMERICA: View American restaurants (read-only)\n\n**Password Requirements:**\n- Minimum 8 characters\n- Must contain uppercase, lowercase, and numbers"
+                        "description": "Register a new user account with email, password, and profile information.\n\n**Available Roles:**\n- ADMIN: Full system access (no location required)\n- MANAGER: Manage restaurants and orders in an assigned location\n- MEMBER: Read-only access within an assigned location\n\n**Location Assignment:**\n- Required for managers and members (example: spice-garden-bangalore)\n\n**Password Requirements:**\n- Minimum 8 characters\n- Must contain uppercase, lowercase, and numbers"
                     }
                 },
                 {
@@ -113,7 +113,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      country\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
+                                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      assignedLocation\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
                                 "variables": "{\n  \"input\": {\n    \"email\": \"admin@foody.com\",\n    \"password\": \"ChangeMe123!\"\n  }\n}"
                             }
                         },
@@ -142,7 +142,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Me {\n  me {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    createdAt\n    updatedAt\n  }\n}"
+                                "query": "query Me {\n  me {\n    id\n    email\n    firstName\n    lastName\n    role\n    assignedLocation\n    isActive\n    createdAt\n    updatedAt\n  }\n}"
                             }
                         },
                         "url": {
@@ -156,7 +156,7 @@
         },
         {
             "name": "02 - Restaurants",
-            "description": "## Restaurant Discovery & Management\n\n### Overview\nBrowse restaurants, view details with full menus, and manage restaurants (admin only).\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View (Filtered) | All restaurants | Own country only | Own country only |\n| Create | ✅ | ❌ | ❌ |\n| Update | ✅ | ❌ | ❌ |\n| Delete | ✅ | ❌ | ❌ |\n\n### Country Filtering\n- **Admin**: See ALL restaurants globally\n- **Manager India**: See ONLY INDIA restaurants\n- **Manager America**: See ONLY AMERICA restaurants\n- **Members**: See only restaurants in their country\n\n### Workflow\n1. **List Restaurants**: Get paginated restaurant list\n   - Automatically filtered by user's country (except admin)\n   - Uses `{{restaurant_id}}` variable for subsequent requests\n2. **View Details**: Get restaurant with full menu\n   - Shows all menu items and categories\n   - Required before creating menu items\n3. **Create** (Admin only): Add new restaurant\n   - Returned ID auto-saved to `{{restaurant_id}}`\n4. **Update** (Admin only): Modify restaurant details\n   - Partial updates supported\n5. **Delete** (Admin only): Remove restaurant\n   - Cascades to delete menu items\n\n### Important Notes\n- ⚠️ Managers cannot create restaurants\n- ⚠️ Members can only view restaurants\n- ⚠️ Delete cascades to all menu items\n- 💡 Always get restaurant details before creating menu items",
+            "description": "## Restaurant Discovery & Management\n\n### Overview\nBrowse restaurants, view details with full menus, and manage restaurants (admin only).\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View (Filtered) | All restaurants | Assigned location only | Assigned location only |\n| Create | ✅ | ❌ | ❌ |\n| Update | ✅ | ❌ | ❌ |\n| Delete | ✅ | ❌ | ❌ |\n\n### Location Filtering\n- **Admin**: See ALL restaurants globally\n- **Managers**: See ONLY restaurants in their assigned location\n- **Members**: See only restaurants in their assigned location\n\n### Workflow\n1. **List Restaurants**: Get paginated restaurant list\n   - Automatically filtered by user's assigned location (except admin)\n   - Uses `{{restaurant_id}}` variable for subsequent requests\n2. **View Details**: Get restaurant with full menu\n   - Shows all menu items and categories\n   - Required before creating menu items\n3. **Create** (Admin only): Add new restaurant\n   - Returned ID auto-saved to `{{restaurant_id}}`\n4. **Update** (Admin only): Modify restaurant details\n   - Partial updates supported\n5. **Delete** (Admin only): Remove restaurant\n   - Cascades to delete menu items\n\n### Important Notes\n- ⚠️ Managers cannot create restaurants\n- ⚠️ Members can only view restaurants\n- ⚠️ Delete cascades to all menu items\n- 💡 Always get restaurant details before creating menu items",
             "item": [
                 {
                     "name": "Get Restaurants",
@@ -175,15 +175,15 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Restaurants($country: Country, $first: Int, $skip: Int) {\n  restaurants(country: $country, first: $first, skip: $skip) {\n    id\n    name\n    description\n    address\n    city\n    country\n    phone\n    email\n    isActive\n    menuCategories\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"country\": null,\n  \"first\": 10,\n  \"skip\": 0\n}"
+                                "query": "query Restaurants($location: String, $first: Int, $skip: Int) {\n  restaurants(location: $location, first: $first, skip: $skip) {\n    id\n    name\n    description\n    address\n    city\n    location\n    phone\n    email\n    isActive\n    menuCategories\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"location\": null,\n  \"first\": 10,\n  \"skip\": 0\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "List all restaurants with pagination and optional country filtering.\n\n**Country Filtering:**\n- Admin: Can view all restaurants\n- Manager/Member India: Only see INDIA restaurants\n- Manager/Member America: Only see AMERICA restaurants\n\n**Pagination:**\n- first: Number of items (default: 10)\n- skip: Number to skip (default: 0)"
+                        "description": "List all restaurants with pagination and optional location filtering.\n\n**Location Filtering:**\n- Admin: Can view all restaurants\n- Managers/Members: Only see restaurants in their assigned location\n\n**Pagination:**\n- first: Number of items (default: 10)\n- skip: Number to skip (default: 0)"
                     }
                 },
                 {
@@ -203,7 +203,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Restaurant($id: ID!) {\n  restaurant(id: $id) {\n    id\n    name\n    description\n    address\n    city\n    country\n    phone\n    email\n    isActive\n    menuItems {\n      id\n      name\n      description\n      price\n      isAvailable\n      category\n      imageUrl\n    }\n    menuCategories\n    createdAt\n    updatedAt\n  }\n}",
+                                "query": "query Restaurant($id: ID!) {\n  restaurant(id: $id) {\n    id\n    name\n    description\n    address\n    city\n    location\n    phone\n    email\n    isActive\n    menuItems {\n      id\n      name\n      description\n      price\n      isAvailable\n      category\n      imageUrl\n    }\n    menuCategories\n    createdAt\n    updatedAt\n  }\n}",
                                 "variables": "{\n  \"id\": \"{{restaurant_id}}\"\n}"
                             }
                         },
@@ -211,7 +211,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Get detailed information about a specific restaurant including its full menu.\n\n**Includes:**\n- Restaurant information and contact details\n- All available menu items\n- List of menu categories\n\n**Access Control:**\n- Users can only view restaurants in their country (except admin)"
+                        "description": "Get detailed information about a specific restaurant including its full menu.\n\n**Includes:**\n- Restaurant information and contact details\n- All available menu items\n- List of menu categories\n\n**Access Control:**\n- Users can only view restaurants in their assigned location (except admin)"
                     }
                 },
                 {
@@ -231,15 +231,15 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "mutation CreateRestaurant($input: CreateRestaurantInput!) {\n  createRestaurant(input: $input) {\n    id\n    name\n    description\n    address\n    city\n    country\n    phone\n    email\n    isActive\n    createdAt\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"name\": \"Restaurant Name\",\n    \"description\": \"Restaurant description here\",\n    \"address\": \"123 Main Street\",\n    \"city\": \"City Name\",\n    \"country\": \"INDIA\",\n    \"phone\": \"+91-9876543210\",\n    \"email\": \"restaurant@example.com\"\n  }\n}"
+                                "query": "mutation CreateRestaurant($input: CreateRestaurantInput!) {\n  createRestaurant(input: $input) {\n    id\n    name\n    description\n    address\n    city\n    location\n    phone\n    email\n    isActive\n    createdAt\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"input\": {\n    \"name\": \"Restaurant Name\",\n    \"description\": \"Restaurant description here\",\n    \"address\": \"123 Main Street\",\n    \"city\": \"City Name\",\n    \"location\": \"spice-garden-bangalore\",\n    \"phone\": \"+91-9876543210\",\n    \"email\": \"restaurant@example.com\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Create a new restaurant in the system.\n\n**Permissions:** Admin only\n\n**Required Fields:**\n- name, address, city, country, phone, email\n\n**Countries:** INDIA, AMERICA\n\n**Tip:** Copy the restaurant ID from response to use in `{{restaurant_id}}` for subsequent requests"
+                        "description": "Create a new restaurant in the system.\n\n**Permissions:** Admin only\n\n**Required Fields:**\n- name, address, city, location, phone, email\n\n**Location Guidance:**\n- Use location slugs that match manager/member assignments (example: spice-garden-bangalore)\n\n**Tip:** Copy the restaurant ID from response to use in `{{restaurant_id}}` for subsequent requests"
                     }
                 },
                 {
@@ -302,7 +302,7 @@
         },
         {
             "name": "03 - Menu Items",
-            "description": "## Menu Item Discovery, Management & Categories\n\n### Overview\nBrowse menu items across restaurants, view detailed item information, discover food categories, and manage menu offerings (admin/manager only).\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View Items | All restaurants | Own country only | Own country only |\n| View Categories | All categories | All categories | All categories |\n| Create/Update/Delete | ✅ | Own country only | ❌ |\n\n### Country Filtering\n- **Admin**: Can manage menu items for ALL restaurants globally\n- **Manager India**: Can only manage INDIA restaurant menu items\n- **Manager America**: Can only manage AMERICA restaurant menu items\n- **Members**: Can only view menu items from their country restaurants\n\n### Workflow\n1. **Browse Menu Items**: Get paginated menu items with optional restaurant filtering\n   - Automatically filtered by user's country (except admin)\n   - Shows only available items (isAvailable: true)\n2. **View Item Details**: Get complete menu item information\n   - Includes restaurant details and pricing\n3. **Explore Categories**: Discover available food categories\n   - Filter by restaurant or get all categories\n   - Useful for building category-based navigation\n4. **Create Items** (Manager/Admin): Add new menu items\n   - Must specify restaurant ID\n   - Returned ID saved to `{{menu_item_id}}`\n5. **Update Items** (Manager/Admin): Modify existing items\n   - Partial updates supported\n   - Country restrictions apply\n6. **Delete Items** (Manager/Admin): Remove menu items\n   - Permanent action\n   - Country restrictions apply\n\n### Important Notes\n- ⚠️ Managers cannot manage menu items outside their assigned country\n- ⚠️ Members can only view, not modify menu items\n- ⚠️ Menu items must belong to existing restaurants\n- 💡 Always verify restaurant details before creating menu items\n- 💡 Use categories for better menu organization and user experience\n- 📊 Menu items include pricing, availability, and categorization",
+            "description": "## Menu Item Discovery, Management & Categories\n\n### Overview\nBrowse menu items across restaurants, view detailed item information, discover food categories, and manage menu offerings (admin/manager only).\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View Items | All restaurants | Assigned location only | Assigned location only |\n| View Categories | All categories | All categories | All categories |\n| Create/Update/Delete | ✅ | Assigned location only | ❌ |\n\n### Location Filtering\n- **Admin**: Can manage menu items for ALL restaurants globally\n- **Managers**: Can only manage menu items for restaurants in their assigned location\n- **Members**: Can only view menu items from restaurants in their assigned location\n\n### Workflow\n1. **Browse Menu Items**: Get paginated menu items with optional restaurant filtering\n   - Automatically filtered by user's assigned location (except admin)\n   - Shows only available items (isAvailable: true)\n2. **View Item Details**: Get complete menu item information\n   - Includes restaurant details and pricing\n3. **Explore Categories**: Discover available food categories\n   - Filter by restaurant or get all categories\n   - Useful for building category-based navigation\n4. **Create Items** (Manager/Admin): Add new menu items\n   - Must specify restaurant ID\n   - Returned ID saved to `{{menu_item_id}}`\n5. **Update Items** (Manager/Admin): Modify existing items\n   - Partial updates supported\n   - Location restrictions apply\n6. **Delete Items** (Manager/Admin): Remove menu items\n   - Permanent action\n   - Location restrictions apply\n\n### Important Notes\n- ⚠️ Managers cannot manage menu items outside their assigned location\n- ⚠️ Members can only view, not modify menu items\n- ⚠️ Menu items must belong to existing restaurants\n- 💡 Always verify restaurant details before creating menu items\n- 💡 Use categories for better menu organization and user experience\n- 📊 Menu items include pricing, availability, and categorization",
             "item": [
                 {
                     "name": "Get Menu Items",
@@ -321,7 +321,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query MenuItems($restaurantId: ID, $first: Int, $skip: Int) {\n  menuItems(restaurantId: $restaurantId, first: $first, skip: $skip) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    restaurant {\n      id\n      name\n      city\n      country\n    }\n    createdAt\n    updatedAt\n  }\n}",
+                                "query": "query MenuItems($restaurantId: ID, $first: Int, $skip: Int) {\n  menuItems(restaurantId: $restaurantId, first: $first, skip: $skip) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    restaurant {\n      id\n      name\n      city\n      location\n    }\n    createdAt\n    updatedAt\n  }\n}",
                                 "variables": "{\n  \"restaurantId\": null,\n  \"first\": 20,\n  \"skip\": 0\n}"
                             }
                         },
@@ -349,7 +349,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query MenuItem($id: ID!) {\n  menuItem(id: $id) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    restaurant {\n      id\n      name\n      address\n      city\n      country\n      phone\n    }\n    createdAt\n    updatedAt\n  }\n}",
+                                "query": "query MenuItem($id: ID!) {\n  menuItem(id: $id) {\n    id\n    name\n    description\n    price\n    imageUrl\n    isAvailable\n    category\n    restaurant {\n      id\n      name\n      address\n      city\n      location\n      phone\n    }\n    createdAt\n    updatedAt\n  }\n}",
                                 "variables": "{\n  \"id\": \"{{menu_item_id}}\"\n}"
                             }
                         },
@@ -357,7 +357,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Get comprehensive details about a specific menu item.\n\n**Includes:**\n- Complete menu item information (name, description, price)\n- Availability status and category\n- Associated restaurant details\n- Image URL and metadata\n\n**Access Control:**\n- Users can only view menu items from restaurants in their country (except admin)"
+                        "description": "Get comprehensive details about a specific menu item.\n\n**Includes:**\n- Complete menu item information (name, description, price)\n- Availability status and category\n- Associated restaurant details\n- Image URL and metadata\n\n**Access Control:**\n- Users can only view menu items from restaurants in their assigned location (except admin)"
                     }
                 },
                 {
@@ -441,7 +441,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Update existing menu item.\n\n**Permissions:** Same as create (country-restricted for managers)\n\n**Updatable Fields:**\n- All fields optional (partial updates supported)"
+                        "description": "Update existing menu item.\n\n**Permissions:** Same as create (location-restricted for managers)\n\n**Updatable Fields:**\n- All fields optional (partial updates supported)"
                     }
                 },
                 {
@@ -469,7 +469,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Permanently delete a menu item.\n\n**Permissions:** Same as create (country-restricted for managers)\n\n**Warning:** This action cannot be undone."
+                        "description": "Permanently delete a menu item.\n\n**Permissions:** Same as create (location-restricted for managers)\n\n**Warning:** This action cannot be undone."
                     }
                 }
             ]
@@ -621,7 +621,7 @@
         },
         {
             "name": "05 - Orders",
-            "description": "## Order Lifecycle Management & Tracking\n\n### Overview\nComplete order management system with creation, status tracking, and administrative controls. Supports the full order lifecycle from placement to delivery.\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View Orders | All orders | Own country orders | Own orders only |\n| Create Orders | ✅ | Own country only | ❌ |\n| Update Status | ✅ | Own country only | ❌ |\n| Cancel Orders | ✅ | Own country only | ❌ |\n\n### Order Status Flow\n```mermaid\nPENDING → CONFIRMED → PREPARING → OUT_FOR_DELIVERY → DELIVERED\n    ↓\nCANCELLED\n```\n\n### Country Restrictions\n- **Admin**: Can manage ALL orders globally\n- **Manager India**: Can only manage orders from INDIA restaurants\n- **Manager America**: Can only manage orders from AMERICA restaurants\n- **Members**: Cannot create orders (read-only access to own orders)\n\n### Workflow\n1. **Browse Orders**: Get paginated order list\n   - Access control based on user role\n   - Includes order status and basic details\n2. **View Order Details**: Get complete order information\n   - Full item details, payment info, delivery address\n   - Order history and timestamps\n3. **Create Order** (Manager/Admin): Place new order\n   - Validates menu item availability\n   - Calculates total amount automatically\n   - Requires payment method\n   - Atomic transaction with rollback on failure\n   - Returned ID saved to `{{order_id}}`\n4. **Update Status** (Manager/Admin): Change order status\n   - Follows predefined status flow\n   - Country restrictions apply\n5. **Cancel Order** (Manager/Admin): Cancel existing order\n   - Sets status to CANCELLED\n   - May trigger refund processes\n\n### Important Notes\n- 🚫 **Members CANNOT create orders** - Only Admin/Manager roles\n- 🌍 Country restrictions apply to all order operations\n- 💰 Orders calculate totals automatically from menu item prices\n- 🔄 Order creation is atomic - all validations pass or transaction rolls back\n- 📍 Delivery address and contact info required for all orders\n- ⚠️ Status updates must follow the defined flow\n- 💳 Payment method required at order creation\n- 📊 Orders include detailed itemization with quantities and notes",
+            "description": "## Order Lifecycle Management & Tracking\n\n### Overview\nComplete order management system with creation, status tracking, and administrative controls. Supports the full order lifecycle from placement to delivery.\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View Orders | All orders | Assigned location orders | Own orders only |\n| Create Orders | ✅ | Assigned location only | ❌ |\n| Update Status | ✅ | Assigned location only | ❌ |\n| Cancel Orders | ✅ | Assigned location only | ❌ |\n\n### Order Status Flow\n```mermaid\nPENDING → CONFIRMED → PREPARING → OUT_FOR_DELIVERY → DELIVERED\n    ↓\nCANCELLED\n```\n\n### Location Restrictions\n- **Admin**: Can manage ALL orders globally\n- **Managers**: Can only manage orders for restaurants in their assigned location\n- **Members**: Cannot create orders (read-only access to own orders)\n\n### Workflow\n1. **Browse Orders**: Get paginated order list\n   - Access control based on user role\n   - Includes order status and basic details\n2. **View Order Details**: Get complete order information\n   - Full item details, payment info, delivery address\n   - Order history and timestamps\n3. **Create Order** (Manager/Admin): Place new order\n   - Validates menu item availability\n   - Calculates total amount automatically\n   - Requires payment method\n   - Atomic transaction with rollback on failure\n   - Returned ID saved to `{{order_id}}`\n4. **Update Status** (Manager/Admin): Change order status\n   - Follows predefined status flow\n   - Location restrictions apply\n5. **Cancel Order** (Manager/Admin): Cancel existing order\n   - Sets status to CANCELLED\n   - May trigger refund processes\n\n### Important Notes\n- 🚫 **Members CANNOT create orders** - Only Admin/Manager roles\n- 📍 Location restrictions apply to all order operations\n- 💰 Orders calculate totals automatically from menu item prices\n- 🔄 Order creation is atomic - all validations pass or transaction rolls back\n- � Delivery address and contact info required for all orders\n- ⚠️ Status updates must follow the defined flow\n- 💳 Payment method required at order creation\n- 📊 Orders include detailed itemization with quantities and notes",
             "item": [
                 {
                     "name": "Get Orders",
@@ -648,7 +648,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Get paginated list of orders.\n\n**Access Control:**\n- Regular users: Only their own orders\n- Manager India: Orders from MEMBER_INDIA users\n- Manager America: Orders from MEMBER_AMERICA users\n- Admin: All orders\n\n**Order Status:**\n- PENDING, CONFIRMED, PREPARING, OUT_FOR_DELIVERY, DELIVERED, CANCELLED"
+                        "description": "Get paginated list of orders.\n\n**Access Control:**\n- Members: Only their own orders\n- Managers: Orders within their assigned location\n- Admin: All orders\n\n**Order Status:**\n- PENDING, CONFIRMED, PREPARING, OUT_FOR_DELIVERY, DELIVERED, CANCELLED"
                     }
                 },
                 {
@@ -704,7 +704,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Create a new order with menu items.\n\n**IMPORTANT:** Only Managers and Admin can create orders. Members CANNOT place orders.\n\n**Country Restrictions:**\n- Manager India: Can only order from INDIA restaurants\n- Manager America: Can only order from AMERICA restaurants\n- Admin: No restrictions\n\n**Process:**\n1. Validates all menu items are available\n2. Calculates total amount\n3. Verifies payment method\n4. Creates order atomically in transaction\n5. Returns order with calculated totals\n\n**Tip:** Copy the order ID from response to use in `{{order_id}}` for subsequent requests"
+                        "description": "Create a new order with menu items.\n\n**IMPORTANT:** Only Managers and Admin can create orders. Members CANNOT place orders.\n\n**Location Restrictions:**\n- Managers can only order from restaurants in their assigned location\n- Admin users have no location restriction\n\n**Process:**\n1. Validates all menu items are available\n2. Calculates total amount\n3. Verifies payment method\n4. Creates order atomically in transaction\n5. Returns order with calculated totals\n\n**Tip:** Copy the order ID from response to use in `{{order_id}}` for subsequent requests"
                     }
                 },
                 {
@@ -732,7 +732,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Update the status of an order.\n\n**Permissions:** Manager (country-restricted) and Admin\n\n**Status Values:**\n- PENDING\n- CONFIRMED\n- PREPARING\n- OUT_FOR_DELIVERY\n- DELIVERED\n- CANCELLED\n\n**Typical Flow:**\nPENDING → CONFIRMED → PREPARING → OUT_FOR_DELIVERY → DELIVERED"
+                        "description": "Update the status of an order.\n\n**Permissions:** Manager (location-restricted) and Admin\n\n**Status Values:**\n- PENDING\n- CONFIRMED\n- PREPARING\n- OUT_FOR_DELIVERY\n- DELIVERED\n- CANCELLED\n\n**Typical Flow:**\nPENDING → CONFIRMED → PREPARING → OUT_FOR_DELIVERY → DELIVERED"
                     }
                 },
                 {
@@ -760,7 +760,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Cancel an existing order.\n\n**Permissions:** Manager (country-restricted) and Admin\n\n**Effect:** Sets order status to CANCELLED\n\n**Note:** Consider refund processing in production systems"
+                        "description": "Cancel an existing order.\n\n**Permissions:** Manager (location-restricted) and Admin\n\n**Effect:** Sets order status to CANCELLED\n\n**Note:** Consider refund processing in production systems"
                     }
                 }
             ]
@@ -856,7 +856,7 @@
         },
         {
             "name": "07 - User Management (Admin)",
-            "description": "## User Administration & System Management\n\n### Overview\nComprehensive user management system for administrators to oversee user accounts, roles, permissions, and system access controls.\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View All Users | ✅ | ❌ | ❌ |\n| View User Details | ✅ | ❌ | ❌ |\n| Update Users | ✅ | ❌ | ❌ |\n| Delete Users | ✅ | ❌ | ❌ |\n\n### User Roles & Access\n- **ADMIN**: Full system access, user management, global operations\n- **MANAGER_INDIA**: Restaurant and order management for India\n- **MANAGER_AMERICA**: Restaurant and order management for America\n- **MEMBER_INDIA**: Read-only access to Indian restaurants\n- **MEMBER_AMERICA**: Read-only access to American restaurants\n\n### Country Assignment\n- **Geographic Restrictions**: Managers and members are assigned to specific countries\n- **Access Control**: Users can only operate within their assigned country\n- **Admin Override**: Admin users have global access without restrictions\n\n### Workflow\n1. **List All Users**: Get paginated user directory\n   - Complete user list with roles and status\n   - Pagination for large user bases\n   - Filter and search capabilities\n2. **View User Details**: Get comprehensive user profile\n   - Profile information and account status\n   - Order history and payment methods\n   - Activity and access patterns\n3. **Update User**: Modify user attributes\n   - Change role assignments\n   - Update country assignments\n   - Activate/deactivate accounts\n4. **Delete User**: Permanently remove user account\n   - Cascades to related data\n   - Requires careful consideration\n\n### Important Notes\n- 👑 **Admin Only**: All user management operations require admin privileges\n- 🌍 Country assignments control access scope for managers and members\n- 🔄 Role changes take effect immediately\n- ⚠️ User deletion is permanent and cascades to related data\n- 📊 User details include order history and payment methods\n- 🚫 Deactivation recommended over deletion for data retention\n- 🔐 Account status controls login access\n- 📈 User management supports system scaling and access control",
+            "description": "## User Administration & System Management\n\n### Overview\nComprehensive user management system for administrators to oversee user accounts, roles, permissions, and system access controls.\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View All Users | ✅ | ❌ | ❌ |\n| View User Details | ✅ | ❌ | ❌ |\n| Update Users | ✅ | ❌ | ❌ |\n| Delete Users | ✅ | ❌ | ❌ |\n\n### User Roles & Access\n- **ADMIN**: Full system access, user management, global operations\n- **MANAGER**: Restaurant and order management within an assigned location\n- **MEMBER**: Read-only access within an assigned location\n\n### Location Assignment\n- **Scoped Access**: Managers and members must be tied to a specific location slug\n- **Access Control**: Location dictates which restaurants, menu items, and orders they can manage\n- **Admin Override**: Admin users have global access without restrictions\n\n### Workflow\n1. **List All Users**: Get paginated user directory\n   - Complete user list with roles and status\n   - Pagination for large user bases\n   - Filter and search capabilities\n2. **View User Details**: Get comprehensive user profile\n   - Profile information and account status\n   - Order history and payment methods\n   - Activity and access patterns\n3. **Update User**: Modify user attributes\n   - Change role assignments\n   - Update assigned locations\n   - Activate/deactivate accounts\n4. **Delete User**: Permanently remove user account\n   - Cascades to related data\n   - Requires careful consideration\n\n### Important Notes\n- 👑 **Admin Only**: All user management operations require admin privileges\n- 📍 Assigned locations control access scope for managers and members\n- 🔄 Role changes take effect immediately\n- ⚠️ User deletion is permanent and cascades to related data\n- 📊 User details include order history and payment methods\n- 🚫 Deactivation recommended over deletion for data retention\n- 🔐 Account status controls login access\n- 📈 User management supports system scaling and access control",
             "item": [
                 {
                     "name": "Get All Users",
@@ -875,7 +875,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Users($first: Int, $skip: Int) {\n  users(first: $first, skip: $skip) {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    createdAt\n    updatedAt\n  }\n}",
+                                "query": "query Users($first: Int, $skip: Int) {\n  users(first: $first, skip: $skip) {\n    id\n    email\n    firstName\n    lastName\n    role\n    assignedLocation\n    isActive\n    createdAt\n    updatedAt\n  }\n}",
                                 "variables": "{\n  \"first\": 20,\n  \"skip\": 0\n}"
                             }
                         },
@@ -903,7 +903,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query User($id: ID!) {\n  user(id: $id) {\n    id\n    email\n    firstName\n    lastName\n    role\n    country\n    isActive\n    orders {\n      id\n      status\n      totalAmount\n      createdAt\n    }\n    paymentMethods {\n      id\n      type\n      provider\n      last4\n      isDefault\n    }\n    createdAt\n    updatedAt\n  }\n}",
+                                "query": "query User($id: ID!) {\n  user(id: $id) {\n    id\n    email\n    firstName\n    lastName\n    role\n    assignedLocation\n    isActive\n    orders {\n      id\n      status\n      totalAmount\n      createdAt\n    }\n    paymentMethods {\n      id\n      type\n      provider\n      last4\n      isDefault\n    }\n    createdAt\n    updatedAt\n  }\n}",
                                 "variables": "{\n  \"id\": \"{{user_id}}\"\n}"
                             }
                         },
@@ -911,7 +911,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Get comprehensive profile and activity information for a specific user.\n\n**Includes:**\n- Complete user profile (name, email, role, country)\n- Account status and activity flags\n- Recent order history (last orders)\n- Saved payment methods\n- Account creation and update timestamps\n\n**Permissions:** Admin only\n\n**Use Cases:**\n- Customer support investigations\n- Account verification\n- User behavior analysis"
+                        "description": "Get comprehensive profile and activity information for a specific user.\n\n**Includes:**\n- Complete user profile (name, email, role, assigned location)\n- Account status and activity flags\n- Recent order history (last orders)\n- Saved payment methods\n- Account creation and update timestamps\n\n**Permissions:** Admin only\n\n**Use Cases:**\n- Customer support investigations\n- Account verification\n- User behavior analysis"
                     }
                 },
                 {
@@ -931,15 +931,15 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "mutation UpdateUser($id: ID!, $role: UserRole, $country: Country, $isActive: Boolean) {\n  updateUser(id: $id, role: $role, country: $country, isActive: $isActive) {\n    id\n    email\n    role\n    country\n    isActive\n    updatedAt\n  }\n}",
-                                "variables": "{\n  \"id\": \"{{user_id}}\",\n  \"role\": \"MANAGER_INDIA\",\n  \"isActive\": true\n}"
+                                "query": "mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {\n  updateUser(id: $id, input: $input) {\n    id\n    email\n    role\n    assignedLocation\n    isActive\n    updatedAt\n  }\n}",
+                                "variables": "{\n  \"id\": \"{{user_id}}\",\n  \"input\": {\n    \"role\": \"MANAGER\",\n    \"assignedLocation\": \"spice-garden-bangalore\",\n    \"isActive\": true\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Update user information.\n\n**Permissions:** Admin only\n\n**Updatable Fields:**\n- role: User's system role\n- country: User's country\n- isActive: Account active status\n\n**Use Cases:**\n- Promote user to manager\n- Deactivate user account\n- Change user country assignment"
+                        "description": "Update user information.\n\n**Permissions:** Admin only\n\n**Updatable Fields:**\n- role: User's system role\n- assignedLocation: Location slug for managers/members\n- isActive: Account active status\n\n**Use Cases:**\n- Promote user to manager and set location\n- Deactivate user account\n- Adjust location assignments for staff"
                     }
                 },
                 {
