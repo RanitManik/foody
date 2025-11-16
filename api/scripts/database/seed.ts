@@ -1,9 +1,16 @@
-import { PrismaClient, UserRole, Country } from "@prisma/client";
+import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 const DEFAULT_PASSWORD = "ChangeMe123!";
+
+const LOCATIONS = {
+    SPICE_GARDEN: "spice-garden-bangalore",
+    TANDOOR_EXPRESS: "tandoor-express-bangalore",
+    BURGER_HAVEN: "burger-haven-new-york",
+    PIZZA_PALACE: "pizza-palace-new-york",
+} as const;
 
 async function main() {
     console.log("🌱 Starting database seeding...");
@@ -21,6 +28,7 @@ async function main() {
             firstName: "Nick",
             lastName: "Fury",
             role: UserRole.ADMIN,
+            assignedLocation: null,
         },
     });
 
@@ -35,8 +43,8 @@ async function main() {
             password: hashedPassword,
             firstName: "Captain",
             lastName: "Marvel",
-            role: UserRole.MANAGER_INDIA,
-            country: Country.INDIA,
+            role: UserRole.MANAGER,
+            assignedLocation: LOCATIONS.SPICE_GARDEN,
         },
     });
 
@@ -48,8 +56,8 @@ async function main() {
             password: hashedPassword,
             firstName: "Captain",
             lastName: "America",
-            role: UserRole.MANAGER_AMERICA,
-            country: Country.AMERICA,
+            role: UserRole.MANAGER,
+            assignedLocation: LOCATIONS.BURGER_HAVEN,
         },
     });
 
@@ -62,8 +70,8 @@ async function main() {
             password: hashedPassword,
             firstName: "Thanos",
             lastName: "Titan",
-            role: UserRole.MEMBER_INDIA,
-            country: Country.INDIA,
+            role: UserRole.MEMBER,
+            assignedLocation: LOCATIONS.SPICE_GARDEN,
         },
     });
 
@@ -75,8 +83,8 @@ async function main() {
             password: hashedPassword,
             firstName: "Thor",
             lastName: "Odinson",
-            role: UserRole.MEMBER_INDIA,
-            country: Country.INDIA,
+            role: UserRole.MEMBER,
+            assignedLocation: LOCATIONS.TANDOOR_EXPRESS,
         },
     });
 
@@ -88,8 +96,8 @@ async function main() {
             password: hashedPassword,
             firstName: "Travis",
             lastName: "Scott",
-            role: UserRole.MEMBER_AMERICA,
-            country: Country.AMERICA,
+            role: UserRole.MEMBER,
+            assignedLocation: LOCATIONS.BURGER_HAVEN,
         },
     });
 
@@ -103,7 +111,7 @@ async function main() {
             description: "Authentic Indian cuisine with modern twist",
             address: "123 MG Road, Bangalore",
             city: "Bangalore",
-            country: Country.INDIA,
+            location: LOCATIONS.SPICE_GARDEN,
             phone: "+91-9876543210",
             email: "info@spicegarden.in",
         },
@@ -118,7 +126,7 @@ async function main() {
             description: "Traditional North Indian delicacies",
             address: "456 Brigade Road, Bangalore",
             city: "Bangalore",
-            country: Country.INDIA,
+            location: LOCATIONS.TANDOOR_EXPRESS,
             phone: "+91-9876543211",
             email: "contact@tandoorexpress.in",
         },
@@ -133,7 +141,7 @@ async function main() {
             description: "Classic American burgers and fries",
             address: "789 Main Street, New York",
             city: "New York",
-            country: Country.AMERICA,
+            location: LOCATIONS.BURGER_HAVEN,
             phone: "+1-555-0123",
             email: "hello@burgerhaven.us",
         },
@@ -148,7 +156,7 @@ async function main() {
             description: "Wood-fired pizzas with fresh ingredients",
             address: "321 Broadway, New York",
             city: "New York",
-            country: Country.AMERICA,
+            location: LOCATIONS.PIZZA_PALACE,
             phone: "+1-555-0124",
             email: "orders@pizzapalace.us",
         },
@@ -237,11 +245,11 @@ async function main() {
     console.log("✅ Database seeding completed!");
     console.log("\n📋 Test Accounts (All passwords: ChangeMe123!):");
     console.log("Admin: admin@foody.com");
-    console.log("Manager India: captain.marvel@foody.com");
-    console.log("Manager America: captain.america@foody.com");
-    console.log("Member India 1: thanos@foody.com");
-    console.log("Member India 2: thor@foody.com");
-    console.log("Member America: travis@foody.com");
+    console.log(`Manager (Spice Garden): captain.marvel@foody.com → ${LOCATIONS.SPICE_GARDEN}`);
+    console.log(`Manager (Burger Haven): captain.america@foody.com → ${LOCATIONS.BURGER_HAVEN}`);
+    console.log(`Member (Spice Garden): thanos@foody.com → ${LOCATIONS.SPICE_GARDEN}`);
+    console.log(`Member (Tandoor Express): thor@foody.com → ${LOCATIONS.TANDOOR_EXPRESS}`);
+    console.log(`Member (Burger Haven): travis@foody.com → ${LOCATIONS.BURGER_HAVEN}`);
 }
 
 main()

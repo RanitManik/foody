@@ -1,6 +1,6 @@
 import { generateToken, getUserFromToken, extractToken } from "../auth";
 import jwt from "jsonwebtoken";
-import { UserRole, Country } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 
 // Mock jwt
 jest.mock("jsonwebtoken", () => ({
@@ -38,10 +38,10 @@ describe("Auth Utilities", () => {
         jest.clearAllMocks();
         process.env = { ...originalEnv, JWT_SECRET: "test-secret" };
         // Reset JWT mocks with default behavior
-        (mockJwt.sign as jest.Mock).mockImplementation((payload, secret, options) => {
+        (mockJwt.sign as jest.Mock).mockImplementation((payload: { userId: string }) => {
             return `mocked-token-${payload.userId}`;
         });
-        (mockJwt.verify as jest.Mock).mockImplementation((token, secret) => {
+        (mockJwt.verify as jest.Mock).mockImplementation((token: string) => {
             if (token === "invalid-token") {
                 throw new Error("invalid signature");
             }
@@ -128,8 +128,8 @@ describe("Auth Utilities", () => {
             const mockUser = {
                 id: userId,
                 email: "test@example.com",
-                role: UserRole.MEMBER_INDIA,
-                country: Country.INDIA,
+                role: UserRole.MEMBER,
+                assignedLocation: "mumbai",
                 firstName: "Test",
                 lastName: "User",
                 isActive: true,

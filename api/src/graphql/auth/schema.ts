@@ -12,10 +12,10 @@ export const typeDefs = `#graphql
         firstName: String!
         "User's last name"
         lastName: String!
-        "User's role determining permissions"
-        role: UserRole!
-        "Country the user belongs to (for non-admin users)"
-        country: Country
+    "User's role determining permissions"
+    role: UserRole!
+    "Location scope assigned to the user (for managers and members)"
+    assignedLocation: String
         "Whether the user account is active"
         isActive: Boolean!
         "Timestamp when the user account was created"
@@ -46,10 +46,10 @@ export const typeDefs = `#graphql
         firstName: String!
         "User's last name"
         lastName: String!
-        "Role to assign to the user"
-        role: UserRole!
-        "Country the user belongs to (required for non-admin roles)"
-        country: Country
+    "Role to assign to the user"
+    role: UserRole!
+    "Location scope for the user (required for non-admin roles)"
+    assignedLocation: String
     }
 
     """
@@ -68,24 +68,10 @@ export const typeDefs = `#graphql
     enum UserRole {
         "Full system administrator with all permissions"
         ADMIN
-        "Manager for Indian restaurants and users"
-        MANAGER_INDIA
-        "Manager for American restaurants and users"
-        MANAGER_AMERICA
-        "Regular user from India"
-        MEMBER_INDIA
-        "Regular user from America"
-        MEMBER_AMERICA
-    }
-
-    """
-    Country enumeration for geographic restrictions.
-    """
-    enum Country {
-        "India"
-        INDIA
-        "United States of America"
-        AMERICA
+        "Manager responsible for a specific location"
+        MANAGER
+        "Staff member scoped to a single location"
+        MEMBER
     }
 
     type Query {
@@ -97,8 +83,8 @@ export const typeDefs = `#graphql
 
     type Mutation {
         """
-        Register a new user account.
-        Creates a new user with the specified role and country.
+    "Register a new user account.
+    Admin-only operation to create managers and members scoped to a location.
         """
         register(input: RegisterInput!): AuthPayload!
         """

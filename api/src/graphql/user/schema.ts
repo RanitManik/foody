@@ -1,7 +1,7 @@
 // User GraphQL schema definitions
 export const typeDefs = `#graphql
     """
-    Represents a user account with role-based access control and country restrictions.
+    Represents a user account with role-based access control and location assignments.
     Users can be members, managers, or admins with different permission levels.
     """
     type User {
@@ -13,10 +13,10 @@ export const typeDefs = `#graphql
         firstName: String!
         "User's last name"
         lastName: String!
-        "User's role determining permissions (MEMBER_INDIA, MEMBER_AMERICA, MANAGER_INDIA, MANAGER_AMERICA, ADMIN)"
+        "User's role determining permissions (ADMIN, MANAGER, MEMBER)"
         role: UserRole!
-        "Country the user belongs to (only for non-admin users)"
-        country: Country
+        "Location scope assigned to the user (managers and members only)"
+        assignedLocation: String
         "Whether the user account is active"
         isActive: Boolean!
         "List of orders placed by this user"
@@ -33,10 +33,18 @@ export const typeDefs = `#graphql
     Input for updating user profile information. All fields are optional.
     """
     input UpdateUserInput {
+        "Updated email address"
+        email: String
+        "Updated password"
+        password: String
         "Updated first name"
         firstName: String
         "Updated last name"
         lastName: String
+        "Updated role"
+        role: UserRole
+        "Updated location assignment"
+        assignedLocation: String
         "Updated active status"
         isActive: Boolean
     }
@@ -63,7 +71,7 @@ export const typeDefs = `#graphql
         Update a user's profile information.
         Only admins can update user information.
         """
-        updateUser(id: ID!, role: UserRole, country: Country, isActive: Boolean): User!
+        updateUser(id: ID!, input: UpdateUserInput!): User!
         """
         Delete a user account.
         Only admins can delete users.

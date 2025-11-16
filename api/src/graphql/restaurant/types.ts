@@ -1,6 +1,4 @@
 // Restaurant-specific GraphQL types and interfaces
-import { Country } from "@prisma/client";
-
 export interface Restaurant {
     id: string;
     name: string;
@@ -19,7 +17,7 @@ export interface CreateRestaurantInput {
     description?: string;
     address: string;
     city: string;
-    country: Country;
+    location: string;
     phone?: string;
     email?: string;
 }

@@ -27,7 +27,7 @@ import {
 } from "../../lib/shared/validation";
 import { GraphQLContext, RegisterInput, LoginInput } from "../../types/graphql";
 import { deleteCacheByPattern } from "../../lib/shared/cache";
-import { UserRole, Country } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 
 export const authResolvers = {
     Mutation: {
@@ -59,8 +59,8 @@ export const authResolvers = {
          *     password: "SecurePass123",
          *     firstName: "John",
          *     lastName: "Doe",
-         *     role: "MEMBER_INDIA",
-         *     country: "INDIA"
+         *     role: "MEMBER",
+         *     assignedLocation: "spice-garden-bangalore"
          *   }) {
          *     token
          *     user { id email role }
@@ -73,39 +73,28 @@ export const authResolvers = {
             context: GraphQLContext,
         ) => {
             try {
+                if (!context.user || context.user.role !== UserRole.ADMIN) {
+                    logger.warn("Registration failed: admin authentication required", {
+                        requestedBy: context.user?.id,
+                        requestedRole: context.user?.role,
+                    });
+                    throw GraphQLErrors.forbidden("Only admins can register new users");
+                }
+
                 // Validate and sanitize input
                 const validated = validateInput(RegisterInputSchema, input);
                 const email = validateEmail(validated.email);
-                const { password, firstName, lastName, role, country } = validated;
+                const { password, firstName, lastName, role, assignedLocation } = validated;
 
-                const isAdminContext = context?.user?.role === UserRole.ADMIN;
-                const selfAssignableRoles = new Set<UserRole>([
-                    UserRole.MEMBER_INDIA,
-                    UserRole.MEMBER_AMERICA,
-                ]);
-
-                if (!isAdminContext && !selfAssignableRoles.has(role)) {
-                    logger.warn("Registration failed: attempted privileged role assignment", {
+                if (role === UserRole.ADMIN) {
+                    logger.warn("Registration failed: attempted admin creation via register", {
                         email,
-                        requestedRole: role,
                     });
-                    throw GraphQLErrors.forbidden("Only admins can assign privileged roles");
+                    throw GraphQLErrors.badInput("Admin accounts must be provisioned manually");
                 }
 
-                if (role === UserRole.MEMBER_INDIA && country !== Country.INDIA) {
-                    throw GraphQLErrors.badInput(
-                        "Country must be INDIA for MEMBER_INDIA registrations",
-                    );
-                }
-
-                if (role === UserRole.MEMBER_AMERICA && country !== Country.AMERICA) {
-                    throw GraphQLErrors.badInput(
-                        "Country must be AMERICA for MEMBER_AMERICA registrations",
-                    );
-                }
-
-                if (!country && selfAssignableRoles.has(role)) {
-                    throw GraphQLErrors.badInput("Country is required for member registrations");
+                if (!assignedLocation) {
+                    throw GraphQLErrors.badInput("Assigned location is required for new users");
                 }
 
                 // Check if user already exists
@@ -129,7 +118,7 @@ export const authResolvers = {
                         firstName,
                         lastName,
                         role,
-                        country,
+                        assignedLocation,
                     },
                 });
 
@@ -282,7 +271,7 @@ export const authResolvers = {
          *     firstName
          *     lastName
          *     role
-         *     country
+         *     assignedLocation
          *   }
          * }
          */

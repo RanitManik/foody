@@ -1,5 +1,5 @@
 // Auth-specific GraphQL types and interfaces
-import { UserRole, Country } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 
 export interface AuthPayload {
     token: string;
@@ -12,7 +12,7 @@ export interface User {
     firstName: string;
     lastName: string;
     role: UserRole;
-    country?: Country;
+    assignedLocation?: string | null;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -24,7 +24,7 @@ export interface RegisterInput {
     firstName: string;
     lastName: string;
     role: UserRole;
-    country?: Country;
+    assignedLocation?: string;
 }
 
 export interface LoginInput {

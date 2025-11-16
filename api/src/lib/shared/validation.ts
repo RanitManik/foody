@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { GraphQLErrors } from "./errors";
-import { UserRole, Country } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 
 /**
  * Input sanitization utilities
@@ -148,15 +148,10 @@ export function validatePassword(password: string): string {
  * Auth Input Schemas
  */
 // Create enum schemas from Prisma enums (using z.enum() instead of deprecated z.nativeEnum())
-export const UserRoleEnum = z.enum([
-    UserRole.ADMIN,
-    UserRole.MANAGER_INDIA,
-    UserRole.MANAGER_AMERICA,
-    UserRole.MEMBER_INDIA,
-    UserRole.MEMBER_AMERICA,
-] as [UserRole, ...UserRole[]]);
-
-export const CountryEnum = z.enum([Country.INDIA, Country.AMERICA] as [Country, ...Country[]]);
+export const UserRoleEnum = z.enum([UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER] as [
+    UserRole,
+    ...UserRole[],
+]);
 
 export const RegisterInputSchema = z.object({
     email: validationSchemas.email,
@@ -172,7 +167,12 @@ export const RegisterInputSchema = z.object({
         .max(100, "Last name too long")
         .transform(sanitize.string),
     role: UserRoleEnum,
-    country: CountryEnum.optional(),
+    assignedLocation: z
+        .string()
+        .min(1, "Assigned location is required")
+        .max(200, "Assigned location too long")
+        .transform(sanitize.string)
+        .optional(),
 });
 
 export const LoginInputSchema = z.object({
@@ -220,7 +220,11 @@ export const CreateRestaurantInputSchema = z.object({
     description: z.string().max(2000, "Description too long").optional(),
     address: z.string().min(1, "Address is required").max(500, "Address too long"),
     city: z.string().min(1, "City is required").max(100, "City too long"),
-    country: CountryEnum,
+    location: z
+        .string()
+        .min(1, "Location is required")
+        .max(200, "Location too long")
+        .transform(sanitize.string),
     phone: validationSchemas.phone.optional().or(z.literal("")),
     email: validationSchemas.email.optional().or(z.literal("")),
 });
@@ -238,8 +242,26 @@ export const CreatePaymentMethodInputSchema = z.object({
  * User Update Input Schema
  */
 export const UpdateUserInputSchema = z.object({
-    id: validationSchemas.cuid,
     role: UserRoleEnum.optional(),
-    country: CountryEnum.optional(),
+    email: validationSchemas.email.optional(),
+    password: validationSchemas.password.optional(),
+    firstName: z
+        .string()
+        .min(1, "First name is required")
+        .max(100, "First name too long")
+        .transform(sanitize.string)
+        .optional(),
+    lastName: z
+        .string()
+        .min(1, "Last name is required")
+        .max(100, "Last name too long")
+        .transform(sanitize.string)
+        .optional(),
+    assignedLocation: z
+        .string()
+        .min(1, "Assigned location is required")
+        .max(200, "Assigned location too long")
+        .transform(sanitize.string)
+        .optional(),
     isActive: z.boolean().optional(),
 });

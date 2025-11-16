@@ -1,5 +1,5 @@
 import { authResolvers } from "../auth/resolver";
-import { UserRole, Country } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 
 // Mock dependencies
 jest.mock("bcryptjs", () => ({
@@ -71,6 +71,19 @@ const createContext = (overrides: Partial<GraphQLContext> = {}): GraphQLContext 
     ...overrides,
 });
 
+const buildAdminUser = () => ({
+    id: "admin-123",
+    email: "admin@example.com",
+    role: UserRole.ADMIN,
+    assignedLocation: null,
+    firstName: "Admin",
+    lastName: "User",
+    isActive: true,
+    password: "hashed-password",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+});
+
 describe("Auth Resolvers", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -98,8 +111,8 @@ describe("Auth Resolvers", () => {
                 const mockUser = {
                     id: "user-123",
                     email: "test@example.com",
-                    role: UserRole.MEMBER_INDIA,
-                    country: Country.INDIA,
+                    role: UserRole.MEMBER,
+                    assignedLocation: "mumbai",
                     firstName: "Test",
                     lastName: "User",
                     isActive: true,
@@ -132,8 +145,8 @@ describe("Auth Resolvers", () => {
                 password: "password123",
                 firstName: "Test",
                 lastName: "User",
-                role: UserRole.MEMBER_INDIA,
-                country: Country.INDIA,
+                role: UserRole.MEMBER,
+                assignedLocation: "mumbai",
             };
 
             it("should register user successfully", async () => {
@@ -153,7 +166,9 @@ describe("Auth Resolvers", () => {
                     {
                         input: validInput,
                     },
-                    createContext(),
+                    createContext({
+                        user: buildAdminUser() as unknown as GraphQLContext["user"],
+                    }),
                 );
 
                 expect(mockValidateInput).toHaveBeenCalled();
@@ -178,7 +193,9 @@ describe("Auth Resolvers", () => {
                     authResolvers.Mutation?.register?.(
                         null,
                         { input: validInput },
-                        createContext(),
+                        createContext({
+                            user: buildAdminUser() as unknown as GraphQLContext["user"],
+                        }),
                     ),
                 ).rejects.toThrow();
 
@@ -195,11 +212,39 @@ describe("Auth Resolvers", () => {
                     authResolvers.Mutation?.register?.(
                         null,
                         { input: validInput },
-                        createContext(),
+                        createContext({
+                            user: buildAdminUser() as unknown as GraphQLContext["user"],
+                        }),
                     ),
                 ).rejects.toThrow("Validation failed");
 
                 expect(mockLogger.error).toHaveBeenCalled();
+            });
+            it("should forbid non-admin registration attempts", async () => {
+                await expect(
+                    authResolvers.Mutation?.register?.(
+                        null,
+                        { input: validInput },
+                        createContext({
+                            user: {
+                                id: "manager-1",
+                                email: "manager@example.com",
+                                role: UserRole.MANAGER,
+                                assignedLocation: "mumbai",
+                                firstName: "Manager",
+                                lastName: "User",
+                                isActive: true,
+                                password: "hashed",
+                                createdAt: new Date(),
+                                updatedAt: new Date(),
+                            } as unknown as GraphQLContext["user"],
+                        }),
+                    ),
+                ).rejects.toThrow("Only admins can register new users");
+
+                expect(mockGraphQLErrors.forbidden).toHaveBeenCalledWith(
+                    "Only admins can register new users",
+                );
             });
         });
 
@@ -214,8 +259,8 @@ describe("Auth Resolvers", () => {
                     id: "user-123",
                     email: validInput.email,
                     password: "hashed-password",
-                    role: UserRole.MEMBER_INDIA,
-                    country: Country.INDIA,
+                    role: UserRole.MEMBER,
+                    assignedLocation: "mumbai",
                     firstName: "Test",
                     lastName: "User",
                     isActive: true,

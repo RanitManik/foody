@@ -1,25 +1,25 @@
 /**
  * @fileoverview Restaurant Management Resolvers
  * @module graphql/restaurant/resolver
- * @description Handles restaurant CRUD operations with country-based filtering and admin-only management.
- * Implements automatic country filtering for non-admin users and Redis caching for performance.
+ * @description Handles restaurant CRUD operations with location-based filtering and admin-only management.
+ * Implements automatic location scoping for non-admin users and Redis caching for performance.
  *
  * @features
- * - Restaurant listing with country filtering
+ * - Restaurant listing with location filtering
  * - Restaurant details with menu items
  * - Menu categories per restaurant
  * - Admin-only restaurant management (create/update/delete)
- * - Automatic country-based access control
+ * - Automatic location-based access control
  * - Redis caching with role-specific keys
  *
  * @security
  * - Authentication required for all operations
- * - Country-based read access filtering for non-admins
+ * - Location-based read access filtering for non-admins
  * - Admin-only write operations
  * - India/America region isolation
  *
  * @permissions
- * - **View**: All users (auto-filtered by country for non-admin)
+ * - **View**: All users (auto-filtered by location for non-admin)
  * - **Create/Update/Delete**: Admin only
  *
  * @author Ranit Kumar Manik
@@ -39,15 +39,27 @@ import { GraphQLContext, CreateRestaurantInput } from "../../types/graphql";
 import { UserRole, restaurants, menu_items } from "@prisma/client";
 import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
+const requireAssignedLocation = (user: NonNullable<GraphQLContext["user"]>): string => {
+    if (!user.assignedLocation) {
+        logger.warn("Location assignment missing for restaurant operation", {
+            userId: user.id,
+            role: user.role,
+        });
+        throw GraphQLErrors.forbidden("Location assignment required for this action");
+    }
+
+    return user.assignedLocation;
+};
+
 export const restaurantResolvers = {
     Query: {
         /**
-         * Retrieve paginated list of restaurants with automatic country filtering
+         * Retrieve paginated list of restaurants with automatic location filtering
          *
          * @async
          * @param {unknown} _parent - Parent resolver (unused)
          * @param {Object} params - Query parameters
-         * @param {string} [params.country] - Optional country filter
+         * @param {string} [params.location] - Optional location filter
          * @param {number} [params.first=10] - Number of restaurants to return
          * @param {number} [params.skip=0] - Number to skip for pagination
          * @param {GraphQLContext} context - GraphQL execution context
@@ -56,29 +68,28 @@ export const restaurantResolvers = {
          * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
          *
          * @description
-         * Fetches restaurants with automatic country-based filtering:
-         * - **India users**: Only INDIA restaurants
-         * - **America users**: Only AMERICA restaurants
-         * - **Admin**: All restaurants (unless country param specified)
-         *
-         * Results include available menu items and are cached per country.
+         * Fetches restaurants with automatic location-based scoping:
+         * - **Managers/Members**: Only restaurants in their assigned location
+         * - **Admin**: All restaurants (unless location param specified)
+
+         * Results include available menu items and are cached per location.
          *
          * @caching
-         * - Cache key: restaurants:{country}
+         * - Cache key: restaurants:{location}
          * - TTL: CACHE_TTL.RESTAURANTS
          * - Invalidated on: restaurant create/update/delete
          *
          * @example
          * query {
-         *   restaurants(country: INDIA, first: 10) {
-         *     id name description city country
+         *   restaurants(location: "Downtown", first: 10) {
+         *     id name description city location
          *     menuCategories
          *   }
          * }
          */
         restaurants: async (
             _parent: unknown,
-            { country, first, skip }: { country?: string; first?: number; skip?: number },
+            { location, first, skip }: { location?: string; first?: number; skip?: number },
             context: GraphQLContext,
         ) => {
             if (!context.user) {
@@ -88,31 +99,24 @@ export const restaurantResolvers = {
             const pagination = parsePagination({ first, skip });
             const whereClause: Record<string, unknown> = {};
 
-            // Apply country-based filtering for non-admin users
-            if (context.user.role !== UserRole.ADMIN) {
-                if (
-                    context.user.role === UserRole.MANAGER_INDIA ||
-                    context.user.role === UserRole.MEMBER_INDIA
-                ) {
-                    whereClause.country = "INDIA";
-                } else if (
-                    context.user.role === UserRole.MANAGER_AMERICA ||
-                    context.user.role === UserRole.MEMBER_AMERICA
-                ) {
-                    whereClause.country = "AMERICA";
-                }
+            const currentUser = context.user;
+            const isAdmin = currentUser.role === UserRole.ADMIN;
+
+            let effectiveLocation: string | null = null;
+            if (!isAdmin) {
+                const assignedLocation = requireAssignedLocation(currentUser);
+                whereClause.location = assignedLocation;
+                effectiveLocation = assignedLocation;
             }
 
-            // Additional country filter if provided
-            if (country) {
-                whereClause.country = country;
+            if (location) {
+                const sanitizedLocation = validationSchemas.nonEmptyString.parse(location);
+                whereClause.location = sanitizedLocation;
+                effectiveLocation = sanitizedLocation;
             }
-
-            const effectiveCountry =
-                typeof whereClause.country === "string" ? (whereClause.country as string) : country;
 
             // Use Redis caching for restaurants queries
-            const cacheKey = createCacheKey.restaurants({ country: effectiveCountry ?? null });
+            const cacheKey = createCacheKey.restaurants({ location: effectiveLocation ?? null });
             return await withCache(
                 cacheKey,
                 async () => {
@@ -124,7 +128,7 @@ export const restaurantResolvers = {
                             description: true,
                             address: true,
                             city: true,
-                            country: true,
+                            location: true,
                             phone: true,
                             email: true,
                             isActive: true,
@@ -159,7 +163,8 @@ export const restaurantResolvers = {
             const validatedId = validationSchemas.id.parse(id);
 
             // Use Redis caching for individual restaurants with user role-based keys
-            const cacheKey = `restaurant:${validatedId}:${context.user.role}`;
+            const userCacheScope = context.user.assignedLocation ?? "all";
+            const cacheKey = `restaurant:${validatedId}:${context.user.role}:${userCacheScope}`;
             const restaurant = await withCache(
                 cacheKey,
                 async () => {
@@ -171,7 +176,7 @@ export const restaurantResolvers = {
                             description: true,
                             address: true,
                             city: true,
-                            country: true,
+                            location: true,
                             phone: true,
                             email: true,
                             isActive: true,
@@ -198,22 +203,10 @@ export const restaurantResolvers = {
 
             if (!restaurant) return null;
 
-            // Check country-based access for non-admin users
             if (context.user.role !== UserRole.ADMIN) {
-                if (
-                    context.user.role === UserRole.MANAGER_INDIA ||
-                    context.user.role === UserRole.MEMBER_INDIA
-                ) {
-                    if (restaurant.country !== "INDIA") {
-                        throw GraphQLErrors.forbidden("Access denied to this restaurant");
-                    }
-                } else if (
-                    context.user.role === UserRole.MANAGER_AMERICA ||
-                    context.user.role === UserRole.MEMBER_AMERICA
-                ) {
-                    if (restaurant.country !== "AMERICA") {
-                        throw GraphQLErrors.forbidden("Access denied to this restaurant");
-                    }
+                const assignedLocation = requireAssignedLocation(context.user);
+                if (restaurant.location !== assignedLocation) {
+                    throw GraphQLErrors.forbidden("Access denied to this restaurant");
                 }
             }
 
@@ -228,7 +221,7 @@ export const restaurantResolvers = {
          * @async
          * @param {unknown} _parent - Parent resolver (unused)
          * @param {Object} params - Mutation parameters
-         * @param {CreateRestaurantInput} params.input - Restaurant data including name, country, address
+         * @param {CreateRestaurantInput} params.input - Restaurant data including name, location, address
          * @param {GraphQLContext} context - GraphQL execution context
          * @returns {Promise<Restaurant>} Newly created restaurant with menu items
          *
@@ -239,17 +232,17 @@ export const restaurantResolvers = {
          * @description
          * Creates a new restaurant in the system with the following workflow:
          * 1. Validates user is authenticated and has ADMIN role
-         * 2. Validates all input data including country, address, and contact info
+         * 2. Validates all input data including location, address, and contact info
          * 3. Creates restaurant record in database
          * 4. Invalidates restaurant list caches
          * 5. Logs creation with restaurant metadata
          *
          * @permissions
-         * - **Admin**: Full access to create restaurants in any country
+         * - **Admin**: Full access to create restaurants in any location
          * - **Others**: Forbidden
          *
          * @businessLogic
-         * - Restaurants can be created in INDIA or AMERICA countries
+         * - Restaurants can be created in any named location (e.g., Downtown, Midtown)
          * - New restaurants default to isActive: true
          * - Menu items can be added after restaurant creation
          *
@@ -260,11 +253,11 @@ export const restaurantResolvers = {
          *     description: "Authentic Indian cuisine"
          *     address: "123 Main St, Mumbai 400001"
          *     city: "Mumbai"
-         *     country: INDIA
+         *     location: "Downtown"
          *     phone: "+91-9876543210"
          *     email: "info@tasteindia.com"
          *   }) {
-         *     id name city country isActive
+         *     id name city location isActive
          *   }
          * }
          */
@@ -295,7 +288,7 @@ export const restaurantResolvers = {
                 logger.info("Restaurant created successfully", {
                     restaurantId: restaurant.id,
                     name: restaurant.name,
-                    country: restaurant.country,
+                    location: restaurant.location,
                     userId: context.user.id,
                 });
 
@@ -343,7 +336,7 @@ export const restaurantResolvers = {
          * - **Others**: Forbidden
          *
          * @updatableFields
-         * - name, description, address, city, country
+         * - name, description, address, city, location
          * - phone, email, isActive
          * Can update any combination of these fields
          *

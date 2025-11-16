@@ -2,7 +2,7 @@
 export const typeDefs = `#graphql
     """
     Represents a restaurant with location, contact information, and menu offerings.
-    Restaurants are restricted by country for access control.
+    Restaurants are restricted by assigned locations for access control.
     """
     type Restaurant {
         "Unique identifier for the restaurant"
@@ -15,8 +15,8 @@ export const typeDefs = `#graphql
         address: String!
         "City where the restaurant is located"
         city: String!
-        "Country where the restaurant operates (INDIA or AMERICA)"
-        country: Country!
+    "Named location where the restaurant operates (for example: Downtown, Midtown)"
+    location: String!
         "Contact phone number"
         phone: String
         "Contact email address"
@@ -45,8 +45,8 @@ export const typeDefs = `#graphql
         address: String!
         "City where the restaurant is located"
         city: String!
-        "Country where the restaurant operates"
-        country: Country!
+    "Named location where the restaurant operates"
+    location: String!
         "Contact phone number"
         phone: String
         "Contact email address"
@@ -65,6 +65,8 @@ export const typeDefs = `#graphql
         address: String
         "Updated city"
         city: String
+    "Updated location"
+    location: String
         "Updated phone number"
         phone: String
         "Updated email address"
@@ -75,13 +77,13 @@ export const typeDefs = `#graphql
 
     type Query {
         """
-        Get a paginated list of restaurants. Can filter by country.
-        Non-admin users can only see restaurants in their country.
-        """
-        restaurants(country: Country, first: Int, skip: Int): [Restaurant!]!
+    Get a paginated list of restaurants. Can filter by location.
+    Non-admin users can only see restaurants in their assigned location.
+    """
+    restaurants(location: String, first: Int, skip: Int): [Restaurant!]!
         """
         Get a specific restaurant by ID.
-        Access control ensures users can only view restaurants in their country.
+    Access control ensures users can only view restaurants in their assigned location.
         """
         restaurant(id: ID!): Restaurant
     }

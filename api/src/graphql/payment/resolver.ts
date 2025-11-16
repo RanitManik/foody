@@ -40,6 +40,18 @@ import { GraphQLContext, CreatePaymentMethodInput } from "../../types/graphql";
 import { deleteCacheByPattern } from "../../lib/shared/cache";
 import { UserRole, OrderStatus } from "@prisma/client";
 
+const requireAssignedLocation = (user: NonNullable<GraphQLContext["user"]>): string => {
+    if (!user.assignedLocation) {
+        logger.warn("Location assignment missing for payment operation", {
+            userId: user.id,
+            role: user.role,
+        });
+        throw GraphQLErrors.forbidden("Location assignment required for this action");
+    }
+
+    return user.assignedLocation;
+};
+
 export const paymentResolvers = {
     Query: {
         /**
@@ -70,36 +82,39 @@ export const paymentResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
-            // Only admins and managers can query payment methods
-            if (
-                context.user.role !== "ADMIN" &&
-                context.user.role !== "MANAGER_INDIA" &&
-                context.user.role !== "MANAGER_AMERICA"
-            ) {
+            const currentUser = context.user;
+            const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
+
+            if (!isAdmin && !isManager) {
                 logger.warn("Payment methods query failed: insufficient permissions", {
-                    userId: context.user.id,
-                    role: context.user.role,
+                    userId: currentUser.id,
+                    role: currentUser.role,
                 });
                 throw GraphQLErrors.forbidden(
                     "Only admins and managers can access payment methods",
                 );
             }
 
+            if (isManager) {
+                requireAssignedLocation(currentUser);
+            }
+
             try {
                 const paymentMethods = await prisma.payment_methods.findMany({
-                    where: { userId: context.user.id },
+                    where: { userId: currentUser.id },
                     orderBy: { createdAt: "desc" },
                 });
 
                 logger.info("Payment methods retrieved successfully", {
-                    userId: context.user.id,
+                    userId: currentUser.id,
                     count: paymentMethods.length,
                 });
 
                 return paymentMethods;
             } catch (error) {
                 logger.error("Payment methods query failed", {
-                    userId: context.user?.id,
+                    userId: currentUser.id,
                     error: error instanceof Error ? error.message : String(error),
                 });
                 throw error;
@@ -141,14 +156,31 @@ export const paymentResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
+            const currentUser = context.user;
+            const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
+
+            if (!isAdmin && !isManager) {
+                logger.warn("Payment method query failed: insufficient permissions", {
+                    userId: currentUser.id,
+                    role: currentUser.role,
+                });
+                throw GraphQLErrors.forbidden(
+                    "Only admins and managers can access payment methods",
+                );
+            }
+
+            if (isManager) {
+                requireAssignedLocation(currentUser);
+            }
+
             try {
-                // Validate ID
                 const validatedId = validationSchemas.id.parse(id);
 
                 const paymentMethod = await prisma.payment_methods.findFirst({
                     where: {
                         id: validatedId,
-                        userId: context.user.id,
+                        userId: currentUser.id,
                     },
                 });
 
@@ -158,13 +190,13 @@ export const paymentResolvers = {
 
                 logger.info("Payment method retrieved successfully", {
                     paymentMethodId: paymentMethod.id,
-                    userId: context.user.id,
+                    userId: currentUser.id,
                 });
 
                 return paymentMethod;
             } catch (error) {
                 logger.error("Payment method query failed", {
-                    userId: context.user?.id,
+                    userId: currentUser.id,
                     paymentMethodId: id,
                     error: error instanceof Error ? error.message : String(error),
                 });
@@ -207,11 +239,11 @@ export const paymentResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
-            // Only admins can see all payments
-            if (context.user.role !== "ADMIN") {
+            const currentUser = context.user;
+            if (currentUser.role !== UserRole.ADMIN) {
                 logger.warn("Payments query failed: insufficient permissions", {
-                    userId: context.user.id,
-                    role: context.user.role,
+                    userId: currentUser.id,
+                    role: currentUser.role,
                 });
                 throw GraphQLErrors.forbidden("Admin access required");
             }
@@ -229,6 +261,7 @@ export const paymentResolvers = {
                                         lastName: true,
                                         email: true,
                                         role: true,
+                                        assignedLocation: true,
                                     },
                                 },
                             },
@@ -238,14 +271,14 @@ export const paymentResolvers = {
                 });
 
                 logger.info("Payments retrieved successfully", {
-                    userId: context.user.id,
+                    userId: currentUser.id,
                     count: payments.length,
                 });
 
                 return payments;
             } catch (error) {
                 logger.error("Payments query failed", {
-                    userId: context.user?.id,
+                    userId: currentUser.id,
                     error: error instanceof Error ? error.message : String(error),
                 });
                 throw error;
@@ -289,8 +322,9 @@ export const paymentResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
+            const currentUser = context.user;
+
             try {
-                // Validate ID
                 const validatedId = validationSchemas.id.parse(id);
 
                 const payment = await prisma.payments.findFirst({
@@ -329,6 +363,7 @@ export const paymentResolvers = {
                                         firstName: true,
                                         lastName: true,
                                         role: true,
+                                        assignedLocation: true,
                                     },
                                 },
                             },
@@ -340,13 +375,12 @@ export const paymentResolvers = {
                     throw GraphQLErrors.notFound("Payment not found");
                 }
 
-                // Users can only see their own payments, admins can see all
                 if (
-                    context.user.role !== "ADMIN" &&
-                    payment.payment_methods?.userId !== context.user.id
+                    currentUser.role !== UserRole.ADMIN &&
+                    payment.payment_methods?.userId !== currentUser.id
                 ) {
                     logger.warn("Payment query failed: access denied", {
-                        userId: context.user.id,
+                        userId: currentUser.id,
                         paymentId: payment.id,
                         paymentUserId: payment.payment_methods?.userId,
                     });
@@ -355,13 +389,13 @@ export const paymentResolvers = {
 
                 logger.info("Payment retrieved successfully", {
                     paymentId: payment.id,
-                    userId: context.user.id,
+                    userId: currentUser.id,
                 });
 
                 return payment;
             } catch (error) {
                 logger.error("Payment query failed", {
-                    userId: context.user?.id,
+                    userId: currentUser.id,
                     paymentId: id,
                     error: error instanceof Error ? error.message : String(error),
                 });
@@ -420,20 +454,23 @@ export const paymentResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
-            // Only admins and managers can manage payment methods
-            if (
-                context.user.role !== "ADMIN" &&
-                context.user.role !== "MANAGER_INDIA" &&
-                context.user.role !== "MANAGER_AMERICA"
-            ) {
+            const currentUser = context.user;
+            const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
+
+            if (!isAdmin && !isManager) {
                 logger.warn("Payment method creation failed: insufficient permissions", {
-                    userId: context.user.id,
-                    role: context.user.role,
+                    userId: currentUser.id,
+                    role: currentUser.role,
                 });
 
                 throw GraphQLErrors.forbidden(
                     "Only admins and managers can manage payment methods",
                 );
+            }
+
+            if (isManager) {
+                requireAssignedLocation(currentUser);
             }
 
             try {
@@ -445,7 +482,7 @@ export const paymentResolvers = {
                 // For now, we'll just store basic info
                 const paymentMethod = await prisma.payment_methods.create({
                     data: {
-                        userId: context.user.id,
+                        userId: currentUser.id,
                         type,
                         provider,
                         last4: "4242", // Mock data
@@ -455,7 +492,7 @@ export const paymentResolvers = {
 
                 logger.info("Payment method created successfully", {
                     paymentMethodId: paymentMethod.id,
-                    userId: context.user.id,
+                    userId: currentUser.id,
                     type: paymentMethod.type,
                     provider: paymentMethod.provider,
                 });
@@ -463,7 +500,7 @@ export const paymentResolvers = {
                 return paymentMethod;
             } catch (error) {
                 logger.error("Payment method creation failed", {
-                    userId: context.user?.id,
+                    userId: currentUser.id,
                     input,
                     error: error instanceof Error ? error.message : String(error),
                 });
@@ -526,7 +563,7 @@ export const paymentResolvers = {
             }
 
             // CRITICAL: Only admins can update payment methods
-            if (context.user.role !== "ADMIN") {
+            if (context.user.role !== UserRole.ADMIN) {
                 logger.warn("Payment method update failed: access denied (non-admin)", {
                     userId: context.user.id,
                     paymentMethodId: id,
@@ -641,7 +678,7 @@ export const paymentResolvers = {
             }
 
             // CRITICAL: Only admins can delete payment methods
-            if (context.user.role !== "ADMIN") {
+            if (context.user.role !== UserRole.ADMIN) {
                 logger.warn("Payment method deletion failed: access denied (non-admin)", {
                     userId: context.user.id,
                     paymentMethodId: id,
@@ -721,7 +758,7 @@ export const paymentResolvers = {
          *
          * @permissions
          * - **Admins**: Can process any payment
-         * - **Managers**: Can process payments for their own orders or members in their country
+         * - **Managers**: Can process payments for their own orders or members within their assigned location
          * - **Members**: Cannot process payments
          *
          * @security
@@ -777,29 +814,26 @@ export const paymentResolvers = {
                 throw GraphQLErrors.unauthenticated();
             }
 
-            const role = context.user.role as UserRole;
+            const currentUser = context.user;
+            const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
 
-            // Only admins and managers can process payments
-            if (
-                role !== UserRole.ADMIN &&
-                role !== UserRole.MANAGER_INDIA &&
-                role !== UserRole.MANAGER_AMERICA
-            ) {
+            if (!isAdmin && !isManager) {
                 logger.warn("Payment processing failed: insufficient permissions", {
-                    userId: context.user.id,
-                    role,
+                    userId: currentUser.id,
+                    role: currentUser.role,
                 });
                 throw GraphQLErrors.forbidden("Only admins and managers can process payments");
             }
 
+            const assignedLocation = isManager ? requireAssignedLocation(currentUser) : null;
+
             try {
                 const { orderId, paymentMethodId, amount } = input;
 
-                // Validate IDs
                 const validatedOrderId = validationSchemas.id.parse(orderId);
                 const validatedPaymentMethodId = validationSchemas.id.parse(paymentMethodId);
 
-                // Verify order exists
                 const order = await prisma.orders.findUnique({
                     where: {
                         id: validatedOrderId,
@@ -809,7 +843,22 @@ export const paymentResolvers = {
                             select: {
                                 id: true,
                                 role: true,
-                                country: true,
+                                assignedLocation: true,
+                            },
+                        },
+                        order_items: {
+                            include: {
+                                menu_items: {
+                                    select: {
+                                        id: true,
+                                        restaurants: {
+                                            select: {
+                                                id: true,
+                                                location: true,
+                                            },
+                                        },
+                                    },
+                                },
                             },
                         },
                     },
@@ -817,62 +866,149 @@ export const paymentResolvers = {
 
                 if (!order) {
                     logger.warn("Payment processing failed: order not found", {
-                        userId: context.user.id,
+                        userId: currentUser.id,
                         orderId: validatedOrderId,
                     });
                     throw GraphQLErrors.notFound("Order not found");
                 }
 
-                const isOrderOwner = order.userId === context.user.id;
-                let canProcess = role === UserRole.ADMIN || isOrderOwner;
+                const orderOwnerLocation = order.users?.assignedLocation ?? null;
+                const orderOwnerRole = order.users?.role ?? null;
+                const restaurantLocations = order.order_items
+                    .map((item) => item.menu_items?.restaurants?.location)
+                    .filter((location): location is string => Boolean(location));
 
-                if (
-                    !canProcess &&
-                    (role === UserRole.MANAGER_INDIA || role === UserRole.MANAGER_AMERICA)
-                ) {
-                    const expectedMemberRole =
-                        role === UserRole.MANAGER_INDIA
-                            ? UserRole.MEMBER_INDIA
-                            : UserRole.MEMBER_AMERICA;
-                    if (order.users?.role === expectedMemberRole) {
+                const isOrderOwner = order.userId === currentUser.id;
+                let canProcess = isAdmin || isOrderOwner;
+
+                if (!canProcess && isManager && assignedLocation) {
+                    const hasForeignRestaurant = restaurantLocations.some(
+                        (location) => location !== assignedLocation,
+                    );
+                    const restaurantsMatchLocation =
+                        restaurantLocations.length > 0 && !hasForeignRestaurant;
+                    const ownerMatchesLocation = orderOwnerLocation === assignedLocation;
+
+                    if (
+                        orderOwnerRole === UserRole.MEMBER &&
+                        restaurantsMatchLocation &&
+                        (ownerMatchesLocation || orderOwnerLocation === null)
+                    ) {
                         canProcess = true;
+                    }
+
+                    if (hasForeignRestaurant) {
+                        logger.warn("Payment processing failed: cross-location order detected", {
+                            userId: currentUser.id,
+                            orderId: order.id,
+                            assignedLocation,
+                            restaurantLocations,
+                        });
+                        throw GraphQLErrors.forbidden(
+                            "Managers can only process payments for their assigned location",
+                        );
                     }
                 }
 
                 if (!canProcess) {
                     logger.warn("Payment processing failed: access denied to order", {
-                        userId: context.user.id,
+                        userId: currentUser.id,
                         orderOwnerId: order.userId,
-                        orderOwnerRole: order.users?.role,
-                        requesterRole: role,
+                        orderOwnerRole,
+                        requesterRole: currentUser.role,
                     });
                     throw GraphQLErrors.forbidden("Access denied to this order");
                 }
 
-                // Verify payment method exists and belongs to user
                 const paymentMethod = await prisma.payment_methods.findFirst({
                     where: {
                         id: validatedPaymentMethodId,
-                        userId: context.user.id,
+                    },
+                    select: {
+                        id: true,
+                        userId: true,
+                        provider: true,
+                        users: {
+                            select: {
+                                id: true,
+                                role: true,
+                                assignedLocation: true,
+                            },
+                        },
                     },
                 });
 
                 if (!paymentMethod) {
                     logger.warn("Payment processing failed: payment method not found", {
-                        userId: context.user.id,
+                        userId: currentUser.id,
                         paymentMethodId: validatedPaymentMethodId,
                     });
                     throw GraphQLErrors.notFound("Payment method not found");
                 }
 
-                // Check if order already has a payment (idempotency)
+                if (!isAdmin) {
+                    const methodOwnerRole = paymentMethod.users?.role ?? null;
+                    const methodOwnerLocation = paymentMethod.users?.assignedLocation ?? null;
+                    const expectedOwnerId = isOrderOwner ? currentUser.id : order.userId;
+
+                    if (paymentMethod.userId !== expectedOwnerId) {
+                        logger.warn(
+                            "Payment processing failed: payment method ownership mismatch",
+                            {
+                                userId: currentUser.id,
+                                paymentMethodOwnerId: paymentMethod.userId,
+                                expectedOwnerId,
+                                orderId: order.id,
+                            },
+                        );
+                        throw GraphQLErrors.forbidden(
+                            "Payment method does not belong to the order owner",
+                        );
+                    }
+
+                    if (isManager) {
+                        const processingOwnOrder = paymentMethod.userId === currentUser.id;
+
+                        if (!processingOwnOrder && methodOwnerRole !== UserRole.MEMBER) {
+                            logger.warn(
+                                "Payment processing failed: managers can only process member payments",
+                                {
+                                    userId: currentUser.id,
+                                    paymentMethodOwnerRole: methodOwnerRole,
+                                },
+                            );
+                            throw GraphQLErrors.forbidden(
+                                "Managers can only process payments for members",
+                            );
+                        }
+
+                        if (
+                            methodOwnerLocation &&
+                            methodOwnerLocation !== assignedLocation &&
+                            !processingOwnOrder
+                        ) {
+                            logger.warn(
+                                "Payment processing failed: payment method location mismatch",
+                                {
+                                    userId: currentUser.id,
+                                    methodOwnerLocation,
+                                    assignedLocation,
+                                },
+                            );
+                            throw GraphQLErrors.forbidden(
+                                "Payment method not authorized for this location",
+                            );
+                        }
+                    }
+                }
+
                 const existingPayment = await prisma.payments.findUnique({
                     where: { orderId: validatedOrderId },
                 });
 
                 if (existingPayment) {
                     logger.warn("Payment processing failed: order already has payment", {
-                        userId: context.user.id,
+                        userId: currentUser.id,
                         orderId: validatedOrderId,
                         existingPaymentId: existingPayment.id,
                     });
@@ -881,10 +1017,9 @@ export const paymentResolvers = {
                     );
                 }
 
-                // Validate amount matches order total
                 if (Math.abs(amount - order.totalAmount) > 0.01) {
                     logger.warn("Payment processing failed: amount mismatch", {
-                        userId: context.user.id,
+                        userId: currentUser.id,
                         orderId: validatedOrderId,
                         expectedAmount: order.totalAmount,
                         providedAmount: amount,
@@ -892,9 +1027,7 @@ export const paymentResolvers = {
                     throw GraphQLErrors.badInput("Payment amount does not match order total");
                 }
 
-                // In a real app, you'd process the payment with Stripe/PayPal/Razorpay
-                // For now, we'll simulate payment processing
-                const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const transactionId = `txn_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
                 const payment = await prisma.$transaction(async (tx) => {
                     const paymentRecord = await tx.payments.create({
@@ -922,7 +1055,7 @@ export const paymentResolvers = {
                 logger.info("Payment processed successfully", {
                     paymentId: payment.id,
                     orderId: payment.orderId,
-                    userId: context.user.id,
+                    userId: currentUser.id,
                     amount: payment.amount,
                     transactionId: payment.transactionId,
                     paymentMethod: paymentMethod.provider,
@@ -931,7 +1064,7 @@ export const paymentResolvers = {
                 await Promise.all([
                     deleteCacheByPattern(`order:${validatedOrderId}:*`),
                     deleteCacheByPattern(`orders:${order.userId}:*`),
-                    deleteCacheByPattern(`orders:${context.user.id}:*`),
+                    deleteCacheByPattern(`orders:${currentUser.id}:*`),
                 ]);
 
                 return payment;

@@ -10,7 +10,7 @@
  * - Order status tracking and updates
  * - Order cancellation
  * - Role-based order visibility
- * - Country-specific order management for managers
+ * - Location-scoped order management for managers
  * - Transactional order creation for data consistency
  * - N+1 query prevention with batch loading
  * - Redis caching for performance
@@ -18,14 +18,14 @@
  * @security
  * - Authentication required for all operations
  * - Members CANNOT create orders (critical business rule)
- * - Managers can only create/manage orders in their country
+ * - Managers can only create/manage orders in their assigned location
  * - Users can only view their own orders (except managers/admin)
  * - Order status changes restricted to managers/admin
  * - Payment method validation ensures ownership
  *
  * @businessRules
- * - **CRITICAL**: Members (MEMBER_INDIA, MEMBER_AMERICA) cannot place orders
- * - Managers can only order from restaurants in their country
+ * - **CRITICAL**: Members cannot place orders
+ * - Managers can only order from restaurants in their assigned location
  * - Orders require valid payment method owned by user
  * - Total amount calculated server-side (not trusted from client)
  * - Menu items must be available at order creation time
@@ -48,7 +48,6 @@ import { GraphQLContext, CreateOrderInput } from "../../types/graphql";
 import {
     UserRole,
     OrderStatus,
-    Country,
     orders,
     order_items,
     payments,
@@ -56,6 +55,18 @@ import {
     menu_items,
 } from "@prisma/client";
 import { withCache, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
+
+const requireAssignedLocation = (user: NonNullable<GraphQLContext["user"]>): string => {
+    if (!user.assignedLocation) {
+        logger.warn("Location assignment missing for order operation", {
+            userId: user.id,
+            role: user.role,
+        });
+        throw GraphQLErrors.forbidden("Location assignment required for this action");
+    }
+
+    return user.assignedLocation;
+};
 
 export const orderResolvers = {
     Query: {
@@ -75,8 +86,7 @@ export const orderResolvers = {
          * @description
          * Fetches orders with intelligent filtering based on user role:
          * - **Regular Users**: Only their own orders
-         * - **Manager India**: Orders from MEMBER_INDIA users + their own
-         * - **Manager America**: Orders from MEMBER_AMERICA users + their own
+         * - **Managers**: Orders scoped to their assigned location (team + their own)
          * - **Admin**: All orders in the system
          *
          * Results include full order items, user info, and payment details.
@@ -108,33 +118,31 @@ export const orderResolvers = {
             const pagination = parsePagination({ first, skip });
             const whereClause: Record<string, unknown> = {};
 
-            // Non-admin users can only see their own orders
-            if (context.user.role !== UserRole.ADMIN) {
-                whereClause.userId = context.user.id;
+            const currentUser = context.user;
+            const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
 
-                // Managers can see orders from their country
-                if (
-                    context.user.role === UserRole.MANAGER_INDIA ||
-                    context.user.role === UserRole.MANAGER_AMERICA
-                ) {
-                    // Get orders from users in the same country
-                    const countryUsers = await prisma.users.findMany({
+            if (!isAdmin) {
+                if (isManager) {
+                    const assignedLocation = requireAssignedLocation(currentUser);
+                    const scopedUsers = await prisma.users.findMany({
                         where: {
-                            role:
-                                context.user.role === UserRole.MANAGER_INDIA
-                                    ? { in: [UserRole.MEMBER_INDIA] }
-                                    : { in: [UserRole.MEMBER_AMERICA] },
+                            assignedLocation,
+                            role: { in: [UserRole.MANAGER, UserRole.MEMBER] },
+                            isActive: true,
                         },
                         select: { id: true },
                     });
-                    whereClause.userId = {
-                        in: [...countryUsers.map((u: { id: string }) => u.id), context.user.id],
-                    };
+                    const userIds = new Set(scopedUsers.map(({ id }) => id));
+                    userIds.add(currentUser.id);
+                    whereClause.userId = { in: Array.from(userIds) };
+                } else {
+                    whereClause.userId = currentUser.id;
                 }
             }
 
-            // Use Redis caching for orders queries (user-specific)
-            const cacheKey = `orders:${context.user.id}:${pagination.first}:${pagination.skip}`;
+            const locationScope = currentUser.assignedLocation ?? "all";
+            const cacheKey = `orders:${currentUser.id}:${locationScope}:${pagination.first}:${pagination.skip}`;
             return await withCache(
                 cacheKey,
                 async () => {
@@ -157,6 +165,7 @@ export const orderResolvers = {
                                     lastName: true,
                                     email: true,
                                     role: true,
+                                    assignedLocation: true,
                                 },
                             },
                             order_items: {
@@ -172,6 +181,12 @@ export const orderResolvers = {
                                             price: true,
                                             isAvailable: true,
                                             category: true,
+                                            restaurants: {
+                                                select: {
+                                                    id: true,
+                                                    location: true,
+                                                },
+                                            },
                                         },
                                     },
                                 },
@@ -221,12 +236,11 @@ export const orderResolvers = {
          * 1. Validates order ID format
          * 2. Retrieves order from cache or database
          * 3. Checks user permission to view order
-         * 4. For managers, verifies order is from their country's members
+         * 4. For managers, verifies order belongs to their assigned location
          *
          * Access rules:
          * - **Owner**: Can view their own orders
-         * - **Manager India**: Can view orders from MEMBER_INDIA users
-         * - **Manager America**: Can view orders from MEMBER_AMERICA users
+         * - **Managers**: Can view orders scoped to their assigned location
          * - **Admin**: Can view all orders
          *
          * @caching
@@ -252,7 +266,8 @@ export const orderResolvers = {
             const validatedId = validationSchemas.id.parse(id);
 
             // Use Redis caching for individual orders with user-specific keys
-            const cacheKey = `order:${validatedId}:${context.user.id}`;
+            const userCacheScope = context.user.assignedLocation ?? "all";
+            const cacheKey = `order:${validatedId}:${context.user.id}:${userCacheScope}`;
             const order = await withCache(
                 cacheKey,
                 async () => {
@@ -275,6 +290,7 @@ export const orderResolvers = {
                                     firstName: true,
                                     lastName: true,
                                     role: true,
+                                    assignedLocation: true,
                                 },
                             },
                             order_items: {
@@ -293,6 +309,12 @@ export const orderResolvers = {
                                             category: true,
                                             imageUrl: true,
                                             restaurantId: true,
+                                            restaurants: {
+                                                select: {
+                                                    id: true,
+                                                    location: true,
+                                                },
+                                            },
                                         },
                                     },
                                 },
@@ -324,25 +346,14 @@ export const orderResolvers = {
 
             if (!order) return null;
 
-            // Check access permissions
-            if (context.user.role !== UserRole.ADMIN && order.userId !== context.user.id) {
-                // Managers can access orders from their country members
-                if (
-                    context.user.role === UserRole.MANAGER_INDIA ||
-                    context.user.role === UserRole.MANAGER_AMERICA
-                ) {
-                    const orderUser = await prisma.users.findUnique({
-                        where: { id: order.userId },
-                        select: { role: true },
-                    });
+            const currentUser = context.user;
+            const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
 
-                    const isSameCountry =
-                        (context.user.role === UserRole.MANAGER_INDIA &&
-                            orderUser?.role === UserRole.MEMBER_INDIA) ||
-                        (context.user.role === UserRole.MANAGER_AMERICA &&
-                            orderUser?.role === UserRole.MEMBER_AMERICA);
-
-                    if (!isSameCountry) {
+            if (!isAdmin && order.userId !== currentUser.id) {
+                if (isManager) {
+                    const assignedLocation = requireAssignedLocation(currentUser);
+                    if (order.users?.assignedLocation !== assignedLocation) {
                         throw GraphQLErrors.forbidden("Access denied to this order");
                     }
                 } else {
@@ -366,23 +377,23 @@ export const orderResolvers = {
          * @returns {Promise<Order>} Newly created order with all details
          *
          * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
-         * @throws {GraphQLError} FORBIDDEN - If country access fails or members attach payment methods
+         * @throws {GraphQLError} FORBIDDEN - If location access fails or members attach payment methods
          * @throws {GraphQLError} BAD_INPUT - If validation fails or menu items unavailable
          *
          * @description
-         * Creates a new order (cart) while enforcing RBAC and country rules:
+         * Creates a new order (cart) while enforcing RBAC and location rules:
          * 1. Validates all input data
          * 2. Verifies optional payment method ownership (admins/managers only)
          * 3. Batch fetches menu items to avoid N+1 queries
-         * 4. Ensures menu items are available and belong to the caller's country
+         * 4. Ensures menu items are available and belong to the caller's location
          * 5. Calculates totals server-side
          * 6. Persists the order inside a transaction
          * 7. Invalidates cached order lists for the caller
          *
          * @permissions
          * - **Admin**: Can order from any restaurant and attach payment method
-         * - **Manager India/America**: Limited to their country, may attach payment method
-         * - **Members**: Limited to their country, cannot attach payment method (checkout requires manager/admin)
+         * - **Managers**: Limited to their assigned location, may attach payment method
+         * - **Members**: Cannot create orders
          *
          * @security
          * - Total amount calculated server-side (never trust client)
@@ -421,26 +432,25 @@ export const orderResolvers = {
                 const { items, deliveryAddress, phone, specialInstructions, paymentMethodId } =
                     validated;
 
-                const role = context.user.role;
-                const userCountry = context.user.country;
-
-                if (!userCountry && role !== UserRole.ADMIN) {
-                    logger.warn("Order creation failed: user missing country", {
+                if (context.user.role === UserRole.MEMBER) {
+                    logger.warn("Order creation failed: members cannot create orders", {
                         userId: context.user.id,
-                        role,
                     });
-                    throw GraphQLErrors.forbidden("Country assignment required for ordering");
+                    throw GraphQLErrors.forbidden("Members cannot create orders");
                 }
+                const role: UserRole = context.user.role;
+                const assignedLocation =
+                    role === UserRole.ADMIN ? null : requireAssignedLocation(context.user);
 
                 if (paymentMethodId) {
-                    if (role === UserRole.MEMBER_INDIA || role === UserRole.MEMBER_AMERICA) {
-                        logger.warn("Order creation failed: member attached payment method", {
+                    if (role !== UserRole.ADMIN && role !== UserRole.MANAGER) {
+                        logger.warn("Order creation failed: unauthorized payment method usage", {
                             userId: context.user.id,
                             role,
                             paymentMethodId,
                         });
                         throw GraphQLErrors.forbidden(
-                            "Members cannot attach payment methods during order creation",
+                            "Only managers or admins can attach payment methods",
                         );
                     }
 
@@ -466,7 +476,14 @@ export const orderResolvers = {
                     where: {
                         id: { in: menuItemIds },
                     },
-                    include: { restaurants: true },
+                    include: {
+                        restaurants: {
+                            select: {
+                                id: true,
+                                location: true,
+                            },
+                        },
+                    },
                 });
 
                 // Create a map for quick lookup
@@ -503,27 +520,23 @@ export const orderResolvers = {
                     }
 
                     if (role !== UserRole.ADMIN) {
-                        if (
-                            (role === UserRole.MANAGER_INDIA || role === UserRole.MEMBER_INDIA) &&
-                            menuItem.restaurants.country !== Country.INDIA
-                        ) {
-                            logger.warn("Order creation failed: country access denied", {
+                        if (!assignedLocation) {
+                            logger.warn("Order creation failed: manager missing location", {
                                 userId: context.user.id,
-                                userRole: role,
-                                restaurantCountry: menuItem.restaurants.country,
+                                role,
+                                menuItemId: item.menuItemId,
                             });
-                            throw GraphQLErrors.forbidden("Cannot order from this restaurant");
+                            throw GraphQLErrors.forbidden(
+                                "Location assignment required for ordering",
+                            );
                         }
 
-                        if (
-                            (role === UserRole.MANAGER_AMERICA ||
-                                role === UserRole.MEMBER_AMERICA) &&
-                            menuItem.restaurants.country !== Country.AMERICA
-                        ) {
-                            logger.warn("Order creation failed: country access denied", {
+                        if (menuItem.restaurants.location !== assignedLocation) {
+                            logger.warn("Order creation failed: location access denied", {
                                 userId: context.user.id,
                                 userRole: role,
-                                restaurantCountry: menuItem.restaurants.country,
+                                restaurantLocation: menuItem.restaurants.location,
+                                requiredLocation: assignedLocation,
                             });
                             throw GraphQLErrors.forbidden("Cannot order from this restaurant");
                         }
@@ -617,23 +630,22 @@ export const orderResolvers = {
          * @returns {Promise<Order>} Updated order with all details
          *
          * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
-         * @throws {GraphQLError} FORBIDDEN - If user lacks permission or country access
+         * @throws {GraphQLError} FORBIDDEN - If user lacks permission or location access
          * @throws {GraphQLError} NOT_FOUND - If order does not exist
          * @throws {GraphQLError} BAD_INPUT - If ID validation fails
          *
          * @description
-         * Updates order status with role-based and country-based restrictions:
+         * Updates order status with role-based and location-based restrictions:
          * 1. **Blocks members from updating status**
          * 2. Validates order ID format
          * 3. Fetches order with user information
-         * 4. For managers, verifies order is from their country
+         * 4. For managers, verifies order matches their assigned location
          * 5. Updates order status
          * 6. Invalidates relevant caches
          *
          * @permissions
          * - **Admin**: Can update any order status
-         * - **Manager India**: Can only update orders from MEMBER_INDIA users
-         * - **Manager America**: Can only update orders from MEMBER_AMERICA users
+         * - **Managers**: Can only update orders within their assigned location
          * - **Members**: **CANNOT UPDATE STATUS** (forbidden)
          *
          * @statusFlow
@@ -663,22 +675,29 @@ export const orderResolvers = {
             const validatedId = validationSchemas.id.parse(id);
 
             // Check permissions
-            if (
-                context.user.role === UserRole.MEMBER_INDIA ||
-                context.user.role === UserRole.MEMBER_AMERICA
-            ) {
+            if (context.user.role === UserRole.MEMBER) {
                 throw GraphQLErrors.forbidden("Members cannot update order status");
             }
 
             const order = await prisma.orders.findUnique({
                 where: { id: validatedId },
                 include: {
-                    users: true,
+                    users: {
+                        select: {
+                            id: true,
+                            assignedLocation: true,
+                        },
+                    },
                     order_items: {
                         include: {
                             menu_items: {
                                 include: {
-                                    restaurants: true,
+                                    restaurants: {
+                                        select: {
+                                            id: true,
+                                            location: true,
+                                        },
+                                    },
                                 },
                             },
                         },
@@ -691,25 +710,19 @@ export const orderResolvers = {
             }
 
             // Check if manager can access this order
-            // Managers can only update orders for restaurants in their country
+            // Managers can only update orders for restaurants in their assigned location
             if (context.user.role !== UserRole.ADMIN) {
-                // Get the restaurant country from the first order item
-                const restaurantCountry = order.order_items[0]?.menu_items?.restaurants?.country;
-
-                if (
-                    context.user.role === UserRole.MANAGER_INDIA &&
-                    restaurantCountry !== Country.INDIA
-                ) {
-                    throw GraphQLErrors.forbidden(
-                        "Managers can only update orders for restaurants in their country",
+                const assignedLocation = requireAssignedLocation(context.user);
+                const hasMismatchedLocation = order.order_items.some((orderItem) => {
+                    return (
+                        orderItem.menu_items?.restaurants?.location !== undefined &&
+                        orderItem.menu_items.restaurants.location !== assignedLocation
                     );
-                }
-                if (
-                    context.user.role === UserRole.MANAGER_AMERICA &&
-                    restaurantCountry !== Country.AMERICA
-                ) {
+                });
+
+                if (hasMismatchedLocation) {
                     throw GraphQLErrors.forbidden(
-                        "Managers can only update orders for restaurants in their country",
+                        "Managers can only update orders for restaurants in their location",
                     );
                 }
             }
@@ -753,7 +766,7 @@ export const orderResolvers = {
          * @returns {Promise<Order>} Cancelled order with updated status
          *
          * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
-         * @throws {GraphQLError} FORBIDDEN - If user lacks permission or country access
+         * @throws {GraphQLError} FORBIDDEN - If user lacks permission or location access
          * @throws {GraphQLError} NOT_FOUND - If order does not exist
          * @throws {GraphQLError} BAD_INPUT - If ID validation fails
          *
@@ -762,14 +775,13 @@ export const orderResolvers = {
          * 1. **Blocks members from cancelling orders**
          * 2. Validates order ID format
          * 3. Fetches order with user information
-         * 4. For managers, verifies order is from their country
+         * 4. For managers, verifies order aligns with their assigned location
          * 5. Sets order status to CANCELLED
          * 6. Invalidates relevant caches
          *
          * @permissions
          * - **Admin**: Can cancel any order
-         * - **Manager India**: Can only cancel orders from MEMBER_INDIA users
-         * - **Manager America**: Can only cancel orders from MEMBER_AMERICA users
+         * - **Managers**: Can only cancel orders within their assigned location
          * - **Members**: **CANNOT CANCEL ORDERS** (forbidden)
          *
          * @businessLogic
@@ -795,16 +807,34 @@ export const orderResolvers = {
             const validatedId = validationSchemas.id.parse(id);
 
             // Check permissions - members cannot cancel orders
-            if (
-                context.user.role === UserRole.MEMBER_INDIA ||
-                context.user.role === UserRole.MEMBER_AMERICA
-            ) {
+            if (context.user.role === UserRole.MEMBER) {
                 throw GraphQLErrors.forbidden("Members cannot cancel orders");
             }
 
             const order = await prisma.orders.findUnique({
                 where: { id: validatedId },
-                include: { users: true },
+                include: {
+                    users: {
+                        select: {
+                            id: true,
+                            assignedLocation: true,
+                        },
+                    },
+                    order_items: {
+                        include: {
+                            menu_items: {
+                                include: {
+                                    restaurants: {
+                                        select: {
+                                            id: true,
+                                            location: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             });
 
             if (!order) {
@@ -813,16 +843,15 @@ export const orderResolvers = {
 
             // Check if manager can access this order
             if (context.user.role !== UserRole.ADMIN) {
-                if (
-                    context.user.role === UserRole.MANAGER_INDIA &&
-                    order.users.role !== UserRole.MEMBER_INDIA
-                ) {
-                    throw GraphQLErrors.forbidden();
-                }
-                if (
-                    context.user.role === UserRole.MANAGER_AMERICA &&
-                    order.users.role !== UserRole.MEMBER_AMERICA
-                ) {
+                const assignedLocation = requireAssignedLocation(context.user);
+                const hasMismatchedLocation = order.order_items.some((orderItem) => {
+                    return (
+                        orderItem.menu_items?.restaurants?.location !== undefined &&
+                        orderItem.menu_items.restaurants.location !== assignedLocation
+                    );
+                });
+
+                if (hasMismatchedLocation) {
                     throw GraphQLErrors.forbidden();
                 }
             }

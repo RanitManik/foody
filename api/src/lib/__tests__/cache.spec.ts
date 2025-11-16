@@ -154,8 +154,8 @@ describe("Cache Utilities", () => {
             expect(createCacheKey.menuItems()).toBe("menuItems:all:all");
             expect(createCacheKey.menuItems("restaurant-123")).toBe("menuItems:all:restaurant-123");
             expect(
-                createCacheKey.menuItems({ restaurantId: "restaurant-123", country: "INDIA" }),
-            ).toBe("menuItems:INDIA:restaurant-123");
+                createCacheKey.menuItems({ restaurantId: "restaurant-123", location: "Downtown" }),
+            ).toBe("menuItems:Downtown:restaurant-123");
         });
 
         it("should create menuItem cache key", () => {
@@ -164,8 +164,10 @@ describe("Cache Utilities", () => {
 
         it("should create restaurants cache key", () => {
             expect(createCacheKey.restaurants()).toBe("restaurants:all");
-            expect(createCacheKey.restaurants("US")).toBe("restaurants:US");
-            expect(createCacheKey.restaurants({ country: "INDIA" })).toBe("restaurants:INDIA");
+            expect(createCacheKey.restaurants("Midtown")).toBe("restaurants:Midtown");
+            expect(createCacheKey.restaurants({ location: "Downtown" })).toBe(
+                "restaurants:Downtown",
+            );
         });
 
         it("should create restaurant cache key", () => {

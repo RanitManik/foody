@@ -6,15 +6,18 @@ export interface User {
     firstName: string;
     lastName: string;
     role: string;
-    country?: string;
+    assignedLocation?: string | null;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
 
 export interface UpdateUserInput {
+    email?: string;
+    password?: string;
     firstName?: string;
     lastName?: string;
-    email?: string;
+    role?: string;
+    assignedLocation?: string | null;
     isActive?: boolean;
 }

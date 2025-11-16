@@ -22,7 +22,7 @@ export interface AuthUser extends User {
     id: string;
     email: string;
     role: User["role"];
-    country: User["country"];
+    assignedLocation: User["assignedLocation"];
 }
 
 // GraphQL Scalars

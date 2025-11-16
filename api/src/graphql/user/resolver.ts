@@ -7,7 +7,7 @@
  * @features
  * - User listing with pagination
  * - User details with orders and payment methods
- * - User role and country updates
+ * - User role and location updates
  * - User account activation/deactivation
  * - User deletion
  * - Redis caching for user data
@@ -26,14 +26,20 @@
  * @version 1.0.0
  */
 
-import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/database";
 import { logger } from "../../lib/shared/logger";
 import { GraphQLErrors } from "../../lib/shared/errors";
-import { validationSchemas, UserRoleEnum, CountryEnum } from "../../lib/shared/validation";
+import {
+    validationSchemas,
+    UpdateUserInputSchema,
+    validateInput,
+} from "../../lib/shared/validation";
 import { parsePagination } from "../../lib/shared/pagination";
 import { GraphQLContext } from "../../types/graphql";
-import { UserRole, Country, payment_methods } from "@prisma/client";
+import type { UpdateUserInput } from "./types";
+import type { Prisma } from "@prisma/client";
+import { UserRole, payment_methods } from "@prisma/client";
 import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
 export const userResolvers = {
@@ -66,7 +72,7 @@ export const userResolvers = {
          * @example
          * query {
          *   users(first: 20, skip: 0) {
-         *     id email firstName lastName role country isActive
+         *     id email firstName lastName role assignedLocation isActive
          *     orders { id status totalAmount }
          *   }
          * }
@@ -99,9 +105,10 @@ export const userResolvers = {
                                 firstName: true,
                                 lastName: true,
                                 role: true,
-                                country: true,
+                                assignedLocation: true,
                                 isActive: true,
                                 createdAt: true,
+                                updatedAt: true,
                                 orders: {
                                     select: {
                                         id: true,
@@ -165,9 +172,10 @@ export const userResolvers = {
                             firstName: true,
                             lastName: true,
                             role: true,
-                            country: true,
+                            assignedLocation: true,
                             isActive: true,
                             createdAt: true,
+                            updatedAt: true,
                             orders: {
                                 select: {
                                     id: true,
@@ -200,85 +208,26 @@ export const userResolvers = {
          *
          * @async
          * @param {unknown} _parent - Parent resolver (unused)
-         * @param {Object} params - Mutation parameters
-         * @param {string} params.id - User ID to update
-         * @param {UserRole} [params.role] - New user role (optional)
-         * @param {Country} [params.country] - New user country (optional)
-         * @param {boolean} [params.isActive] - Account active status (optional)
+         * @param {{ id: string; input: UpdateUserInput }} params - Mutation parameters
          * @param {GraphQLContext} context - GraphQL execution context
          * @returns {Promise<User>} Updated user object
          *
          * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
          * @throws {GraphQLError} FORBIDDEN - If user is not admin
          * @throws {GraphQLError} NOT_FOUND - If user to update does not exist
-         * @throws {GraphQLError} BAD_INPUT - If ID validation fails or invalid role/country
+         * @throws {GraphQLError} BAD_INPUT - If validation fails or no fields provided
          *
          * @description
          * Updates user account properties with comprehensive validation:
-         * 1. Validates user is authenticated and has ADMIN role
-         * 2. Validates user ID format (CUID)
-         * 3. Validates optional fields:
-         *    - role: UserRole enum validation
-         *    - country: Country enum validation (INDIA or AMERICA)
-         *    - isActive: Boolean validation
-         * 4. Updates only provided fields (partial update)
-         * 5. Invalidates user caches
-         * 6. Logs update with metadata
-         *
-         * @permissions
-         * - **Admin**: Full access to update any user
-         * - **Others**: Forbidden
-         *
-         * @updatableFields
-         * - role: Change user role (ADMIN, MANAGER_INDIA, MANAGER_AMERICA, MEMBER_INDIA, MEMBER_AMERICA)
-         * - country: Change user country (INDIA or AMERICA)
-         * - isActive: Activate/deactivate user account
-         *
-         * @roleValues
-         * - ADMIN: Full system access
-         * - MANAGER_INDIA: Manage India country resources
-         * - MANAGER_AMERICA: Manage America country resources
-         * - MEMBER_INDIA: India team member (limited access)
-         * - MEMBER_AMERICA: America team member (limited access)
-         *
-         * @businessLogic
-         * - Admins can change user roles
-         * - Inactive users cannot login
-         * - Country must match user's location
-         * - Managers are country-specific
-         * - Members have read-only access to orders
-         *
-         * @caching
-         * Cache invalidation pattern:
-         * - user:* (all user caches)
-         *
-         * @auditLogging
-         * All user updates are logged with:
-         * - Updated user ID
-         * - Admin user ID (who made the change)
-         * - Fields that changed
-         * - Timestamp
-         *
-         * @example
-         * mutation {
-         *   updateUser(
-         *     id: "user123"
-         *     role: MANAGER_INDIA
-         *     country: INDIA
-         *     isActive: true
-         *   ) {
-         *     id email firstName lastName role country isActive
-         *   }
-         * }
+         * 1. Validates admin permissions
+         * 2. Validates ID format and input payload
+         * 3. Ensures non-admin roles always have an assigned location
+         * 4. Hashes password updates securely
+         * 5. Invalidates user caches and logs changes
          */
         updateUser: async (
             _parent: unknown,
-            {
-                id,
-                role,
-                country,
-                isActive,
-            }: { id: string; role?: UserRole; country?: Country; isActive?: boolean },
+            { id, input }: { id: string; input: UpdateUserInput },
             context: GraphQLContext,
         ) => {
             if (!context.user || context.user.role !== UserRole.ADMIN) {
@@ -291,25 +240,22 @@ export const userResolvers = {
             }
 
             try {
-                // Validate ID
                 const validatedId = validationSchemas.id.parse(id);
+                const validatedInput = validateInput(UpdateUserInputSchema, input);
 
-                // Validate optional fields if provided
-                const updateData: { role?: UserRole; country?: Country; isActive?: boolean } = {};
-                if (role !== undefined) {
-                    updateData.role = UserRoleEnum.parse(role);
-                }
-                if (country !== undefined) {
-                    updateData.country = CountryEnum.parse(country);
-                }
-                if (isActive !== undefined) {
-                    updateData.isActive = z.boolean().parse(isActive);
-                }
-
-                // Verify user exists before updating
                 const existingUser = await prisma.users.findUnique({
                     where: { id: validatedId },
-                    select: { id: true, email: true, role: true, country: true, isActive: true },
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        role: true,
+                        assignedLocation: true,
+                        isActive: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    },
                 });
 
                 if (!existingUser) {
@@ -320,10 +266,75 @@ export const userResolvers = {
                     throw GraphQLErrors.notFound("User not found");
                 }
 
-                // Perform update
+                const nextRole = validatedInput.role ?? existingUser.role;
+                const nextAssignedLocation =
+                    validatedInput.assignedLocation !== undefined
+                        ? validatedInput.assignedLocation
+                        : existingUser.assignedLocation;
+
+                if (nextRole !== UserRole.ADMIN && !nextAssignedLocation) {
+                    logger.warn("User update failed: location required for non-admin role", {
+                        targetUserId: existingUser.id,
+                        requestedRole: nextRole,
+                        currentLocation: existingUser.assignedLocation,
+                    });
+                    throw GraphQLErrors.badInput(
+                        "Managers and members must have an assigned location",
+                    );
+                }
+
+                const updateData: Prisma.usersUpdateInput = {};
+
+                if (validatedInput.email !== undefined) {
+                    updateData.email = validatedInput.email;
+                }
+
+                if (validatedInput.password !== undefined) {
+                    updateData.password = await bcrypt.hash(validatedInput.password, 12);
+                }
+
+                if (validatedInput.firstName !== undefined) {
+                    updateData.firstName = validatedInput.firstName;
+                }
+
+                if (validatedInput.lastName !== undefined) {
+                    updateData.lastName = validatedInput.lastName;
+                }
+
+                if (validatedInput.role !== undefined) {
+                    updateData.role = validatedInput.role;
+                }
+
+                if (validatedInput.assignedLocation !== undefined) {
+                    updateData.assignedLocation = validatedInput.assignedLocation;
+                }
+
+                if (validatedInput.isActive !== undefined) {
+                    updateData.isActive = validatedInput.isActive;
+                }
+
+                if (Object.keys(updateData).length === 0) {
+                    logger.warn("User update failed: no fields provided", {
+                        adminId: context.user.id,
+                        targetUserId: validatedId,
+                    });
+                    throw GraphQLErrors.badInput("No update fields provided");
+                }
+
                 const updatedUser = await prisma.users.update({
                     where: { id: validatedId },
                     data: updateData,
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        role: true,
+                        assignedLocation: true,
+                        isActive: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    },
                 });
 
                 logger.info("User updated successfully", {
@@ -331,16 +342,36 @@ export const userResolvers = {
                     targetUserEmail: updatedUser.email,
                     adminId: context.user.id,
                     changes: {
-                        role: role ? `${existingUser.role} → ${role}` : undefined,
-                        country: country ? `${existingUser.country} → ${country}` : undefined,
-                        isActive:
-                            isActive !== undefined
-                                ? `${existingUser.isActive} → ${isActive}`
+                        email:
+                            validatedInput.email !== undefined
+                                ? `${existingUser.email} → ${updatedUser.email}`
                                 : undefined,
+                        firstName:
+                            validatedInput.firstName !== undefined
+                                ? `${existingUser.firstName} → ${updatedUser.firstName}`
+                                : undefined,
+                        lastName:
+                            validatedInput.lastName !== undefined
+                                ? `${existingUser.lastName} → ${updatedUser.lastName}`
+                                : undefined,
+                        role:
+                            validatedInput.role !== undefined
+                                ? `${existingUser.role} → ${updatedUser.role}`
+                                : undefined,
+                        assignedLocation:
+                            validatedInput.assignedLocation !== undefined
+                                ? `${existingUser.assignedLocation ?? "none"} → ${
+                                      updatedUser.assignedLocation ?? "none"
+                                  }`
+                                : undefined,
+                        isActive:
+                            validatedInput.isActive !== undefined
+                                ? `${existingUser.isActive} → ${updatedUser.isActive}`
+                                : undefined,
+                        password: validatedInput.password !== undefined ? "updated" : undefined,
                     },
                 });
 
-                // Invalidate user caches
                 await deleteCacheByPattern("user:*");
 
                 return updatedUser;
@@ -413,7 +444,7 @@ export const userResolvers = {
          * - Deleted user ID and email
          * - Admin user ID (who deleted)
          * - Timestamp
-         * - User role and country (for audit trail)
+         * - User role and assigned location (for audit trail)
          *
          * @example
          * mutation {
@@ -443,7 +474,7 @@ export const userResolvers = {
                         firstName: true,
                         lastName: true,
                         role: true,
-                        country: true,
+                        assignedLocation: true,
                     },
                 });
 
@@ -465,7 +496,7 @@ export const userResolvers = {
                     deletedUserEmail: userToDelete.email,
                     deletedUserName: `${userToDelete.firstName} ${userToDelete.lastName}`,
                     deletedUserRole: userToDelete.role,
-                    deletedUserCountry: userToDelete.country,
+                    deletedUserAssignedLocation: userToDelete.assignedLocation,
                     adminId: context.user.id,
                 });
 

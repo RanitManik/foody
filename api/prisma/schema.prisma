@@ -95,7 +95,7 @@ model restaurants {
   description String?
   address     String
   city        String
-  country     Country
+  location    String       @unique
   phone       String?
   email       String?
   isActive    Boolean      @default(true)
@@ -103,33 +103,26 @@ model restaurants {
   updatedAt   DateTime     @updatedAt
   menu_items  menu_items[]
 
-  @@index([country])
   @@index([isActive])
-  @@index([country, isActive])
 }
 
 model users {
-  id              String            @id @default(cuid())
-  email           String            @unique
-  password        String
-  firstName       String
-  lastName        String
-  role            UserRole
-  country         Country?
-  isActive        Boolean           @default(true)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  orders          orders[]
-  payment_methods payment_methods[]
+  id                String            @id @default(cuid())
+  email             String            @unique
+  password          String
+  firstName         String
+  lastName          String
+  role              UserRole
+  assignedLocation  String?
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  orders            orders[]
+  payment_methods   payment_methods[]
 
   @@index([role])
-  @@index([country])
+  @@index([assignedLocation])
   @@index([isActive])
-}
-
-enum Country {
-  INDIA
-  AMERICA
 }
 
 enum OrderStatus {
@@ -143,8 +136,6 @@ enum OrderStatus {
 
 enum UserRole {
   ADMIN
-  MANAGER_INDIA
-  MANAGER_AMERICA
-  MEMBER_INDIA
-  MEMBER_AMERICA
+  MANAGER
+  MEMBER
 }
