@@ -140,32 +140,11 @@ Three automated collections for comprehensive RBAC testing with automatic authen
 
 **Execution Flow:**
 
-```mermaid
-graph TD
-    subgraph "Authentication & User Management"
-        A[Login] --> B[Get Current User]
-        B --> C[Create User]
-        C --> D[Get All Users]
-        D --> E[Update User]
-    end
-
-    subgraph "Restaurant & Menu Management"
-        E --> F[Create Restaurant]
-        F --> G[Get Restaurants]
-        G --> H[Create Menu Item]
-        H --> I[Update Menu Item]
-    end
-
-    subgraph "Payment & Order Processing"
-        I --> J[Create Payment Method]
-        J --> K[Get Payment Methods]
-        K --> L[Create Order]
-        L --> M[Get Orders]
-        M --> N[Update Order Status]
-        N --> O[Process Payment]
-        O --> P[Delete Menu Item]
-        P --> Q[Delete User]
-    end
+```
+1. Login → 2. Get Current User → 3. Create User → 4. Get All Users → 5. Update User
+6. Create Restaurant → 7. Get Restaurants → 8. Create Menu Item → 9. Update Menu Item
+10. Create Payment Method → 11. Get Payment Methods → 12. Create Order → 13. Get Orders
+14. Update Order Status → 15. Process Payment → 16. Delete Menu Item → 17. Delete User
 ```
 
 **Expected Results:**
@@ -194,28 +173,10 @@ graph TD
 
 **Execution Flow:**
 
-```mermaid
-graph TD
-    subgraph "Authentication & Data Access"
-        A[Login] --> B[Get Current User]
-        B --> C[Get India Restaurants]
-        C --> D[Get Menu Items]
-    end
-
-    subgraph "Content Management"
-        D --> E[Create Menu Item]
-        E --> F[Update Menu Item]
-        F --> G[Create Payment Method]
-        G --> H[Create Order]
-    end
-
-    subgraph "Order Processing"
-        H --> I[Get Orders]
-        I --> J[Update Order Status]
-        J --> K[Process Payment]
-        K --> L[Get Payment Methods]
-        L --> M[Delete Menu Item]
-    end
+```
+1. Login → 2. Get Current User → 3. Get India Restaurants → 4. Get Menu Items
+5. Create Menu Item → 6. Update Menu Item → 7. Create Payment Method → 8. Create Order
+9. Get Orders → 10. Update Order Status → 11. Process Payment → 12. Get Payment Methods → 13. Delete Menu Item
 ```
 
 **Expected Results:**
@@ -244,22 +205,10 @@ graph TD
 
 **Execution Flow:**
 
-```mermaid
-graph TD
-    subgraph "Authentication & Read Access"
-        A[Login] --> B[Get Current User]
-        B --> C[Get Restaurants]
-        C --> D[Get Menu Items]
-    end
-
-    subgraph "Blocked Write Operations"
-        D --> E[BLOCKED: Create Payment]
-        E --> F[BLOCKED: Create Order]
-        F --> G[BLOCKED: Cancel Order]
-        G --> H[BLOCKED: Update Menu]
-        H --> I[BLOCKED: Delete Menu]
-        I --> J[BLOCKED: Create Restaurant]
-    end
+```
+1. Login → 2. Get Current User → 3. Get Restaurants → 4. Get Menu Items
+5. BLOCKED: Create Payment → 6. BLOCKED: Create Order → 7. BLOCKED: Cancel Order
+8. BLOCKED: Update Menu → 9. BLOCKED: Delete Menu → 10. BLOCKED: Create Restaurant
 ```
 
 **Expected Results:**
