@@ -3,7 +3,7 @@
  * @module graphql/menu/resolver
  * @description Handles all menu item operations including CRUD operations, category management,
  * and restaurant menu queries. Implements role-based access control, caching strategies,
- * and location-scoped filtering for menu items.
+ * and restaurant-scoped filtering for menu items.
  *
  * @features
  * - Menu item creation, retrieval, update, and deletion
@@ -16,9 +16,9 @@
  *
  * @security
  * - Authentication required for all operations
- * - Managers can only manage menu items within their assigned location
+ * - Managers can only manage menu items within their assigned restaurant
  * - Members have read-only access
- * - Admin has full access across all locations
+ * - Admin has full access across all restaurants
  *
  * @author Ranit Kumar Manik
  * @version 1.0.0
@@ -37,16 +37,16 @@ import { GraphQLContext, CreateMenuItemInput } from "../../types/graphql";
 import { UserRole } from "@prisma/client";
 import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
-const requireAssignedLocation = (user: NonNullable<GraphQLContext["user"]>): string => {
-    if (!user.assignedLocation) {
-        logger.warn("Location assignment missing for location-scoped operation", {
+const requireAssignedRestaurant = (user: NonNullable<GraphQLContext["user"]>): string => {
+    if (!user.restaurantId) {
+        logger.warn("Restaurant assignment missing for restaurant-scoped operation", {
             userId: user.id,
             role: user.role,
         });
-        throw GraphQLErrors.forbidden("Location assignment required for this action");
+        throw GraphQLErrors.forbidden("Restaurant assignment required for this action");
     }
 
-    return user.assignedLocation;
+    return user.restaurantId;
 };
 
 export const menuResolvers = {
@@ -99,24 +99,34 @@ export const menuResolvers = {
             const pagination = parsePagination({ first, skip });
             const whereClause: Record<string, unknown> = { isAvailable: true };
 
-            let locationFilter: string | null = null;
+            let scopedRestaurantId: string | null = null;
             if (!isAdmin) {
-                const assignedLocation = requireAssignedLocation(currentUser);
-                locationFilter = assignedLocation;
-                whereClause.restaurants = {
-                    location: assignedLocation,
-                };
+                scopedRestaurantId = requireAssignedRestaurant(currentUser);
+                whereClause.restaurantId = scopedRestaurantId;
             }
 
+            let targetRestaurantId = scopedRestaurantId;
             if (restaurantId) {
                 const validatedRestaurantId = validationSchemas.id.parse(restaurantId);
+
+                if (
+                    !isAdmin &&
+                    scopedRestaurantId &&
+                    validatedRestaurantId !== scopedRestaurantId
+                ) {
+                    logger.warn("Menu items query forbidden for mismatched restaurant", {
+                        userId: currentUser.id,
+                        restaurantId: validatedRestaurantId,
+                        assignedRestaurantId: scopedRestaurantId,
+                    });
+                    throw GraphQLErrors.forbidden("Access denied to this restaurant's menu items");
+                }
+
                 whereClause.restaurantId = validatedRestaurantId;
+                targetRestaurantId = validatedRestaurantId;
             }
 
-            const cacheKey = createCacheKey.menuItems({
-                restaurantId,
-                location: locationFilter,
-            });
+            const cacheKey = createCacheKey.menuItems(targetRestaurantId ?? undefined);
 
             return await withCache(
                 cacheKey,
@@ -232,13 +242,13 @@ export const menuResolvers = {
                     }
 
                     if (!isAdmin) {
-                        const assignedLocation = requireAssignedLocation(currentUser);
-                        if (menuItem.restaurants?.location !== assignedLocation) {
-                            logger.warn("Menu item access denied due to location restriction", {
+                        const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                        if (menuItem.restaurantId !== assignedRestaurantId) {
+                            logger.warn("Menu item access denied due to restaurant restriction", {
                                 userId: currentUser.id,
                                 menuItemId: validatedId,
-                                userLocation: assignedLocation,
-                                restaurantLocation: menuItem.restaurants?.location,
+                                assignedRestaurantId,
+                                menuItemRestaurantId: menuItem.restaurantId,
                             });
                             throw GraphQLErrors.forbidden("Access denied to this menu item");
                         }
@@ -285,15 +295,28 @@ export const menuResolvers = {
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
 
+            let scopedRestaurantId: string | null = null;
             if (!isAdmin) {
-                const assignedLocation = requireAssignedLocation(currentUser);
-                whereClause.restaurants = {
-                    location: assignedLocation,
-                };
+                scopedRestaurantId = requireAssignedRestaurant(currentUser);
+                whereClause.restaurantId = scopedRestaurantId;
             }
 
             if (restaurantId) {
                 const validatedRestaurantId = validationSchemas.id.parse(restaurantId);
+
+                if (
+                    !isAdmin &&
+                    scopedRestaurantId &&
+                    validatedRestaurantId !== scopedRestaurantId
+                ) {
+                    logger.warn("Menu categories query forbidden for mismatched restaurant", {
+                        userId: currentUser.id,
+                        restaurantId: validatedRestaurantId,
+                        assignedRestaurantId: scopedRestaurantId,
+                    });
+                    throw GraphQLErrors.forbidden("Access denied to this restaurant");
+                }
+
                 whereClause.restaurantId = validatedRestaurantId;
             }
 
@@ -360,15 +383,15 @@ export const menuResolvers = {
                 }
 
                 if (!isAdmin) {
-                    const assignedLocation = requireAssignedLocation(currentUser);
-                    if (restaurant.location !== assignedLocation) {
-                        logger.warn("Menu item creation forbidden: location mismatch", {
+                    const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                    if (restaurant.id !== assignedRestaurantId) {
+                        logger.warn("Menu item creation forbidden: restaurant mismatch", {
                             userId: currentUser.id,
-                            userLocation: assignedLocation,
-                            restaurantLocation: restaurant.location,
+                            assignedRestaurantId,
+                            targetRestaurantId: restaurant.id,
                         });
                         throw GraphQLErrors.forbidden(
-                            "Cannot manage menu items outside assigned location",
+                            "Cannot manage menu items outside assigned restaurant",
                         );
                     }
                 }
@@ -450,10 +473,10 @@ export const menuResolvers = {
             }
 
             if (!isAdmin) {
-                const assignedLocation = requireAssignedLocation(currentUser);
-                if (menuItem.restaurants?.location !== assignedLocation) {
+                const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                if (menuItem.restaurantId !== assignedRestaurantId) {
                     throw GraphQLErrors.forbidden(
-                        "Cannot manage menu items outside assigned location",
+                        "Cannot manage menu items outside assigned restaurant",
                     );
                 }
             }
@@ -477,10 +500,10 @@ export const menuResolvers = {
                 }
 
                 if (!isAdmin) {
-                    const assignedLocation = requireAssignedLocation(currentUser);
-                    if (targetRestaurant.location !== assignedLocation) {
+                    const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                    if (targetRestaurant.id !== assignedRestaurantId) {
                         throw GraphQLErrors.forbidden(
-                            "Cannot move menu item outside assigned location",
+                            "Cannot move menu item outside assigned restaurant",
                         );
                     }
                 }
@@ -544,10 +567,10 @@ export const menuResolvers = {
             }
 
             if (!isAdmin) {
-                const assignedLocation = requireAssignedLocation(currentUser);
-                if (menuItem.restaurants?.location !== assignedLocation) {
+                const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                if (menuItem.restaurantId !== assignedRestaurantId) {
                     throw GraphQLErrors.forbidden(
-                        "Cannot manage menu items outside assigned location",
+                        "Cannot manage menu items outside assigned restaurant",
                     );
                 }
             }

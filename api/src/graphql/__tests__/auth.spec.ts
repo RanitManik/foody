@@ -14,6 +14,9 @@ jest.mock("../../lib/database", () => ({
             findUnique: jest.fn(),
             create: jest.fn(),
         },
+        restaurants: {
+            findUnique: jest.fn(),
+        },
     },
 }));
 
@@ -75,7 +78,7 @@ const buildAdminUser = () => ({
     id: "admin-123",
     email: "admin@example.com",
     role: UserRole.ADMIN,
-    assignedLocation: null,
+    restaurantId: null,
     firstName: "Admin",
     lastName: "User",
     isActive: true,
@@ -90,6 +93,11 @@ describe("Auth Resolvers", () => {
         mockValidateInput.mockImplementation((schema, input) => input);
         mockValidateEmail.mockImplementation((email) => email);
         mockBcryptCompare.mockResolvedValue(true); // Default to valid password
+        (mockPrisma.restaurants.findUnique as jest.Mock).mockResolvedValue({
+            id: "restaurant-123",
+            name: "Test Restaurant",
+            location: "test-location",
+        });
         mockGenerateToken.mockReturnValue("mock-jwt-token");
         mockGraphQLErrors.unauthenticated.mockImplementation(() => {
             throw new Error("Not authenticated");
@@ -112,7 +120,7 @@ describe("Auth Resolvers", () => {
                     id: "user-123",
                     email: "test@example.com",
                     role: UserRole.MEMBER,
-                    assignedLocation: "mumbai",
+                    restaurantId: "restaurant-123",
                     firstName: "Test",
                     lastName: "User",
                     isActive: true,
@@ -146,7 +154,7 @@ describe("Auth Resolvers", () => {
                 firstName: "Test",
                 lastName: "User",
                 role: UserRole.MEMBER,
-                assignedLocation: "mumbai",
+                restaurantId: "restaurant-123",
             };
 
             it("should register user successfully", async () => {
@@ -172,6 +180,10 @@ describe("Auth Resolvers", () => {
                 );
 
                 expect(mockValidateInput).toHaveBeenCalled();
+                expect(mockPrisma.restaurants.findUnique).toHaveBeenCalledWith({
+                    where: { id: validInput.restaurantId },
+                    select: { id: true, name: true, location: true },
+                });
                 expect(mockPrisma.users.findUnique).toHaveBeenCalledWith({
                     where: { email: validInput.email },
                 });
@@ -230,7 +242,7 @@ describe("Auth Resolvers", () => {
                                 id: "manager-1",
                                 email: "manager@example.com",
                                 role: UserRole.MANAGER,
-                                assignedLocation: "mumbai",
+                                restaurantId: "restaurant-123",
                                 firstName: "Manager",
                                 lastName: "User",
                                 isActive: true,
@@ -260,7 +272,7 @@ describe("Auth Resolvers", () => {
                     email: validInput.email,
                     password: "hashed-password",
                     role: UserRole.MEMBER,
-                    assignedLocation: "mumbai",
+                    restaurantId: "restaurant-123",
                     firstName: "Test",
                     lastName: "User",
                     isActive: true,

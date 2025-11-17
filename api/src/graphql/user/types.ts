@@ -6,7 +6,7 @@ export interface User {
     firstName: string;
     lastName: string;
     role: string;
-    assignedLocation?: string | null;
+    restaurantId?: string | null;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -18,6 +18,6 @@ export interface UpdateUserInput {
     firstName?: string;
     lastName?: string;
     role?: string;
-    assignedLocation?: string | null;
+    restaurantId?: string | null;
     isActive?: boolean;
 }

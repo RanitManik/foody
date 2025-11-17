@@ -1,7 +1,7 @@
 // User GraphQL schema definitions
 export const typeDefs = `#graphql
     """
-    Represents a user account with role-based access control and location assignments.
+    Represents a user account with role-based access control and restaurant assignments.
     Users can be members, managers, or admins with different permission levels.
     """
     type User {
@@ -15,8 +15,8 @@ export const typeDefs = `#graphql
         lastName: String!
         "User's role determining permissions (ADMIN, MANAGER, MEMBER)"
         role: UserRole!
-        "Location scope assigned to the user (managers and members only)"
-        assignedLocation: String
+    "Restaurant assigned to the user (managers and members only)"
+    restaurantId: ID
         "Whether the user account is active"
         isActive: Boolean!
         "List of orders placed by this user"
@@ -43,8 +43,8 @@ export const typeDefs = `#graphql
         lastName: String
         "Updated role"
         role: UserRole
-        "Updated location assignment"
-        assignedLocation: String
+    "Updated restaurant assignment"
+    restaurantId: ID
         "Updated active status"
         isActive: Boolean
     }

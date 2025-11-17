@@ -2,7 +2,7 @@
 export const typeDefs = `#graphql
     """
     Represents a restaurant with location, contact information, and menu offerings.
-    Restaurants are restricted by assigned locations for access control.
+    Restaurants are accessed based on user's assigned restaurantId for access control.
     """
     type Restaurant {
         "Unique identifier for the restaurant"
@@ -78,12 +78,12 @@ export const typeDefs = `#graphql
     type Query {
         """
     Get a paginated list of restaurants. Can filter by location.
-    Non-admin users can only see restaurants in their assigned location.
+    Non-admin users can only see restaurants in their assigned restaurant.
     """
     restaurants(location: String, first: Int, skip: Int): [Restaurant!]!
         """
         Get a specific restaurant by ID.
-    Access control ensures users can only view restaurants in their assigned location.
+    Access control ensures users can only view restaurants in their assigned restaurant.
         """
         restaurant(id: ID!): Restaurant
     }

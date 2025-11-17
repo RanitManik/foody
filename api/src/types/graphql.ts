@@ -18,13 +18,6 @@ export interface GraphQLContext {
     sessionId?: string; // For WebSocket connections
 }
 
-export interface AuthUser extends User {
-    id: string;
-    email: string;
-    role: User["role"];
-    assignedLocation: User["assignedLocation"];
-}
-
 // GraphQL Scalars
 export type DateTime = string;
 export type Decimal = number;

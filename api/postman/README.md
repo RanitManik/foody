@@ -173,9 +173,9 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 **Capabilities:**
 
-- Location-scoped restaurant filtering (Spice Garden only)
-- Menu item viewing and creation within assigned location
-- Order creation, status updates, and cancellation within assigned location
+- Restaurant-scoped restaurant filtering (Spice Garden only)
+- Menu item viewing and creation within assigned restaurant
+- Order creation, status updates, and cancellation within assigned restaurant
 - Payment method creation (but not updates)
 - Cannot create restaurants
 
@@ -184,17 +184,17 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 - ❌ Cannot update payment methods (admin-only)
 - ❌ Cannot delete menu items referenced by orders
 - ❌ Cannot create restaurants (admin-only)
-- ❌ Cannot access restaurants outside the assigned location
+- ❌ Cannot access restaurants outside the assigned restaurant
 - ✅ Can create payment methods for orders
-- ✅ Can manage orders within the assigned location
+- ✅ Can manage orders within the assigned restaurant
 
 **Test Flow:**
 
 ```
-1. Login as Manager (Spice Garden) → 2. View Assigned Location Restaurants → 3. View Menu Items
-4. Create Menu Item (Assigned Location) → 5. Create Payment Method (ALLOWED)
+1. Login as Manager (Spice Garden) → 2. View Assigned Restaurant Restaurants → 3. View Menu Items
+4. Create Menu Item (Assigned Restaurant) → 5. Create Payment Method (ALLOWED)
 6. Update Payment Method (BLOCKED) → 7. Read Payment Methods (ALLOWED)
-8. Create Order (Assigned Location) → 9. View Orders & Extract ID
+8. Create Order (Assigned Restaurant) → 9. View Orders & Extract ID
 10. Update Order Status → 11. Cancel Order → 12. Delete Menu Item (BLOCKED)
 13. Create Restaurant (BLOCKED)
 ```
@@ -202,10 +202,10 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 **Expected Results:**
 
 - ✅ All 13 tests pass
-- ✅ Only assigned-location restaurants visible
+- ✅ Only assigned restaurant restaurants visible
 - ✅ Payment method operations correctly restricted
-- ✅ Order management within assigned location succeeds
-- ✅ Menu item management within assigned location works
+- ✅ Order management within assigned restaurant succeeds
+- ✅ Menu item management within assigned restaurant works
 - ✅ Restaurant creation properly blocked
 
 ---
@@ -216,17 +216,17 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 
 **Capabilities:**
 
-- Read-only access to restaurants within assigned location
-- Read-only access to menu items within assigned location
-- View operations only
+- View restaurants within assigned restaurant
+- View menu items within assigned restaurant
+- Create orders without payment methods (Function 2)
+- Read-only access to payment information
 
 **Restrictions (Validated):**
 
-- ❌ Cannot create orders
-- ❌ Cannot place orders (checkout & pay blocked)
-- ❌ Cannot cancel orders
-- ❌ Cannot create payment methods
-- ❌ Cannot update payment methods
+- ❌ Cannot attach payment methods to orders (Function 3)
+- ❌ Cannot cancel/update orders (Function 4)
+- ❌ Cannot create payment methods (Function 5)
+- ❌ Cannot update payment methods (Function 5)
 - ❌ Cannot process payments
 - ❌ Cannot create restaurants
 - ❌ Cannot create menu items
@@ -236,8 +236,8 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 **Test Flow:**
 
 ```
-1. Login as Member (Spice Garden) → 2. View Assigned Location Restaurants → 3. View Menu Items
-4. Create Order (BLOCKED) → 5. Place Order (BLOCKED) → 6. Cancel Order (BLOCKED)
+1. Login as Member (Spice Garden) → 2. View Assigned Restaurant Restaurants → 3. View Menu Items
+4. Create Order (ALLOWED) → 5. Place Order with Payment (BLOCKED) → 6. Cancel Order (BLOCKED)
 7. Create Payment Method (BLOCKED) → 8. Update Menu Item (BLOCKED)
 9. Cancel Order (BLOCKED) → 10. Create Payment Method (BLOCKED)
 11. Update Payment Method (BLOCKED) → 12. Process Payment (BLOCKED)
@@ -248,11 +248,12 @@ Complete Postman collection for testing all endpoints of the Foody GraphQL API w
 **Expected Results:**
 
 - ✅ All 16 tests pass (blocks validated as successes)
-- ✅ Read operations succeed within assigned location
+- ✅ Read operations succeed within assigned restaurant
 - ✅ Write operations properly blocked with error messages
 - ✅ Comprehensive security boundary validation
 
----
+---09: View Orders & Extract ID
+10: Update Order Status
 
 ## How to Run Collections
 
@@ -284,33 +285,33 @@ newman run Foody_API_Postman_Automated.json --environment Foody_API_Postman_Envi
 
 ## Test User Credentials
 
-| Role                     | Email                     | Password     | Assigned Location         |
-| ------------------------ | ------------------------- | ------------ | ------------------------- |
-| Admin                    | admin@foody.com           | ChangeMe123! | All locations             |
-| Manager (Spice Garden)   | captain.marvel@foody.com  | ChangeMe123! | spice-garden-bangalore    |
-| Manager (Burger Haven)   | captain.america@foody.com | ChangeMe123! | burger-haven-new-york     |
-| Member (Spice Garden)    | thanos@foody.com          | ChangeMe123! | spice-garden-bangalore    |
-| Member (Tandoor Express) | thor@foody.com            | ChangeMe123! | tandoor-express-bangalore |
-| Member (Burger Haven)    | travis@foody.com          | ChangeMe123! | burger-haven-new-york     |
+| Role                     | Email                     | Password     | Assigned Restaurant  |
+| ------------------------ | ------------------------- | ------------ | -------------------- |
+| Admin                    | admin@foody.com           | ChangeMe123! | All restaurants      |
+| Manager (Spice Garden)   | captain.marvel@foody.com  | ChangeMe123! | restaurant-india-1   |
+| Manager (Burger Haven)   | captain.america@foody.com | ChangeMe123! | restaurant-america-1 |
+| Member (Spice Garden)    | thanos@foody.com          | ChangeMe123! | restaurant-india-1   |
+| Member (Tandoor Express) | thor@foody.com            | ChangeMe123! | restaurant-india-2   |
+| Member (Burger Haven)    | travis@foody.com          | ChangeMe123! | restaurant-america-1 |
 
 ## Validation Summary
 
-| Role    | CRUD Access | Location Scope    | User Management | Payment Methods              | Order Management         |
-| ------- | ----------- | ----------------- | --------------- | ---------------------------- | ------------------------ |
-| Admin   | Full        | All locations     | ✅              | ✅ Create/Update             | All users & locations    |
-| Manager | Limited     | Assigned location | ❌              | ✅ Create (no update/delete) | Assigned-location orders |
-| Member  | Read-only   | Assigned location | ❌              | ❌                           | ❌                       |
+| Role    | CRUD Access          | Restaurant Scope    | User Management | Payment Methods              | Order Management           |
+| ------- | -------------------- | ------------------- | --------------- | ---------------------------- | -------------------------- |
+| Admin   | Full                 | All restaurants     | ✅              | ✅ Create/Update             | All users & restaurants    |
+| Manager | Limited              | Assigned restaurant | ❌              | ✅ Create (no update/delete) | Assigned restaurant orders |
+| Member  | Read + Create Orders | Assigned restaurant | ❌              | ❌ (no payment attach)       | ❌ (no status updates)     |
 
 ## Troubleshooting
 
-| Issue                          | Solution                                             |
-| ------------------------------ | ---------------------------------------------------- |
-| Token not captured after login | Verify API running on `http://localhost:4000`        |
-| "Unauthorized" errors          | Run requests in order (login first in each folder)   |
-| Order creation fails           | Ensure database seeded (`npm run db:seed`)           |
-| Location filtering not working | Verify user role/assigned location in login response |
-| Newman CLI errors              | Collections use variables, no env file needed        |
-| Manager order update fails     | This test auto-skips if no orders exist (expected)   |
+| Issue                            | Solution                                               |
+| -------------------------------- | ------------------------------------------------------ |
+| Token not captured after login   | Verify API running on `http://localhost:4000`          |
+| "Unauthorized" errors            | Run requests in order (login first in each folder)     |
+| Order creation fails             | Ensure database seeded (`npm run db:seed`)             |
+| Restaurant filtering not working | Verify user role/assigned restaurant in login response |
+| Newman CLI errors                | Collections use variables, no env file needed          |
+| Manager order update fails       | This test auto-skips if no orders exist (expected)     |
 
 ## Collection Stats
 
@@ -321,5 +322,5 @@ newman run Foody_API_Postman_Automated.json --environment Foody_API_Postman_Envi
 | - Manager Flow | 13    | ~15s     | ✅           | -       |
 | - Member Flow  | 16    | ~15s     | ✅           | -       |
 
-**Last Updated:** November 16, 2025  
+**Last Updated:** November 17, 2025  
 **API Version:** 1.0.0

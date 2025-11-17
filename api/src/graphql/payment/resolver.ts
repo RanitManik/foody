@@ -40,16 +40,16 @@ import { GraphQLContext, CreatePaymentMethodInput } from "../../types/graphql";
 import { deleteCacheByPattern } from "../../lib/shared/cache";
 import { UserRole, OrderStatus } from "@prisma/client";
 
-const requireAssignedLocation = (user: NonNullable<GraphQLContext["user"]>): string => {
-    if (!user.assignedLocation) {
-        logger.warn("Location assignment missing for payment operation", {
+const requireRestaurantId = (user: NonNullable<GraphQLContext["user"]>): string => {
+    if (!user.restaurantId) {
+        logger.warn("Restaurant assignment missing for payment operation", {
             userId: user.id,
             role: user.role,
         });
-        throw GraphQLErrors.forbidden("Location assignment required for this action");
+        throw GraphQLErrors.forbidden("Restaurant assignment required for this action");
     }
 
-    return user.assignedLocation;
+    return user.restaurantId;
 };
 
 export const paymentResolvers = {
@@ -97,7 +97,7 @@ export const paymentResolvers = {
             }
 
             if (isManager) {
-                requireAssignedLocation(currentUser);
+                requireRestaurantId(currentUser);
             }
 
             try {
@@ -171,7 +171,7 @@ export const paymentResolvers = {
             }
 
             if (isManager) {
-                requireAssignedLocation(currentUser);
+                requireRestaurantId(currentUser);
             }
 
             try {
@@ -261,7 +261,7 @@ export const paymentResolvers = {
                                         lastName: true,
                                         email: true,
                                         role: true,
-                                        assignedLocation: true,
+                                        restaurantId: true,
                                     },
                                 },
                             },
@@ -363,7 +363,7 @@ export const paymentResolvers = {
                                         firstName: true,
                                         lastName: true,
                                         role: true,
-                                        assignedLocation: true,
+                                        restaurantId: true,
                                     },
                                 },
                             },
@@ -470,7 +470,7 @@ export const paymentResolvers = {
             }
 
             if (isManager) {
-                requireAssignedLocation(currentUser);
+                requireRestaurantId(currentUser);
             }
 
             try {
@@ -758,7 +758,7 @@ export const paymentResolvers = {
          *
          * @permissions
          * - **Admins**: Can process any payment
-         * - **Managers**: Can process payments for their own orders or members within their assigned location
+         * - **Managers**: Can process payments for their own orders or members within their assigned restaurant
          * - **Members**: Cannot process payments
          *
          * @security
@@ -826,7 +826,7 @@ export const paymentResolvers = {
                 throw GraphQLErrors.forbidden("Only admins and managers can process payments");
             }
 
-            const assignedLocation = isManager ? requireAssignedLocation(currentUser) : null;
+            const restaurantId = isManager ? requireRestaurantId(currentUser) : null;
 
             try {
                 const { orderId, paymentMethodId, amount } = input;
@@ -843,7 +843,7 @@ export const paymentResolvers = {
                             select: {
                                 id: true,
                                 role: true,
-                                assignedLocation: true,
+                                restaurantId: true,
                             },
                         },
                         order_items: {
@@ -872,7 +872,7 @@ export const paymentResolvers = {
                     throw GraphQLErrors.notFound("Order not found");
                 }
 
-                const orderOwnerLocation = order.users?.assignedLocation ?? null;
+                const orderOwnerLocation = order.users?.restaurantId ?? null;
                 const orderOwnerRole = order.users?.role ?? null;
                 const restaurantLocations = order.order_items
                     .map((item) => item.menu_items?.restaurants?.location)
@@ -881,13 +881,13 @@ export const paymentResolvers = {
                 const isOrderOwner = order.userId === currentUser.id;
                 let canProcess = isAdmin || isOrderOwner;
 
-                if (!canProcess && isManager && assignedLocation) {
+                if (!canProcess && isManager && restaurantId) {
                     const hasForeignRestaurant = restaurantLocations.some(
-                        (location) => location !== assignedLocation,
+                        (location) => location !== restaurantId,
                     );
                     const restaurantsMatchLocation =
                         restaurantLocations.length > 0 && !hasForeignRestaurant;
-                    const ownerMatchesLocation = orderOwnerLocation === assignedLocation;
+                    const ownerMatchesLocation = orderOwnerLocation === restaurantId;
 
                     if (
                         orderOwnerRole === UserRole.MEMBER &&
@@ -898,14 +898,14 @@ export const paymentResolvers = {
                     }
 
                     if (hasForeignRestaurant) {
-                        logger.warn("Payment processing failed: cross-location order detected", {
+                        logger.warn("Payment processing failed: cross-restaurant order detected", {
                             userId: currentUser.id,
                             orderId: order.id,
-                            assignedLocation,
+                            restaurantId,
                             restaurantLocations,
                         });
                         throw GraphQLErrors.forbidden(
-                            "Managers can only process payments for their assigned location",
+                            "Managers can only process payments for their assigned restaurant",
                         );
                     }
                 }
@@ -932,7 +932,7 @@ export const paymentResolvers = {
                             select: {
                                 id: true,
                                 role: true,
-                                assignedLocation: true,
+                                restaurantId: true,
                             },
                         },
                     },
@@ -948,7 +948,7 @@ export const paymentResolvers = {
 
                 if (!isAdmin) {
                     const methodOwnerRole = paymentMethod.users?.role ?? null;
-                    const methodOwnerLocation = paymentMethod.users?.assignedLocation ?? null;
+                    const methodOwnerLocation = paymentMethod.users?.restaurantId ?? null;
                     const expectedOwnerId = isOrderOwner ? currentUser.id : order.userId;
 
                     if (paymentMethod.userId !== expectedOwnerId) {
@@ -984,7 +984,7 @@ export const paymentResolvers = {
 
                         if (
                             methodOwnerLocation &&
-                            methodOwnerLocation !== assignedLocation &&
+                            methodOwnerLocation !== restaurantId &&
                             !processingOwnOrder
                         ) {
                             logger.warn(
@@ -992,7 +992,7 @@ export const paymentResolvers = {
                                 {
                                     userId: currentUser.id,
                                     methodOwnerLocation,
-                                    assignedLocation,
+                                    restaurantId,
                                 },
                             );
                             throw GraphQLErrors.forbidden(

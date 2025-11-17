@@ -12,7 +12,7 @@ export interface User {
     firstName: string;
     lastName: string;
     role: UserRole;
-    assignedLocation?: string | null;
+    restaurantId?: string | null;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -24,7 +24,7 @@ export interface RegisterInput {
     firstName: string;
     lastName: string;
     role: UserRole;
-    assignedLocation?: string;
+    restaurantId?: string;
 }
 
 export interface LoginInput {

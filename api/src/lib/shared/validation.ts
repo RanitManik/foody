@@ -167,12 +167,7 @@ export const RegisterInputSchema = z.object({
         .max(100, "Last name too long")
         .transform(sanitize.string),
     role: UserRoleEnum,
-    assignedLocation: z
-        .string()
-        .min(1, "Assigned location is required")
-        .max(200, "Assigned location too long")
-        .transform(sanitize.string)
-        .optional(),
+    restaurantId: validationSchemas.id.optional(),
 });
 
 export const LoginInputSchema = z.object({
@@ -257,11 +252,6 @@ export const UpdateUserInputSchema = z.object({
         .max(100, "Last name too long")
         .transform(sanitize.string)
         .optional(),
-    assignedLocation: z
-        .string()
-        .min(1, "Assigned location is required")
-        .max(200, "Assigned location too long")
-        .transform(sanitize.string)
-        .optional(),
+    restaurantId: validationSchemas.id.optional(),
     isActive: z.boolean().optional(),
 });

@@ -1,11 +1,11 @@
 # Foody - Food Ordering Application
 
-A full-stack food ordering application with role-based access control (RBAC) and location-based restrictions. Built with Next.js, NestJS, GraphQL, and Prisma.
+A full-stack food ordering application with role-based access control (RBAC) and restaurant-based restrictions. Built with Next.js, NestJS, GraphQL, and Prisma.
 
 ## Features
 
 - **Role-based Access Control**: Admin, Manager, Member
-- **Location-based Restrictions**: Users can only access data for their assigned location
+- **Restaurant-based Restrictions**: Users can only access data for their assigned restaurant
 - **GraphQL API**: Type-safe API with Apollo Server
 - **Real-time Subscriptions**: WebSocket support for real-time updates
 - **Security**: Helmet, CORS, rate limiting, input validation
@@ -103,8 +103,8 @@ Authorization: Bearer <your-jwt-token>
 #### Users
 
 - **Roles**: ADMIN, MANAGER, MEMBER
-- **Location-based access**: Users can only view data for their assigned location (admin has global access)
-- **Assigned Locations**: Managers and members include an `assignedLocation` slug (for example `spice-garden-bangalore`)
+- **Restaurant-based access**: Users can only view data for their assigned restaurant (admin has global access)
+- **Assigned Restaurants**: Managers and members include a `restaurantId` (for example `restaurant-india-1`)
 
 #### Restaurants
 

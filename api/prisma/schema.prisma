@@ -102,6 +102,7 @@ model restaurants {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   menu_items  menu_items[]
+  users       users[]
 
   @@index([isActive])
 }
@@ -113,7 +114,8 @@ model users {
   firstName         String
   lastName          String
   role              UserRole
-  assignedLocation  String?
+  restaurantId      String?
+  restaurant        restaurants?      @relation(fields: [restaurantId], references: [id])
   isActive          Boolean           @default(true)
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
@@ -121,7 +123,7 @@ model users {
   payment_methods   payment_methods[]
 
   @@index([role])
-  @@index([assignedLocation])
+  @@index([restaurantId])
   @@index([isActive])
 }
 

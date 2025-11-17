@@ -14,8 +14,8 @@ export const typeDefs = `#graphql
         lastName: String!
     "User's role determining permissions"
     role: UserRole!
-    "Location scope assigned to the user (for managers and members)"
-    assignedLocation: String
+    "Restaurant assigned to the user (for managers and members)"
+    restaurantId: ID
         "Whether the user account is active"
         isActive: Boolean!
         "Timestamp when the user account was created"
@@ -48,8 +48,8 @@ export const typeDefs = `#graphql
         lastName: String!
     "Role to assign to the user"
     role: UserRole!
-    "Location scope for the user (required for non-admin roles)"
-    assignedLocation: String
+    "Restaurant assignment for the user (required for non-admin roles)"
+    restaurantId: ID
     }
 
     """
@@ -70,7 +70,7 @@ export const typeDefs = `#graphql
         ADMIN
         "Manager responsible for a specific location"
         MANAGER
-        "Staff member scoped to a single location"
+        "Staff member scoped to a single restaurant"
         MEMBER
     }
 
@@ -84,7 +84,7 @@ export const typeDefs = `#graphql
     type Mutation {
         """
     "Register a new user account.
-    Admin-only operation to create managers and members scoped to a location.
+    Admin-only operation to create managers and members scoped to a restaurant.
         """
         register(input: RegisterInput!): AuthPayload!
         """

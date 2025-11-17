@@ -1,25 +1,25 @@
 /**
  * @fileoverview Restaurant Management Resolvers
  * @module graphql/restaurant/resolver
- * @description Handles restaurant CRUD operations with location-based filtering and admin-only management.
- * Implements automatic location scoping for non-admin users and Redis caching for performance.
+ * @description Handles restaurant CRUD operations with restaurant-based filtering and admin-only management.
+ * Implements automatic restaurant scoping for non-admin users and Redis caching for performance.
  *
  * @features
  * - Restaurant listing with location filtering
  * - Restaurant details with menu items
  * - Menu categories per restaurant
  * - Admin-only restaurant management (create/update/delete)
- * - Automatic location-based access control
+ * - Automatic restaurant-based access control
  * - Redis caching with role-specific keys
  *
  * @security
  * - Authentication required for all operations
- * - Location-based read access filtering for non-admins
+ * - Restaurant-based read access filtering for non-admins
  * - Admin-only write operations
  * - India/America region isolation
  *
  * @permissions
- * - **View**: All users (auto-filtered by location for non-admin)
+ * - **View**: All users (auto-filtered by restaurant for non-admin)
  * - **Create/Update/Delete**: Admin only
  *
  * @author Ranit Kumar Manik
@@ -39,16 +39,16 @@ import { GraphQLContext, CreateRestaurantInput } from "../../types/graphql";
 import { UserRole, restaurants, menu_items } from "@prisma/client";
 import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
-const requireAssignedLocation = (user: NonNullable<GraphQLContext["user"]>): string => {
-    if (!user.assignedLocation) {
-        logger.warn("Location assignment missing for restaurant operation", {
+const requireAssignedRestaurant = (user: NonNullable<GraphQLContext["user"]>): string => {
+    if (!user.restaurantId) {
+        logger.warn("Restaurant assignment missing for restaurant operation", {
             userId: user.id,
             role: user.role,
         });
-        throw GraphQLErrors.forbidden("Location assignment required for this action");
+        throw GraphQLErrors.forbidden("Restaurant assignment required for this action");
     }
 
-    return user.assignedLocation;
+    return user.restaurantId;
 };
 
 export const restaurantResolvers = {
@@ -68,10 +68,10 @@ export const restaurantResolvers = {
          * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
          *
          * @description
-         * Fetches restaurants with automatic location-based scoping:
-         * - **Managers/Members**: Only restaurants in their assigned location
+         * Fetches restaurants with automatic restaurant-based scoping:
+         * - **Managers/Members**: Only their assigned restaurant
          * - **Admin**: All restaurants (unless location param specified)
-
+         *
          * Results include available menu items and are cached per location.
          *
          * @caching
@@ -102,21 +102,26 @@ export const restaurantResolvers = {
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
 
-            let effectiveLocation: string | null = null;
+            let scopedRestaurantId: string | null = null;
             if (!isAdmin) {
-                const assignedLocation = requireAssignedLocation(currentUser);
-                whereClause.location = assignedLocation;
-                effectiveLocation = assignedLocation;
+                scopedRestaurantId = requireAssignedRestaurant(currentUser);
+                whereClause.id = scopedRestaurantId;
             }
 
-            if (location) {
-                const sanitizedLocation = validationSchemas.nonEmptyString.parse(location);
+            let sanitizedLocation: string | null = null;
+            if (location && isAdmin) {
+                sanitizedLocation = validationSchemas.nonEmptyString.parse(location);
                 whereClause.location = sanitizedLocation;
-                effectiveLocation = sanitizedLocation;
             }
 
             // Use Redis caching for restaurants queries
-            const cacheKey = createCacheKey.restaurants({ location: effectiveLocation ?? null });
+            const cacheKey = createCacheKey.restaurants(
+                scopedRestaurantId
+                    ? { restaurantId: scopedRestaurantId }
+                    : sanitizedLocation
+                      ? { location: sanitizedLocation }
+                      : undefined,
+            );
             return await withCache(
                 cacheKey,
                 async () => {
@@ -163,7 +168,7 @@ export const restaurantResolvers = {
             const validatedId = validationSchemas.id.parse(id);
 
             // Use Redis caching for individual restaurants with user role-based keys
-            const userCacheScope = context.user.assignedLocation ?? "all";
+            const userCacheScope = context.user.restaurantId ?? "unassigned";
             const cacheKey = `restaurant:${validatedId}:${context.user.role}:${userCacheScope}`;
             const restaurant = await withCache(
                 cacheKey,
@@ -204,8 +209,8 @@ export const restaurantResolvers = {
             if (!restaurant) return null;
 
             if (context.user.role !== UserRole.ADMIN) {
-                const assignedLocation = requireAssignedLocation(context.user);
-                if (restaurant.location !== assignedLocation) {
+                const assignedRestaurantId = requireAssignedRestaurant(context.user);
+                if (restaurant.id !== assignedRestaurantId) {
                     throw GraphQLErrors.forbidden("Access denied to this restaurant");
                 }
             }

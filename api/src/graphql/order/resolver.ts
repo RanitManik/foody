@@ -2,7 +2,7 @@
  * @fileoverview Order Management Resolvers
  * @module graphql/order/resolver
  * @description Handles complete order lifecycle including creation, tracking, status updates,
- * and cancellation. Implements strict role-based access control with critical business rule:
+ * and cancellation. Implements strict role-based access control with the business rule:
  * **Only managers/admins can complete checkout** while members are limited to cart creation.
  *
  * @features
@@ -10,22 +10,22 @@
  * - Order status tracking and updates
  * - Order cancellation
  * - Role-based order visibility
- * - Location-scoped order management for managers
+ * - Restaurant-scoped order management for managers
  * - Transactional order creation for data consistency
  * - N+1 query prevention with batch loading
  * - Redis caching for performance
  *
  * @security
  * - Authentication required for all operations
- * - Members CANNOT create orders (critical business rule)
- * - Managers can only create/manage orders in their assigned location
+ * - Members can only create carts for their assigned restaurant
+ * - Managers can only create/manage orders in their assigned restaurant
  * - Users can only view their own orders (except managers/admin)
  * - Order status changes restricted to managers/admin
  * - Payment method validation ensures ownership
  *
  * @businessRules
- * - **CRITICAL**: Members cannot place orders
- * - Managers can only order from restaurants in their assigned location
+ * - **CRITICAL**: Members can only create carts for their assigned restaurant
+ * - Managers can only manage orders for their assigned restaurant
  * - Orders require valid payment method owned by user
  * - Total amount calculated server-side (not trusted from client)
  * - Menu items must be available at order creation time
@@ -45,6 +45,7 @@ import {
 } from "../../lib/shared/validation";
 import { parsePagination } from "../../lib/shared/pagination";
 import { GraphQLContext, CreateOrderInput } from "../../types/graphql";
+import type { Prisma } from "@prisma/client";
 import {
     UserRole,
     OrderStatus,
@@ -56,16 +57,16 @@ import {
 } from "@prisma/client";
 import { withCache, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
-const requireAssignedLocation = (user: NonNullable<GraphQLContext["user"]>): string => {
-    if (!user.assignedLocation) {
-        logger.warn("Location assignment missing for order operation", {
+const requireAssignedRestaurant = (user: NonNullable<GraphQLContext["user"]>): string => {
+    if (!user.restaurantId) {
+        logger.warn("Restaurant assignment missing for order operation", {
             userId: user.id,
             role: user.role,
         });
-        throw GraphQLErrors.forbidden("Location assignment required for this action");
+        throw GraphQLErrors.forbidden("Restaurant assignment required for this action");
     }
 
-    return user.assignedLocation;
+    return user.restaurantId;
 };
 
 export const orderResolvers = {
@@ -86,7 +87,7 @@ export const orderResolvers = {
          * @description
          * Fetches orders with intelligent filtering based on user role:
          * - **Regular Users**: Only their own orders
-         * - **Managers**: Orders scoped to their assigned location (team + their own)
+         * - **Managers**: Orders scoped to their assigned restaurant (team + their own)
          * - **Admin**: All orders in the system
          *
          * Results include full order items, user info, and payment details.
@@ -116,7 +117,7 @@ export const orderResolvers = {
             }
 
             const pagination = parsePagination({ first, skip });
-            const whereClause: Record<string, unknown> = {};
+            const whereClause: Prisma.ordersWhereInput = {};
 
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
@@ -124,25 +125,19 @@ export const orderResolvers = {
 
             if (!isAdmin) {
                 if (isManager) {
-                    const assignedLocation = requireAssignedLocation(currentUser);
-                    const scopedUsers = await prisma.users.findMany({
-                        where: {
-                            assignedLocation,
-                            role: { in: [UserRole.MANAGER, UserRole.MEMBER] },
-                            isActive: true,
-                        },
-                        select: { id: true },
-                    });
-                    const userIds = new Set(scopedUsers.map(({ id }) => id));
-                    userIds.add(currentUser.id);
-                    whereClause.userId = { in: Array.from(userIds) };
+                    const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                    whereClause.users = {
+                        restaurantId: assignedRestaurantId,
+                        role: { in: [UserRole.MANAGER, UserRole.MEMBER] },
+                        isActive: true,
+                    };
                 } else {
                     whereClause.userId = currentUser.id;
                 }
             }
 
-            const locationScope = currentUser.assignedLocation ?? "all";
-            const cacheKey = `orders:${currentUser.id}:${locationScope}:${pagination.first}:${pagination.skip}`;
+            const restaurantScope = currentUser.restaurantId ?? (isAdmin ? "all" : "unassigned");
+            const cacheKey = `orders:${currentUser.id}:${restaurantScope}:${pagination.first}:${pagination.skip}`;
             return await withCache(
                 cacheKey,
                 async () => {
@@ -165,7 +160,7 @@ export const orderResolvers = {
                                     lastName: true,
                                     email: true,
                                     role: true,
-                                    assignedLocation: true,
+                                    restaurantId: true,
                                 },
                             },
                             order_items: {
@@ -181,6 +176,7 @@ export const orderResolvers = {
                                             price: true,
                                             isAvailable: true,
                                             category: true,
+                                            restaurantId: true,
                                             restaurants: {
                                                 select: {
                                                     id: true,
@@ -236,11 +232,11 @@ export const orderResolvers = {
          * 1. Validates order ID format
          * 2. Retrieves order from cache or database
          * 3. Checks user permission to view order
-         * 4. For managers, verifies order belongs to their assigned location
+         * 4. For managers, verifies order belongs to their assigned restaurant
          *
          * Access rules:
          * - **Owner**: Can view their own orders
-         * - **Managers**: Can view orders scoped to their assigned location
+         * - **Managers**: Can view orders scoped to their assigned restaurant
          * - **Admin**: Can view all orders
          *
          * @caching
@@ -266,7 +262,7 @@ export const orderResolvers = {
             const validatedId = validationSchemas.id.parse(id);
 
             // Use Redis caching for individual orders with user-specific keys
-            const userCacheScope = context.user.assignedLocation ?? "all";
+            const userCacheScope = context.user.restaurantId ?? "unassigned";
             const cacheKey = `order:${validatedId}:${context.user.id}:${userCacheScope}`;
             const order = await withCache(
                 cacheKey,
@@ -290,7 +286,7 @@ export const orderResolvers = {
                                     firstName: true,
                                     lastName: true,
                                     role: true,
-                                    assignedLocation: true,
+                                    restaurantId: true,
                                 },
                             },
                             order_items: {
@@ -352,8 +348,16 @@ export const orderResolvers = {
 
             if (!isAdmin && order.userId !== currentUser.id) {
                 if (isManager) {
-                    const assignedLocation = requireAssignedLocation(currentUser);
-                    if (order.users?.assignedLocation !== assignedLocation) {
+                    const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                    const userRestaurantId = order.users?.restaurantId ?? null;
+                    const hasRestaurantOrderItem = order.order_items.some((orderItem) => {
+                        return orderItem.menu_items?.restaurantId === assignedRestaurantId;
+                    });
+
+                    const hasAccess =
+                        userRestaurantId === assignedRestaurantId || hasRestaurantOrderItem;
+
+                    if (!hasAccess) {
                         throw GraphQLErrors.forbidden("Access denied to this order");
                     }
                 } else {
@@ -381,19 +385,19 @@ export const orderResolvers = {
          * @throws {GraphQLError} BAD_INPUT - If validation fails or menu items unavailable
          *
          * @description
-         * Creates a new order (cart) while enforcing RBAC and location rules:
+         * Creates a new order (cart) while enforcing RBAC and restaurant rules:
          * 1. Validates all input data
          * 2. Verifies optional payment method ownership (admins/managers only)
          * 3. Batch fetches menu items to avoid N+1 queries
-         * 4. Ensures menu items are available and belong to the caller's location
+         * 4. Ensures menu items are available and belong to the caller's restaurant (if scoped)
          * 5. Calculates totals server-side
          * 6. Persists the order inside a transaction
          * 7. Invalidates cached order lists for the caller
          *
          * @permissions
          * - **Admin**: Can order from any restaurant and attach payment method
-         * - **Managers**: Limited to their assigned location, may attach payment method
-         * - **Members**: Cannot create orders
+         * - **Managers**: Limited to their assigned restaurant, may attach payment method
+         * - **Members**: Can create carts for their assigned restaurant but cannot attach payment methods
          *
          * @security
          * - Total amount calculated server-side (never trust client)
@@ -431,16 +435,9 @@ export const orderResolvers = {
                 const validated = validateInput(CreateOrderInputSchema, input);
                 const { items, deliveryAddress, phone, specialInstructions, paymentMethodId } =
                     validated;
-
-                if (context.user.role === UserRole.MEMBER) {
-                    logger.warn("Order creation failed: members cannot create orders", {
-                        userId: context.user.id,
-                    });
-                    throw GraphQLErrors.forbidden("Members cannot create orders");
-                }
                 const role: UserRole = context.user.role;
-                const assignedLocation =
-                    role === UserRole.ADMIN ? null : requireAssignedLocation(context.user);
+                const assignedRestaurantId =
+                    role === UserRole.ADMIN ? null : requireAssignedRestaurant(context.user);
 
                 if (paymentMethodId) {
                     if (role !== UserRole.ADMIN && role !== UserRole.MANAGER) {
@@ -519,27 +516,14 @@ export const orderResolvers = {
                         );
                     }
 
-                    if (role !== UserRole.ADMIN) {
-                        if (!assignedLocation) {
-                            logger.warn("Order creation failed: manager missing location", {
-                                userId: context.user.id,
-                                role,
-                                menuItemId: item.menuItemId,
-                            });
-                            throw GraphQLErrors.forbidden(
-                                "Location assignment required for ordering",
-                            );
-                        }
-
-                        if (menuItem.restaurants.location !== assignedLocation) {
-                            logger.warn("Order creation failed: location access denied", {
-                                userId: context.user.id,
-                                userRole: role,
-                                restaurantLocation: menuItem.restaurants.location,
-                                requiredLocation: assignedLocation,
-                            });
-                            throw GraphQLErrors.forbidden("Cannot order from this restaurant");
-                        }
+                    if (assignedRestaurantId && menuItem.restaurantId !== assignedRestaurantId) {
+                        logger.warn("Order creation failed: restaurant access denied", {
+                            userId: context.user.id,
+                            userRole: role,
+                            menuItemRestaurantId: menuItem.restaurantId,
+                            requiredRestaurantId: assignedRestaurantId,
+                        });
+                        throw GraphQLErrors.forbidden("Cannot order from this restaurant");
                     }
 
                     const itemTotal = menuItem.price * item.quantity;
@@ -635,17 +619,17 @@ export const orderResolvers = {
          * @throws {GraphQLError} BAD_INPUT - If ID validation fails
          *
          * @description
-         * Updates order status with role-based and location-based restrictions:
+         * Updates order status with role-based and restaurant-based restrictions:
          * 1. **Blocks members from updating status**
          * 2. Validates order ID format
          * 3. Fetches order with user information
-         * 4. For managers, verifies order matches their assigned location
+         * 4. For managers, verifies order matches their assigned restaurant
          * 5. Updates order status
          * 6. Invalidates relevant caches
          *
          * @permissions
          * - **Admin**: Can update any order status
-         * - **Managers**: Can only update orders within their assigned location
+         * - **Managers**: Can only update orders within their assigned restaurant
          * - **Members**: **CANNOT UPDATE STATUS** (forbidden)
          *
          * @statusFlow
@@ -685,19 +669,15 @@ export const orderResolvers = {
                     users: {
                         select: {
                             id: true,
-                            assignedLocation: true,
+                            restaurantId: true,
                         },
                     },
                     order_items: {
                         include: {
                             menu_items: {
-                                include: {
-                                    restaurants: {
-                                        select: {
-                                            id: true,
-                                            location: true,
-                                        },
-                                    },
+                                select: {
+                                    id: true,
+                                    restaurantId: true,
                                 },
                             },
                         },
@@ -710,19 +690,25 @@ export const orderResolvers = {
             }
 
             // Check if manager can access this order
-            // Managers can only update orders for restaurants in their assigned location
+            // Managers can only update orders for their assigned restaurant
             if (context.user.role !== UserRole.ADMIN) {
-                const assignedLocation = requireAssignedLocation(context.user);
-                const hasMismatchedLocation = order.order_items.some((orderItem) => {
-                    return (
-                        orderItem.menu_items?.restaurants?.location !== undefined &&
-                        orderItem.menu_items.restaurants.location !== assignedLocation
-                    );
+                const assignedRestaurantId = requireAssignedRestaurant(context.user);
+                const userRestaurantMatches = order.users?.restaurantId === assignedRestaurantId;
+                const hasRestaurantOrderItem = order.order_items.some((orderItem) => {
+                    return orderItem.menu_items?.restaurantId === assignedRestaurantId;
                 });
 
-                if (hasMismatchedLocation) {
+                // Manager can update if EITHER the user OR the order items belong to their restaurant
+                if (!userRestaurantMatches && !hasRestaurantOrderItem) {
+                    logger.warn("Order status update failed: restaurant access denied", {
+                        userId: context.user.id,
+                        orderId: order.id,
+                        orderUserId: order.userId,
+                        orderUserRestaurant: order.users?.restaurantId,
+                        managerRestaurant: assignedRestaurantId,
+                    });
                     throw GraphQLErrors.forbidden(
-                        "Managers can only update orders for restaurants in their location",
+                        "Managers can only update orders for their assigned restaurant",
                     );
                 }
             }
@@ -775,13 +761,13 @@ export const orderResolvers = {
          * 1. **Blocks members from cancelling orders**
          * 2. Validates order ID format
          * 3. Fetches order with user information
-         * 4. For managers, verifies order aligns with their assigned location
+         * 4. For managers, verifies order aligns with their assigned restaurant
          * 5. Sets order status to CANCELLED
          * 6. Invalidates relevant caches
          *
          * @permissions
          * - **Admin**: Can cancel any order
-         * - **Managers**: Can only cancel orders within their assigned location
+         * - **Managers**: Can only cancel orders within their assigned restaurant
          * - **Members**: **CANNOT CANCEL ORDERS** (forbidden)
          *
          * @businessLogic
@@ -817,19 +803,15 @@ export const orderResolvers = {
                     users: {
                         select: {
                             id: true,
-                            assignedLocation: true,
+                            restaurantId: true,
                         },
                     },
                     order_items: {
                         include: {
                             menu_items: {
-                                include: {
-                                    restaurants: {
-                                        select: {
-                                            id: true,
-                                            location: true,
-                                        },
-                                    },
+                                select: {
+                                    id: true,
+                                    restaurantId: true,
                                 },
                             },
                         },
@@ -843,16 +825,16 @@ export const orderResolvers = {
 
             // Check if manager can access this order
             if (context.user.role !== UserRole.ADMIN) {
-                const assignedLocation = requireAssignedLocation(context.user);
-                const hasMismatchedLocation = order.order_items.some((orderItem) => {
-                    return (
-                        orderItem.menu_items?.restaurants?.location !== undefined &&
-                        orderItem.menu_items.restaurants.location !== assignedLocation
-                    );
+                const assignedRestaurantId = requireAssignedRestaurant(context.user);
+                const userRestaurantMatches = order.users?.restaurantId === assignedRestaurantId;
+                const hasRestaurantOrderItem = order.order_items.some((orderItem) => {
+                    return orderItem.menu_items?.restaurantId === assignedRestaurantId;
                 });
 
-                if (hasMismatchedLocation) {
-                    throw GraphQLErrors.forbidden();
+                if (!userRestaurantMatches && !hasRestaurantOrderItem) {
+                    throw GraphQLErrors.forbidden(
+                        "Managers can only cancel orders for their assigned restaurant",
+                    );
                 }
             }
 

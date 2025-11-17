@@ -60,7 +60,7 @@ export const authResolvers = {
          *     firstName: "John",
          *     lastName: "Doe",
          *     role: "MEMBER",
-         *     assignedLocation: "spice-garden-bangalore"
+         *     restaurantId: "restaurant-123"
          *   }) {
          *     token
          *     user { id email role }
@@ -84,7 +84,7 @@ export const authResolvers = {
                 // Validate and sanitize input
                 const validated = validateInput(RegisterInputSchema, input);
                 const email = validateEmail(validated.email);
-                const { password, firstName, lastName, role, assignedLocation } = validated;
+                const { password, firstName, lastName, role, restaurantId } = validated;
 
                 if (role === UserRole.ADMIN) {
                     logger.warn("Registration failed: attempted admin creation via register", {
@@ -93,8 +93,21 @@ export const authResolvers = {
                     throw GraphQLErrors.badInput("Admin accounts must be provisioned manually");
                 }
 
-                if (!assignedLocation) {
-                    throw GraphQLErrors.badInput("Assigned location is required for new users");
+                if (!restaurantId) {
+                    throw GraphQLErrors.badInput("Restaurant assignment is required for new users");
+                }
+
+                const restaurant = await prisma.restaurants.findUnique({
+                    where: { id: restaurantId },
+                    select: { id: true, name: true, location: true },
+                });
+
+                if (!restaurant) {
+                    logger.warn("Registration failed: restaurant not found", {
+                        email,
+                        restaurantId,
+                    });
+                    throw GraphQLErrors.badInput("Restaurant not found");
                 }
 
                 // Check if user already exists
@@ -118,7 +131,7 @@ export const authResolvers = {
                         firstName,
                         lastName,
                         role,
-                        assignedLocation,
+                        restaurantId,
                     },
                 });
 
@@ -271,7 +284,7 @@ export const authResolvers = {
          *     firstName
          *     lastName
          *     role
-         *     assignedLocation
+         *     restaurantId
          *   }
          * }
          */

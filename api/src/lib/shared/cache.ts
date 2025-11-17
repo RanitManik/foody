@@ -51,24 +51,38 @@ export const createCacheKey = {
             | string
             | {
                   restaurantId?: string;
-                  location?: string | null;
               },
     ) => {
         if (typeof params === "string" || params === undefined) {
-            return `menuItems:all:${params || "all"}`;
+            return `menuItems:${params || "all"}`;
         }
 
-        const { restaurantId, location } = params;
-        return `menuItems:${location ?? "all"}:${restaurantId ?? "all"}`;
+        const { restaurantId } = params;
+        return `menuItems:${restaurantId ?? "all"}`;
     },
     menuItem: (id: string) => `menuItem:${id}`,
-    restaurants: (param?: string | { location?: string | null }) => {
+    restaurants: (
+        param?:
+            | string
+            | {
+                  restaurantId?: string | null;
+                  location?: string | null;
+              },
+    ) => {
         if (typeof param === "string" || param === undefined) {
             return `restaurants:${param || "all"}`;
         }
 
-        const { location } = param;
-        return `restaurants:${location ?? "all"}`;
+        const { restaurantId, location } = param;
+        if (restaurantId) {
+            return `restaurants:restaurant:${restaurantId}`;
+        }
+
+        if (location) {
+            return `restaurants:location:${location}`;
+        }
+
+        return "restaurants:all";
     },
     restaurant: (id: string) => `restaurant:${id}`,
     user: (id: string) => `user:${id}`,

@@ -129,7 +129,7 @@ describe("Auth Utilities", () => {
                 id: userId,
                 email: "test@example.com",
                 role: UserRole.MEMBER,
-                assignedLocation: "mumbai",
+                restaurantId: "restaurant-india-1",
                 firstName: "Test",
                 lastName: "User",
                 isActive: true,

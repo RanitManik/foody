@@ -7,7 +7,7 @@
  * @features
  * - User listing with pagination
  * - User details with orders and payment methods
- * - User role and location updates
+ * - User role and restaurant updates
  * - User account activation/deactivation
  * - User deletion
  * - Redis caching for user data
@@ -72,7 +72,7 @@ export const userResolvers = {
          * @example
          * query {
          *   users(first: 20, skip: 0) {
-         *     id email firstName lastName role assignedLocation isActive
+         *     id email firstName lastName role restaurantId isActive
          *     orders { id status totalAmount }
          *   }
          * }
@@ -105,7 +105,7 @@ export const userResolvers = {
                                 firstName: true,
                                 lastName: true,
                                 role: true,
-                                assignedLocation: true,
+                                restaurantId: true,
                                 isActive: true,
                                 createdAt: true,
                                 updatedAt: true,
@@ -172,7 +172,7 @@ export const userResolvers = {
                             firstName: true,
                             lastName: true,
                             role: true,
-                            assignedLocation: true,
+                            restaurantId: true,
                             isActive: true,
                             createdAt: true,
                             updatedAt: true,
@@ -221,7 +221,7 @@ export const userResolvers = {
          * Updates user account properties with comprehensive validation:
          * 1. Validates admin permissions
          * 2. Validates ID format and input payload
-         * 3. Ensures non-admin roles always have an assigned location
+         * 3. Ensures non-admin roles always have an assigned restaurant
          * 4. Hashes password updates securely
          * 5. Invalidates user caches and logs changes
          */
@@ -251,7 +251,7 @@ export const userResolvers = {
                         firstName: true,
                         lastName: true,
                         role: true,
-                        assignedLocation: true,
+                        restaurantId: true,
                         isActive: true,
                         createdAt: true,
                         updatedAt: true,
@@ -267,23 +267,42 @@ export const userResolvers = {
                 }
 
                 const nextRole = validatedInput.role ?? existingUser.role;
-                const nextAssignedLocation =
-                    validatedInput.assignedLocation !== undefined
-                        ? validatedInput.assignedLocation
-                        : existingUser.assignedLocation;
+                const nextRestaurantId =
+                    validatedInput.restaurantId !== undefined
+                        ? validatedInput.restaurantId
+                        : existingUser.restaurantId;
 
-                if (nextRole !== UserRole.ADMIN && !nextAssignedLocation) {
-                    logger.warn("User update failed: location required for non-admin role", {
+                if (nextRole !== UserRole.ADMIN && !nextRestaurantId) {
+                    logger.warn("User update failed: restaurant required for non-admin role", {
                         targetUserId: existingUser.id,
                         requestedRole: nextRole,
-                        currentLocation: existingUser.assignedLocation,
+                        currentRestaurant: existingUser.restaurantId,
                     });
                     throw GraphQLErrors.badInput(
-                        "Managers and members must have an assigned location",
+                        "Managers and members must have an assigned restaurant",
                     );
                 }
 
-                const updateData: Prisma.usersUpdateInput = {};
+                // If restaurantId is being updated, verify it exists
+                if (
+                    validatedInput.restaurantId !== undefined &&
+                    validatedInput.restaurantId !== null
+                ) {
+                    const restaurant = await prisma.restaurants.findUnique({
+                        where: { id: validatedInput.restaurantId },
+                        select: { id: true },
+                    });
+
+                    if (!restaurant) {
+                        logger.warn("User update failed: restaurant not found", {
+                            targetUserId: existingUser.id,
+                            requestedRestaurantId: validatedInput.restaurantId,
+                        });
+                        throw GraphQLErrors.badInput("Restaurant not found");
+                    }
+                }
+
+                const updateData: Prisma.usersUncheckedUpdateInput = {};
 
                 if (validatedInput.email !== undefined) {
                     updateData.email = validatedInput.email;
@@ -305,8 +324,8 @@ export const userResolvers = {
                     updateData.role = validatedInput.role;
                 }
 
-                if (validatedInput.assignedLocation !== undefined) {
-                    updateData.assignedLocation = validatedInput.assignedLocation;
+                if (validatedInput.restaurantId !== undefined) {
+                    updateData.restaurantId = validatedInput.restaurantId;
                 }
 
                 if (validatedInput.isActive !== undefined) {
@@ -330,7 +349,7 @@ export const userResolvers = {
                         firstName: true,
                         lastName: true,
                         role: true,
-                        assignedLocation: true,
+                        restaurantId: true,
                         isActive: true,
                         createdAt: true,
                         updatedAt: true,
@@ -358,10 +377,10 @@ export const userResolvers = {
                             validatedInput.role !== undefined
                                 ? `${existingUser.role} → ${updatedUser.role}`
                                 : undefined,
-                        assignedLocation:
-                            validatedInput.assignedLocation !== undefined
-                                ? `${existingUser.assignedLocation ?? "none"} → ${
-                                      updatedUser.assignedLocation ?? "none"
+                        restaurantId:
+                            validatedInput.restaurantId !== undefined
+                                ? `${existingUser.restaurantId ?? "none"} → ${
+                                      updatedUser.restaurantId ?? "none"
                                   }`
                                 : undefined,
                         isActive:
@@ -444,7 +463,7 @@ export const userResolvers = {
          * - Deleted user ID and email
          * - Admin user ID (who deleted)
          * - Timestamp
-         * - User role and assigned location (for audit trail)
+         * - User role and assigned restaurant (for audit trail)
          *
          * @example
          * mutation {
@@ -474,7 +493,7 @@ export const userResolvers = {
                         firstName: true,
                         lastName: true,
                         role: true,
-                        assignedLocation: true,
+                        restaurantId: true,
                     },
                 });
 
@@ -496,7 +515,7 @@ export const userResolvers = {
                     deletedUserEmail: userToDelete.email,
                     deletedUserName: `${userToDelete.firstName} ${userToDelete.lastName}`,
                     deletedUserRole: userToDelete.role,
-                    deletedUserAssignedLocation: userToDelete.assignedLocation,
+                    deletedUserRestaurantId: userToDelete.restaurantId,
                     adminId: context.user.id,
                 });
 
