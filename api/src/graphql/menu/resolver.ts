@@ -575,6 +575,17 @@ export const menuResolvers = {
                 }
             }
 
+            // Check if menu item is referenced by any order items
+            const orderItemCount = await prisma.order_items.count({
+                where: { menuItemId: validatedId },
+            });
+
+            if (orderItemCount > 0) {
+                throw GraphQLErrors.badInput(
+                    "Cannot delete menu item that is part of existing orders. Please cancel or complete all orders containing this item first.",
+                );
+            }
+
             await prisma.menu_items.delete({
                 where: { id: validatedId },
             });

@@ -704,6 +704,21 @@ export const paymentResolvers = {
                     throw GraphQLErrors.notFound("Payment method not found");
                 }
 
+                // Check if payment method is referenced by any payments
+                const paymentCount = await prisma.payments.count({
+                    where: { paymentMethodId: validatedId },
+                });
+
+                if (paymentCount > 0) {
+                    logger.warn("Payment method deletion failed: referenced by payments", {
+                        paymentMethodId: validatedId,
+                        paymentCount,
+                    });
+                    throw GraphQLErrors.badInput(
+                        "Cannot delete payment method that has been used for payments. Please contact support for assistance.",
+                    );
+                }
+
                 await prisma.payment_methods.delete({
                     where: { id: validatedId },
                 });
