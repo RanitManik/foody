@@ -74,30 +74,35 @@
     "item": [
         {
             "name": "01 - Authentication",
-            "description": "## User Authentication & Session Management\n\n### Overview\nHandle user registration, login, and session management. All requests return JWT tokens for protected endpoint access.\n\n### Key Points\n- **Public Endpoints**: Register and Login require NO authentication\n- **Token in Response**: Token returned in response data\n- **Session Duration**: JWT tokens valid for 24 hours\n- **Manual Token Setup**: Copy token from response to `{{auth_token}}` variable\n\n### Test Users (Pre-seeded)\nUse these credentials if database is seeded:\n- **Admin (Global)**: admin@foody.com / ChangeMe123!\n- **Manager (Spice Garden)**: captain.marvel@foody.com / ChangeMe123!\n- **Member (Spice Garden)**: thanos@foody.com / ChangeMe123!\n\n### Workflow\n1. **Register** (optional): Create new test account\n   - Choose role and assign a location for managers/members\n   - Copy token from response\n2. **Login**: Authenticate with existing credentials\n   - Copy token from response to use in Authorization header\n   - Ready for protected endpoints\n3. **Me Query**: Verify authentication\n   - Confirms token validity\n   - Shows current user role and permissions\n\n### Response Handling\n- ✅ Token returned in response.data.register.token or response.data.login.token\n- ✅ Copy and save to `{{auth_token}}` variable for subsequent requests\n- ✅ User ID in response.data.register.user.id or response.data.login.user.id\n\n### Error Scenarios\n- **Invalid Credentials**: Generic error (prevents user enumeration)\n- **Inactive Account**: User cannot login if deactivated\n- **Token Expired**: Use Login again to get new token",
+            "description": "## User Authentication & Session Management\n\n### Overview\nHandle user registration (admin-only), login, and session management. Login returns JWT tokens for protected endpoint access.\n\n### Key Points\n- **Register**: Admin-only operation (requires admin authentication)\n- **Login**: Public endpoint (no authentication required)\n- **Token in Response**: Token returned in response data\n- **Session Duration**: JWT tokens valid for 24 hours\n- **Manual Token Setup**: Copy token from response to `{{auth_token}}` variable\n\n### Test Users (Pre-seeded)\nUse these credentials if database is seeded:\n- **Admin (Global)**: admin@foody.com / ChangeMe123!\n- **Manager (Spice Garden)**: captain.marvel@foody.com / ChangeMe123!\n- **Member (Spice Garden)**: thanos@foody.com / ChangeMe123!\n\n### Workflow\n1. **Login**: Authenticate with existing credentials\n   - Copy token from response to use in Authorization header\n   - Ready for protected endpoints\n2. **Register** (Admin only): Create new user account\n   - Must be logged in as admin first\n   - Assign user to a valid restaurant\n   - Choose role (MANAGER or MEMBER only)\n   - Copy token from response to test new user\n3. **Me Query**: Verify authentication\n   - Confirms token validity\n   - Shows current user role and permissions\n\n### Response Handling\n- ✅ Token returned in response.data.register.token or response.data.login.token\n- ✅ Copy and save to `{{auth_token}}` variable for subsequent requests\n- ✅ User ID in response.data.register.user.id or response.data.login.user.id\n\n### Error Scenarios\n- **Invalid Credentials**: Generic error (prevents user enumeration)\n- **Inactive Account**: User cannot login if deactivated\n- **Token Expired**: Use Login again to get new token\n- **Register Without Admin**: Returns forbidden error\n- **Invalid Restaurant**: Registration fails if restaurant doesn't exist",
             "item": [
                 {
-                    "name": "Register User",
+                    "name": "Register User (Admin Only)",
                     "request": {
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
                                 "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "description": "Admin JWT token required"
                             }
                         ],
                         "body": {
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user {\n      id\n      email\n      firstName\n      lastName\n      role\n      restaurantId\n      isActive\n      createdAt\n      updatedAt\n    }\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"email\": \"user@example.com\",\n    \"password\": \"SecurePassword123!\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"MEMBER\",\n    \"restaurantId\": \"restaurant-india-1\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"email\": \"newuser@example.com\",\n    \"password\": \"SecurePassword123!\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"role\": \"MEMBER\",\n    \"restaurantId\": \"restaurant-india-1\"\n  }\n}"
                             }
                         },
                         "url": {
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Register a new user account with email, password, and profile information.\n\n**Available Roles:**\n- ADMIN: Full system access (no restaurant assignment required)\n- MANAGER: Manage operations for their assigned restaurant\n- MEMBER: Operate within their assigned restaurant\n\n**Restaurant Assignment:**\n- Required for managers and members (example id: restaurant-india-1)\n\n**Password Requirements:**\n- Minimum 8 characters\n- Must contain uppercase, lowercase, and numbers"
+                        "description": "**Admin-Only Operation**: Register a new user account and assign them to a restaurant.\n\n**Authentication Required:**\n- Must be logged in as ADMIN\n- Use admin credentials: admin@foody.com / ChangeMe123!\n\n**Available Roles:**\n- MANAGER: Manage operations for their assigned restaurant\n- MEMBER: Create carts and view data within their assigned restaurant\n- ⚠️ ADMIN: Cannot be created via this endpoint (manual provisioning only)\n\n**Restaurant Assignment:**\n- **Required** for all new users (managers and members)\n- Must be valid restaurant ID from database\n- Valid IDs: `restaurant-india-1` (Spice Garden Bangalore), `restaurant-america-1` (Burger Haven)\n- Restaurant existence is validated before account creation\n\n**Password Requirements:**\n- Minimum 8 characters\n- Must contain uppercase, lowercase, and numbers\n\n**Response:**\n- Returns JWT token for the new user\n- Copy token to `{{auth_token}}` to test with new user account"
                     }
                 },
                 {
@@ -183,7 +188,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "List all restaurants with pagination and optional restaurant filtering.\n\n**Access Control:**\n- Admin: Can view all restaurants\n- Managers/Members: Only see their assigned restaurant\n\n**Pagination:**\n- first: Number of items (default: 10)\n- skip: Number to skip (default: 0)"
+                        "description": "List all restaurants with pagination and optional location filtering.\n\n**Access Control:**\n- **Admin**: Can view all restaurants globally\n- **Managers**: Automatically filtered to show ONLY their assigned restaurant\n- **Members**: Automatically filtered to show ONLY their assigned restaurant\n\n**Restaurant Filtering:**\n- Backend automatically applies restaurant-based filtering for non-admin users\n- Managers and members cannot override this filter\n- Admin users can optionally filter by location parameter\n\n**Pagination:**\n- first: Number of items to return (default: 10)\n- skip: Number to skip for pagination (default: 0)\n\n**Response:**\n- Includes restaurant details and available menu categories\n- Menu items are included with available status"
                     }
                 },
                 {
@@ -211,7 +216,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Get detailed information about a specific restaurant including its full menu.\n\n**Includes:**\n- Restaurant information and contact details\n- All available menu items\n- List of menu categories\n\n**Access Control:**\n- Users can only view their assigned restaurant (except admin)"
+                        "description": "Get detailed information about a specific restaurant including its full menu.\n\n**Includes:**\n- Restaurant information and contact details\n- All available menu items with pricing and categories\n- Complete list of menu categories\n\n**Access Control:**\n- **Admin**: Can view any restaurant by ID\n- **Managers**: Can only view their assigned restaurant\n- **Members**: Can only view their assigned restaurant\n- Attempting to access another restaurant returns access denied error\n\n**Use Cases:**\n- View complete restaurant menu before placing orders\n- Browse available items and categories\n- Check restaurant contact information"
                     }
                 },
                 {
@@ -239,7 +244,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Create a new restaurant in the system.\n\n**Permissions:** Admin only\n\n**Required Fields:**\n- name, address, city, location, phone, email\n\n**Location Guidance:**\n- Use location slugs that match manager/member assignments (example: spice-garden-bangalore)\n\n**Tip:** Copy the restaurant ID from response to use in `{{restaurant_id}}` for subsequent requests"
+                        "description": "Create a new restaurant in the system.\n\n**Permissions:** Admin only\n\n**Required Fields:**\n- name: Restaurant name\n- description: Description of the restaurant\n- address: Physical address\n- city: City name\n- location: Location identifier (used for filtering)\n- phone: Contact phone number\n- email: Contact email address\n\n**Restaurant ID:**\n- Generated automatically by the system\n- Use format: restaurant-{region}-{number} for consistency\n- Example: restaurant-india-1, restaurant-america-1\n\n**Location Field:**\n- Used for geographic filtering and grouping\n- Can be city name, area, or custom identifier\n- Example: \"bangalore\", \"new-york\", \"downtown\"\n\n**Tip:** Copy the restaurant ID from response to use in `{{restaurant_id}}` for subsequent requests"
                     }
                 },
                 {
@@ -329,7 +334,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "List available menu items with optional restaurant filtering.\n\n**Filtering:**\n- restaurantId: Filter by specific restaurant (optional)\n- Only shows available items (isAvailable: true)\n\n**Pagination:**\n- first: Items per page (default: 10)\n- skip: Items to skip (default: 0)"
+                        "description": "List available menu items with optional restaurant filtering.\n\n**Access Control:**\n- **Admin**: Can view menu items from all restaurants\n- **Managers**: Automatically filtered to ONLY their assigned restaurant's items\n- **Members**: Automatically filtered to ONLY their assigned restaurant's items\n\n**Restaurant Filtering:**\n- Backend automatically applies restaurant scoping for non-admin users\n- Managers and members cannot access menu items from other restaurants\n- Admin users can optionally specify restaurantId to filter results\n- Only shows available items (isAvailable: true)\n\n**Pagination:**\n- first: Items per page (default: 10)\n- skip: Items to skip (default: 0)\n\n**Response:**\n- Includes menu item details (name, description, price, category)\n- Associated restaurant information\n- Availability status and images"
                     }
                 },
                 {
@@ -413,7 +418,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Create a new menu item for a restaurant.\n\n**Permissions:**\n- Admin: Can create for any restaurant\n- Manager India: Only for INDIA restaurants\n- Manager America: Only for AMERICA restaurants\n\n**Required Fields:**\n- name, description, price, category, restaurantId\n\n**Tip:** Copy the menu item ID from response to use in `{{menu_item_id}}` for subsequent requests"
+                        "description": "Create a new menu item for a restaurant.\n\n**Permissions:**\n- **Admin**: Can create menu items for any restaurant globally\n- **Managers**: Can ONLY create menu items for their assigned restaurant\n- **Members**: Cannot create menu items (read-only access)\n\n**Restaurant Restrictions:**\n- Managers must create items within their assigned restaurant\n- Attempting to create items for another restaurant returns access denied\n- Restaurant must exist in the database\n\n**Required Fields:**\n- name: Menu item name\n- description: Item description\n- price: Price in currency units (e.g., 599.99)\n- category: Food category (e.g., \"Main Course\", \"Dessert\")\n- restaurantId: ID of the restaurant this item belongs to\n\n**Optional Fields:**\n- imageUrl: URL to item image\n- isAvailable: Availability status (default: true)\n\n**Tip:** Copy the menu item ID from response to use in `{{menu_item_id}}` for subsequent requests"
                     }
                 },
                 {
@@ -441,7 +446,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Update existing menu item.\n\n**Permissions:** Same as create (location-restricted for managers)\n\n**Updatable Fields:**\n- All fields optional (partial updates supported)"
+                        "description": "Update existing menu item.\n\n**Permissions:**\n- **Admin**: Can update menu items in any restaurant\n- **Managers**: Can ONLY update menu items in their assigned restaurant\n- **Members**: Cannot update menu items\n\n**Restaurant Restrictions:**\n- Menu item must belong to manager's assigned restaurant\n- Attempting to update items from other restaurants returns access denied\n\n**Updatable Fields:**\n- All fields are optional (partial updates supported)\n- name, description, price, category, imageUrl, isAvailable\n\n**Common Use Cases:**\n- Toggle availability (mark item as unavailable)\n- Update pricing\n- Modify descriptions or categories"
                     }
                 },
                 {
@@ -469,14 +474,14 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Permanently delete a menu item.\n\n**Permissions:** Same as create (location-restricted for managers)\n\n**Warning:** This action cannot be undone."
+                        "description": "Permanently delete a menu item.\n\n**Permissions:**\n- **Admin**: Can delete menu items from any restaurant\n- **Managers**: Can ONLY delete menu items from their assigned restaurant\n- **Members**: Cannot delete menu items\n\n**Restaurant Restrictions:**\n- Menu item must belong to manager's assigned restaurant\n- Attempting to delete items from other restaurants returns access denied\n\n**Warning:** This action cannot be undone. Consider marking items as unavailable instead of deleting."
                     }
                 }
             ]
         },
         {
             "name": "04 - Payment Methods",
-            "description": "## Payment Method Management & Security\n\n### Overview\nManage user payment methods for secure order processing. Users can save multiple payment options and set default methods for streamlined checkout.\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View Own Methods | ❌ | ❌ | ✅ |\n| Create Methods | ❌ | ❌ | ✅ |\n| Update Methods | ❌ | ❌ | ✅ |\n| Delete Methods | ❌ | ❌ | ✅ |\n| View All Methods | ✅ (via payments) | ❌ | ❌ |\n\n### Security Model\n- **User Isolation**: Users can only access their own payment methods\n- **Token-Based**: Payment details are tokenized for security\n- **Provider Integration**: Supports Stripe, PayPal, and Razorpay\n- **Admin Oversight**: Admin can view payment methods through payment records\n\n### Workflow\n1. **List Payment Methods**: View saved payment options\n   - Shows all user's payment methods\n   - Indicates default method\n   - Ordered by creation date\n2. **View Method Details**: Get specific payment method information\n   - Includes masked card numbers (last 4 digits)\n   - Shows provider and type\n3. **Add Payment Method**: Save new payment option\n   - Requires payment provider token\n   - Can set as default automatically\n   - Returned ID saved to `{{payment_method_id}}`\n4. **Update Method**: Modify payment settings\n   - Currently supports default status only\n   - Setting default unsets other defaults\n5. **Remove Method**: Delete payment option\n   - Permanent action\n   - Cannot delete if used in pending orders\n\n### Important Notes\n- 🔒 Payment data is tokenized and never stored in plain text\n- 💳 Supports credit cards, debit cards, and digital wallets\n- 🌐 Multiple payment providers supported (Stripe, PayPal, Razorpay)\n- ⭐ Only one default payment method allowed per user\n- ⚠️ Payment methods cannot be deleted if associated with active orders\n- 🔑 In production, tokens come from payment provider SDK integration",
+            "description": "## Payment Method Management & Security\n\n### Overview\nManage payment methods for secure order processing. **Only admins and managers** can save and manage payment options.\n\n### Permissions\n| Operation | Admin | Manager | Member |\n|-----------|-------|---------|--------|\n| View Own Methods | ✅ | ✅ | ❌ |\n| Create Methods | ✅ | ✅ | ❌ |\n| Update Methods | ✅ | ✅ | ❌ |\n| Delete Methods | ✅ | ✅ | ❌ |\n\n### Security Model\n- **User Isolation**: Users can only access their own payment methods\n- **Token-Based**: Payment details are tokenized for security\n- **Provider Integration**: Supports Stripe, PayPal, and Razorpay\n- **Role Restriction**: Members cannot access payment method operations\n\n### Workflow\n1. **List Payment Methods** (Admin/Manager): View saved payment options\n   - Shows all user's payment methods\n   - Indicates default method\n   - Ordered by creation date\n2. **View Method Details** (Admin/Manager): Get specific payment method information\n   - Includes masked card numbers (last 4 digits)\n   - Shows provider and type\n3. **Add Payment Method** (Admin/Manager): Save new payment option\n   - Requires payment provider token\n   - Can set as default automatically\n   - Returned ID saved to `{{payment_method_id}}`\n4. **Update Method** (Admin/Manager): Modify payment settings\n   - Currently supports default status only\n   - Setting default unsets other defaults\n5. **Remove Method** (Admin/Manager): Delete payment option\n   - Permanent action\n   - Cannot delete if used in pending orders\n\n### Important Notes\n- 🔒 Payment data is tokenized and never stored in plain text\n- 💳 Supports credit cards, debit cards, and digital wallets\n- 🌐 Multiple payment providers supported (Stripe, PayPal, Razorpay)\n- ⭐ Only one default payment method allowed per user\n- ⚠️ Payment methods cannot be deleted if associated with active orders\n- 🔑 In production, tokens come from payment provider SDK integration\n- 🚫 **Members cannot create or manage payment methods** - they can only create carts\n- 💼 Managers must have restaurant assignment to access payment methods",
             "item": [
                 {
                     "name": "Get Payment Methods",
@@ -502,7 +507,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Get all payment methods for the current user.\n\n**Returns:**\n- User's saved payment methods\n- Ordered by creation date (newest first)"
+                        "description": "Get all payment methods for the current user.\n\n**Permissions:**\n- **Admin**: ✅ Can view their own payment methods\n- **Managers**: ✅ Can view their own payment methods (requires restaurant assignment)\n- **Members**: ❌ Access denied - members cannot manage payment methods\n\n**Returns:**\n- User's saved payment methods\n- Masked card information (last 4 digits)\n- Default payment method indicator\n- Ordered by creation date (newest first)\n\n**Error Cases:**\n- Returns forbidden error if called by member\n- Returns forbidden error if manager lacks restaurant assignment"
                     }
                 },
                 {
@@ -530,7 +535,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Retrieve detailed information about a specific payment method.\n\n**Includes:**\n- Payment method type and provider\n- Masked card number (last 4 digits)\n- Default status indicator\n- Creation and update timestamps\n\n**Access Control:** Users can only view their own payment methods"
+                        "description": "Retrieve detailed information about a specific payment method.\n\n**Includes:**\n- Payment method type and provider\n- Masked card number (last 4 digits)\n- Default status indicator\n- Creation and update timestamps\n\n**Permissions:**\n- **Admin**: ✅ Can view their own payment methods\n- **Managers**: ✅ Can view their own payment methods\n- **Members**: ❌ Access denied\n\n**Access Control:** Users can only view their own payment methods. Attempting to access another user's payment method returns not found error."
                     }
                 },
                 {
@@ -558,7 +563,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Add a new payment method for the current user.\n\n**Payment Types:**\n- CREDIT_CARD\n- DEBIT_CARD\n- DIGITAL_WALLET\n\n**Providers:**\n- STRIPE\n- PAYPAL\n- RAZORPAY\n\n**Note:** In production, token would come from payment provider SDK. Copy the payment method ID from response to use in `{{payment_method_id}}`"
+                        "description": "Add a new payment method for the current user.\n\n**Permissions:**\n- **Admin**: ✅ Can create payment methods\n- **Managers**: ✅ Can create payment methods (requires restaurant assignment)\n- **Members**: ❌ Access denied - use carts instead\n\n**Payment Types:**\n- CREDIT_CARD\n- DEBIT_CARD\n- DIGITAL_WALLET\n\n**Providers:**\n- STRIPE\n- PAYPAL\n- RAZORPAY\n\n**Default Method:**\n- Set isDefault to true to make this the default payment method\n- Setting a new default automatically unsets previous default\n\n**Note:** In production, token would come from payment provider SDK. Copy the payment method ID from response to use in `{{payment_method_id}}`"
                     }
                 },
                 {
@@ -586,7 +591,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Update payment method settings (currently only supports setting default).\n\n**Note:** Setting a method as default will unset all other defaults"
+                        "description": "Update payment method settings (currently only supports setting default).\n\n**Permissions:**\n- **Admin**: ✅ Can update their own payment methods\n- **Managers**: ✅ Can update their own payment methods\n- **Members**: ❌ Access denied\n\n**Updatable Fields:**\n- isDefault: Set as default payment method\n\n**Note:** Setting a method as default will automatically unset all other defaults for the user"
                     }
                 },
                 {
@@ -614,7 +619,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Remove a payment method.\n\n**Access:** User can only delete their own payment methods"
+                        "description": "Remove a payment method.\n\n**Permissions:**\n- **Admin**: ✅ Can delete their own payment methods\n- **Managers**: ✅ Can delete their own payment methods\n- **Members**: ❌ Access denied\n\n**Access:** User can only delete their own payment methods\n\n**Warning:** Cannot delete payment methods associated with active/pending orders"
                     }
                 }
             ]
@@ -732,7 +737,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Update the status of an order.\n\n**Permissions:** Manager (location-restricted) and Admin\n\n**Status Values:**\n- PENDING\n- CONFIRMED\n- PREPARING\n- OUT_FOR_DELIVERY\n- DELIVERED\n- CANCELLED\n\n**Typical Flow:**\nPENDING → CONFIRMED → PREPARING → OUT_FOR_DELIVERY → DELIVERED"
+                        "description": "Update the status of an order.\n\n**Permissions:**\n- **Admin**: Can update any order status globally\n- **Managers**: Can ONLY update orders in their assigned restaurant\n- **Members**: Cannot update order status\n\n**Restaurant Access** (Managers):\n- Can update orders where the user belongs to their restaurant\n- Can update orders where order items belong to their restaurant\n- Access denied for orders outside their restaurant scope\n\n**Status Values:**\n- PENDING: Initial order state\n- CONFIRMED: Order accepted and confirmed\n- PREPARING: Kitchen is preparing the order\n- OUT_FOR_DELIVERY: Order is on the way\n- DELIVERED: Order successfully delivered\n- CANCELLED: Order cancelled\n\n**Typical Flow:**\nPENDING to CONFIRMED to PREPARING to OUT_FOR_DELIVERY to DELIVERED"
                     }
                 },
                 {
@@ -760,7 +765,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Cancel an existing order.\n\n**Permissions:** Manager (location-restricted) and Admin\n\n**Effect:** Sets order status to CANCELLED\n\n**Note:** Consider refund processing in production systems"
+                        "description": "Cancel an existing order.\n\n**Permissions:**\n- **Admin**: Can cancel any order globally\n- **Managers**: Can ONLY cancel orders in their assigned restaurant\n- **Members**: Cannot cancel orders\n\n**Restaurant Access** (Managers):\n- Can cancel orders where the user belongs to their restaurant\n- Can cancel orders where order items belong to their restaurant  \n- Access denied for orders outside their restaurant scope\n\n**Effect:** Sets order status to CANCELLED\n\n**Note:** Consider refund processing in production systems"
                     }
                 }
             ]
@@ -939,7 +944,7 @@
                             "raw": "{{graphql}}",
                             "host": ["{{graphql}}"]
                         },
-                        "description": "Update user information.\n\n**Permissions:** Admin only\n\n**Updatable Fields:**\n- role: User's system role\n- restaurantId: Restaurant ID for managers/members\n- isActive: Account active status\n\n**Use Cases:**\n- Promote user to manager and set restaurant\n- Deactivate user account\n- Adjust restaurant assignments for staff"
+                        "description": "Update user information.\n\n**Permissions:** Admin only\n\n**Updatable Fields:**\n- **role**: User's system role (ADMIN, MANAGER, MEMBER)\n- **restaurantId**: Restaurant ID assignment for managers/members (must be valid restaurant ID)\n- **isActive**: Account active status (true/false)\n\n**Restaurant Assignment:**\n- Required for managers and members\n- Must be an existing restaurant ID from the database\n- Valid examples: `restaurant-india-1`, `restaurant-america-1`\n- System validates restaurant existence before update\n\n**Use Cases:**\n- Promote user to manager and assign restaurant\n- Reassign manager/member to different restaurant\n- Deactivate user account\n- Change user role and permissions\n\n**Validation:**\n- Returns \"Restaurant not found\" error if restaurantId doesn't exist\n- Prevents invalid foreign key references"
                     }
                 },
                 {
