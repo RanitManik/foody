@@ -30,12 +30,6 @@ export const prisma =
                 : process.env.DEBUG_PRISMA === "true"
                   ? ["query", "info", "warn", "error"]
                   : ["error", "warn"],
-        // Connection timeout and error handling
-        datasources: {
-            db: {
-                url: process.env.DATABASE_URL,
-            },
-        },
         // Connection pooling configuration
         transactionOptions: {
             maxWait: API_CONSTANTS.DATABASE.POOL_TIMEOUT_SECONDS * 1000, // Convert to ms
