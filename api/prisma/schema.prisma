@@ -1,142 +1,144 @@
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model menu_items {
-  id           String        @id @default(cuid())
-  name         String
-  description  String?
-  price        Float
-  category     String
-  imageUrl     String?
-  isAvailable  Boolean       @default(true)
-  restaurantId String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  restaurants  restaurants   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  order_items  order_items[]
+    id           String        @id @default(cuid())
+    name         String
+    description  String?
+    price        Float
+    category     String
+    imageUrl     String?
+    isAvailable  Boolean       @default(true)
+    restaurantId String
+    createdAt    DateTime      @default(now())
+    updatedAt    DateTime      @updatedAt
+    restaurants  restaurants   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    order_items  order_items[]
 
-  @@index([restaurantId])
-  @@index([isAvailable])
-  @@index([category])
-  @@index([restaurantId, isAvailable])
+    @@index([restaurantId])
+    @@index([isAvailable])
+    @@index([category])
+    @@index([restaurantId, isAvailable])
 }
 
 model order_items {
-  id         String     @id @default(cuid())
-  orderId    String
-  menuItemId String
-  quantity   Int
-  price      Float
-  notes      String?
-  menu_items menu_items @relation(fields: [menuItemId], references: [id])
-  orders     orders     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+    id         String     @id @default(cuid())
+    orderId    String
+    menuItemId String
+    quantity   Int
+    price      Float
+    notes      String?
+    menu_items menu_items @relation(fields: [menuItemId], references: [id])
+    orders     orders     @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  @@index([orderId])
-  @@index([menuItemId])
+    @@index([orderId])
+    @@index([menuItemId])
 }
 
 model orders {
-  id                  String        @id @default(cuid())
-  userId              String
-  totalAmount         Float
-  status              OrderStatus   @default(PENDING)
-  deliveryAddress     String
-  phone               String
-  specialInstructions String?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  order_items         order_items[]
-  users               users         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payments            payments?
+    id                  String        @id @default(cuid())
+    userId              String
+    totalAmount         Float
+    status              OrderStatus   @default(PENDING)
+    deliveryAddress     String
+    phone               String
+    specialInstructions String?
+    createdAt           DateTime      @default(now())
+    updatedAt           DateTime      @updatedAt
+    order_items         order_items[]
+    users               users         @relation(fields: [userId], references: [id], onDelete: Cascade)
+    payments            payments?
 
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
+    @@index([userId])
+    @@index([status])
+    @@index([createdAt])
 }
 
 model payment_methods {
-  id          String     @id @default(cuid())
-  userId      String
-  type        String
-  provider    String
-  last4       String?
-  expiryMonth Int?
-  expiryYear  Int?
-  isDefault   Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  users       users      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payments    payments[]
+    id          String     @id @default(cuid())
+    userId      String
+    type        String
+    provider    String
+    last4       String?
+    expiryMonth Int?
+    expiryYear  Int?
+    isDefault   Boolean    @default(false)
+    createdAt   DateTime   @default(now())
+    updatedAt   DateTime   @updatedAt
+    users       users      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    payments    payments[]
 }
 
 model payments {
-  id              String          @id @default(cuid())
-  orderId         String          @unique
-  paymentMethodId String
-  amount          Float
-  currency        String          @default("USD")
-  status          String          @default("PENDING")
-  transactionId   String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  orders          orders          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  payment_methods payment_methods @relation(fields: [paymentMethodId], references: [id])
+    id              String          @id @default(cuid())
+    orderId         String          @unique
+    paymentMethodId String
+    amount          Float
+    currency        String          @default("USD")
+    status          String          @default("PENDING")
+    transactionId   String?
+    createdAt       DateTime        @default(now())
+    updatedAt       DateTime        @updatedAt
+    orders          orders          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+    payment_methods payment_methods @relation(fields: [paymentMethodId], references: [id])
 }
 
 model restaurants {
-  id          String       @id @default(cuid())
-  name        String
-  description String?
-  address     String
-  city        String
-  location    String
-  phone       String?
-  email       String?
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  menu_items  menu_items[]
-  users       users[]
+    id          String       @id @default(cuid())
+    name        String
+    description String?
+    address     String
+    city        String
+    location    String
+    phone       String?
+    email       String?
+    isActive    Boolean      @default(true)
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+    menu_items  menu_items[]
+    users       users[]
 
-  @@index([isActive])
+    @@index([isActive])
 }
 
 model users {
-  id                String            @id @default(cuid())
-  email             String            @unique
-  password          String
-  firstName         String
-  lastName          String
-  role              UserRole
-  restaurantId      String?
-  restaurant        restaurants?      @relation(fields: [restaurantId], references: [id])
-  isActive          Boolean           @default(true)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  orders            orders[]
-  payment_methods   payment_methods[]
+    id              String            @id @default(cuid())
+    email           String            @unique
+    password        String
+    firstName       String
+    lastName        String
+    role            UserRole
+    restaurantId    String?
+    restaurant      restaurants?      @relation(fields: [restaurantId], references: [id])
+    isActive        Boolean           @default(true)
+    createdAt       DateTime          @default(now())
+    updatedAt       DateTime          @updatedAt
+    orders          orders[]
+    payment_methods payment_methods[]
 
-  @@index([role])
-  @@index([restaurantId])
-  @@index([isActive])
+    @@index([role])
+    @@index([restaurantId])
+    @@index([isActive])
 }
 
 enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PREPARING
-  READY
-  DELIVERED
-  CANCELLED
+    PENDING
+    CONFIRMED
+    PREPARING
+    READY
+    DELIVERED
+    CANCELLED
 }
 
 enum UserRole {
-  ADMIN
-  MANAGER
-  MEMBER
+    ADMIN
+    MANAGER
+    MEMBER
 }
