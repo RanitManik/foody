@@ -101,12 +101,12 @@ When running in development mode, you can access the GraphQL Playground at `http
 To authenticate requests in the GraphQL Playground:
 
 1. Obtain a JWT token using the `login` mutation
-2. Click the "HTTP HEADERS" section at the bottom of the playground
-3. Add the authorization header:
+2. Click the **Headers** tab at the bottom of the playground
+3. Add an Authorization header from the shared headers section:
 
 ```json
 {
-    "Authorization": "Bearer YOUR_JWT_TOKEN_HERE"
+    "Authorization": "YOUR_JWT_TOKEN_HERE"
 }
 ```
 
