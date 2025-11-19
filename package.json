@@ -42,6 +42,7 @@
         "typecheck:web-e2e": "nx typecheck @foody/web-e2e"
     },
     "dependencies": {
+        "@tailwindcss/postcss": "^4.1.17",
         "axios": "^1.6.0",
         "express": "^4.21.2",
         "next": "^15.5.6",
@@ -93,10 +94,9 @@
         "jest-environment-node": "^30.0.2",
         "jest-util": "^30.0.2",
         "nx": "22.0.3",
-        "postcss": "8.4.38",
         "prettier": "^3.6.2",
         "prettier-plugin-tailwindcss": "^0.7.1",
-        "tailwindcss": "3.4.3",
+        "tailwindcss": "^4.1.17",
         "ts-jest": "^29.4.0",
         "ts-node": "10.9.1",
         "tslib": "^2.3.0",
