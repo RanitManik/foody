@@ -116,14 +116,16 @@ All subsequent requests in the playground session will include this header autom
 A comprehensive Postman collection is available for testing the API endpoints. The collection includes pre-configured requests for all operations with proper authentication setup.
 
 > [!TIP]
-> For the best API testing experience, use the Postman collections available in the [`api/postman/`](./postman/) folder. All manual and automated testing collections are included with proper authentication setup.
+> For the best API testing experience, use the Postman collections available in the [`api/postman/`](../api/postman/) folder. All manual and automated testing collections are included with proper authentication setup.
+
+[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://app.getpostman.com/run-collection/34405309-0afb9e87-875a-422e-bc36-e55d91cab11e?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D34405309-0afb9e87-875a-422e-bc36-e55d91cab11e%26entityType%3Dcollection%26workspaceId%3D43b3b3eb-c390-468d-8c66-8c2ecbe23736)
 
 ### Collection Details
 
 - **Collection File**: `api/postman/Foody_API_Postman_Collection.json`
 - **Environment File**: `api/postman/Foody_API.postman_environment.json`
 - **Automated Tests**: `api/postman/Foody_API_Postman_Automated.json`
-- **Public Workspace ID**: `43b3b3eb-c390-468d-8c66-8c2ecbe23736`
+- **Public Workspace Link**: `https://www.postman.com/foody0-8157/workspace/foody`
 
 ### Using the Postman Collection
 
