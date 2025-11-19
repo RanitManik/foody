@@ -1344,7 +1344,7 @@
                                     "pm.test(\"Manager CANNOT delete menu items (referenced by orders)\", function () {",
                                     "    const response = pm.response.json();",
                                     "    pm.expect(response.errors).to.be.an('array');",
-                                    "    pm.expect(response.errors[0].message).to.include('Foreign key constraint');",
+                                    "    pm.expect(response.errors[0].message).to.include('Not authorized to delete menu items');",
                                     "    console.log('✅ Manager blocked from deleting menu items referenced by orders');",
                                     "});"
                                 ]

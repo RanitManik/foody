@@ -542,9 +542,8 @@ export const menuResolvers = {
 
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
-            const isManager = currentUser.role === UserRole.MANAGER;
 
-            if (!isAdmin && !isManager) {
+            if (!isAdmin) {
                 throw GraphQLErrors.forbidden("Not authorized to delete menu items");
             }
 
@@ -564,15 +563,6 @@ export const menuResolvers = {
 
             if (!menuItem) {
                 throw GraphQLErrors.notFound("Menu item not found");
-            }
-
-            if (!isAdmin) {
-                const assignedRestaurantId = requireAssignedRestaurant(currentUser);
-                if (menuItem.restaurantId !== assignedRestaurantId) {
-                    throw GraphQLErrors.forbidden(
-                        "Cannot manage menu items outside assigned restaurant",
-                    );
-                }
             }
 
             // Check if menu item is referenced by any order items

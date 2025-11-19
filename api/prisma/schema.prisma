@@ -96,7 +96,7 @@ model restaurants {
   description String?
   address     String
   city        String
-  location    String       @unique
+  location    String
   phone       String?
   email       String?
   isActive    Boolean      @default(true)
