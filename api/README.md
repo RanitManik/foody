@@ -2,34 +2,35 @@
 
 This document provides comprehensive documentation for the Foody GraphQL API, including authentication, core entities, queries, mutations, and access control rules.
 
-## Table of Contents
+<details>
+<summary><strong>Table of Contents</strong> (Click to Expand)</summary>
 
-- [GraphQL Endpoint](#graphql-endpoint)
+- [**GraphQL Endpoint**](#graphql-endpoint)
     - [GraphQL Playground](#graphql-playground)
         - [Authentication in GraphQL Playground](#authentication-in-graphql-playground)
-- [Postman Collection](#postman-collection)
+- [**Postman Collection**](#postman-collection)
     - [Collection Details](#collection-details)
     - [Using the Postman Collection](#using-the-postman-collection)
     - [Automated Testing Collection](#automated-testing-collection)
     - [Public Workspace](#public-workspace)
-- [Authentication](#authentication)
+- [**Authentication**](#authentication)
     - [Authentication Header Format](#authentication-header-format)
     - [Obtaining a Token](#obtaining-a-token)
     - [Token Expiration](#token-expiration)
     - [Using Tokens in API Clients](#using-tokens-in-api-clients)
         - [Postman Collection](#postman-collection-1)
         - [Other API Clients](#other-api-clients)
-- [Access Control](#access-control)
+- [**Access Control**](#access-control)
     - [User Roles](#user-roles)
     - [Access Control Matrix](#access-control-matrix)
     - [Restaurant-Based Restrictions](#restaurant-based-restrictions)
-- [Core Entities](#core-entities)
+- [**Core Entities**](#core-entities)
     - [User](#user)
     - [Restaurant](#restaurant)
     - [MenuItem](#menuitem)
     - [Order](#order)
     - [Payment](#payment)
-- [Queries](#queries)
+- [**Queries**](#queries)
     - [Authentication Queries](#authentication-queries)
         - [Get Current User](#get-current-user)
     - [Restaurant Queries](#restaurant-queries)
@@ -43,7 +44,7 @@ This document provides comprehensive documentation for the Foody GraphQL API, in
         - [Get Single Order](#get-single-order)
     - [Payment Queries](#payment-queries)
         - [Get Payment Methods](#get-payment-methods)
-- [Mutations](#mutations)
+- [**Mutations**](#mutations)
     - [Authentication Mutations](#authentication-mutations)
         - [Register User](#register-user)
         - [Login](#login)
@@ -64,13 +65,13 @@ This document provides comprehensive documentation for the Foody GraphQL API, in
         - [Update Restaurant](#update-restaurant)
     - [User Management Mutations](#user-management-mutations)
         - [Update User](#update-user)
-- [Subscriptions](#subscriptions)
+- [**Subscriptions**](#subscriptions)
     - [Order Status Updates](#order-status-updates)
-- [Health Checks](#health-checks)
-- [Error Handling](#error-handling)
+- [**Health Checks**](#health-checks)
+- [**Error Handling**](#error-handling)
     - [Common Error Codes](#common-error-codes)
-- [Rate Limiting](#rate-limiting)
-- [Data Types](#data-types)
+- [**Rate Limiting**](#rate-limiting)
+- [**Data Types**](#data-types)
     - [Enums](#enums)
         - [UserRole](#userrole)
         - [OrderStatus](#orderstatus)
@@ -78,18 +79,18 @@ This document provides comprehensive documentation for the Foody GraphQL API, in
         - [PaymentType](#paymenttype)
         - [PaymentProvider](#paymentprovider)
     - [Scalars](#scalars)
-- [Testing](#testing)
+- [**Testing**](#testing)
     - [Postman Collection](#postman-collection-2)
     - [Automated Tests](#automated-tests)
-- [Development](#development)
+- [**Development**](#development)
     - [Local Development](#local-development)
     - [Environment Variables](#environment-variables)
     - [Database](#database)
-- [Support](#support)
+- [**Support**](#support)
 
-## GraphQL Endpoint
+</details>
 
-The GraphQL API is available at `http://localhost:4000/graphql`
+## GraphQL EndpointThe GraphQL API is available at `http://localhost:4000/graphql`
 
 ### GraphQL Playground
 

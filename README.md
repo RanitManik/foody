@@ -2,42 +2,45 @@
 
 A comprehensive full-stack food ordering application implementing role-based access control (RBAC) with restaurant-based restrictions, designed as a solution for a take-home assignment.
 
-## Table of Contents
+<details>
+<summary><strong>Table of Contents</strong> (Click to Expand)</summary>
 
-- [Problem Statement](#problem-statement)
-- [Solution Overview](#solution-overview)
-- [Features](#features)
+- [**Problem Statement**](#problem-statement)
+- [**Solution Overview**](#solution-overview)
+- [**Features**](#features)
     - [Core Functionality](#core-functionality)
     - [Access Control & Security](#access-control--security)
     - [Technical Features](#technical-features)
-- [Tech Stack](#tech-stack)
+- [**Tech Stack**](#tech-stack)
     - [Frontend](#frontend)
     - [Backend](#backend)
     - [Database & Infrastructure](#database--infrastructure)
     - [DevOps & Monitoring](#devops--monitoring)
-- [Architecture](#architecture)
+- [**Architecture**](#architecture)
     - [Data Model](#data-model)
     - [Access Control Matrix](#access-control-matrix)
-- [Getting Started](#getting-started)
+- [**Getting Started**](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
-- [Development](#development)
+- [**Development**](#development)
     - [Available Scripts](#available-scripts)
     - [Project Structure](#project-structure)
     - [Code Quality](#code-quality)
-- [Testing](#testing)
-- [Deployment](#deployment)
+- [**Testing**](#testing)
+- [**Deployment**](#deployment)
     - [Docker](#docker)
     - [Environment Variables](#environment-variables)
-- [Monitoring & Observability](#monitoring--observability)
+- [**Monitoring & Observability**](#monitoring--observability)
     - [Metrics](#metrics)
     - [Health Checks](#health-checks)
     - [Logging](#logging)
-- [Security](#security)
-- [Performance](#performance)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
+- [**Security**](#security)
+- [**Performance**](#performance)
+- [**Contributing**](#contributing)
+- [**License**](#license)
+- [**Acknowledgments**](#acknowledgments)
+
+</details>
 
 ## Problem Statement
 
