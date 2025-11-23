@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -58,6 +59,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
+import extractErrorMessage from "@/lib/errors";
 
 const GET_RESTAURANTS = gql`
     query GetRestaurants($first: Int, $skip: Int) {
@@ -157,9 +159,16 @@ export default function AdminRestaurantsPage() {
         variables: { first: 100, skip: 0 },
     });
 
-    const [createRestaurant] = useMutation(CREATE_RESTAURANT);
-    const [updateRestaurant] = useMutation(UPDATE_RESTAURANT);
-    const [deleteRestaurant] = useMutation(DELETE_RESTAURANT);
+    useEffect(() => {
+        if (error) {
+            const msg = extractErrorMessage(error);
+            toast.error(`Failed to load restaurants: ${msg}`);
+        }
+    }, [error]);
+
+    const [createRestaurant, { loading: creating }] = useMutation(CREATE_RESTAURANT);
+    const [updateRestaurant, { loading: updating }] = useMutation(UPDATE_RESTAURANT);
+    const [deleteRestaurant, { loading: deleting }] = useMutation(DELETE_RESTAURANT);
 
     const createForm = useForm<z.infer<typeof restaurantSchema>>({
         resolver: zodResolver(restaurantSchema),
@@ -171,6 +180,7 @@ export default function AdminRestaurantsPage() {
             location: "",
             phone: "",
             email: "",
+            isActive: true,
         },
     });
 
@@ -201,10 +211,14 @@ export default function AdminRestaurantsPage() {
             await createRestaurant({
                 variables: {
                     input: {
-                        ...values,
-                        email: values.email || undefined,
-                        phone: values.phone || undefined,
+                        name: values.name,
                         description: values.description || undefined,
+                        address: values.address,
+                        city: values.city,
+                        location: values.location,
+                        phone: values.phone || undefined,
+                        email: values.email || undefined,
+                        isActive: values.isActive,
                     },
                 },
             });
@@ -213,8 +227,9 @@ export default function AdminRestaurantsPage() {
             createForm.reset();
             refetch();
         } catch (error) {
-            toast.error("Failed to create restaurant");
-            console.error(error);
+            const msg = extractErrorMessage(error);
+            toast.error(`Failed to create restaurant: ${msg}`);
+            console.error("Create restaurant error:", error);
         }
     };
 
@@ -225,10 +240,15 @@ export default function AdminRestaurantsPage() {
                 variables: {
                     id: editingRestaurant.id,
                     input: {
-                        ...values,
-                        email: values.email || undefined,
-                        phone: values.phone || undefined,
+                        name: values.name,
                         description: values.description || undefined,
+                        address: values.address,
+                        city: values.city,
+                        location: values.location,
+                        phone: values.phone || undefined,
+                        email: values.email || undefined,
+                        // send isActive directly from the form (false will be included)
+                        isActive: values.isActive,
                     },
                 },
             });
@@ -237,8 +257,9 @@ export default function AdminRestaurantsPage() {
             editForm.reset();
             refetch();
         } catch (error) {
-            toast.error("Failed to update restaurant");
-            console.error(error);
+            const msg = extractErrorMessage(error);
+            toast.error(`Failed to update restaurant: ${msg}`);
+            console.error("Update restaurant error:", error);
         }
     };
 
@@ -263,8 +284,9 @@ export default function AdminRestaurantsPage() {
             setDeleteConfirmPhrase("");
             refetch();
         } catch (error) {
-            toast.error("Failed to delete restaurant");
-            console.error(error);
+            const msg = extractErrorMessage(error);
+            toast.error(`Failed to delete restaurant: ${msg}`);
+            console.error("Delete restaurant error:", error);
         }
     };
 
@@ -305,7 +327,7 @@ export default function AdminRestaurantsPage() {
                 <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
                     <SheetTrigger asChild>
                         <Button>
-                            <Plus className="mr-2 h-4 w-4" />
+                            <Plus className="h-4 w-4" />
                             New Restaurant
                         </Button>
                     </SheetTrigger>
@@ -431,14 +453,43 @@ export default function AdminRestaurantsPage() {
                                         </FormItem>
                                     )}
                                 />
+                                <FormField
+                                    control={createForm.control}
+                                    name="isActive"
+                                    render={({ field }) => (
+                                        <FormItem className="flex items-center justify-between">
+                                            <div>
+                                                <FormLabel>Active</FormLabel>
+                                                <FormDescription className="text-muted-foreground mt-1 text-sm">
+                                                    Whether the restaurant accepts orders
+                                                </FormDescription>
+                                            </div>
+                                            <FormControl>
+                                                <Switch
+                                                    checked={!!field.value}
+                                                    onCheckedChange={(val) => field.onChange(val)}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </form>
                         </Form>
                         <SheetFooter className="border-border border-t">
-                            <Button type="submit" form="create-form">
-                                Create Restaurant
+                            <Button type="submit" form="create-form" disabled={creating}>
+                                {creating ? (
+                                    <span className="flex items-center">
+                                        <Spinner className="mr-2" /> Creating
+                                    </span>
+                                ) : (
+                                    "Create Restaurant"
+                                )}
                             </Button>
                             <SheetClose asChild>
-                                <Button variant="outline">Close</Button>
+                                <Button variant="outline" disabled={creating}>
+                                    Close
+                                </Button>
                             </SheetClose>
                         </SheetFooter>
                     </SheetContent>
@@ -461,6 +512,9 @@ export default function AdminRestaurantsPage() {
                         {/* make header opaque so the bottom border stays visible while sticky */}
                         <TableHeader className="bg-card border-border sticky top-0 border-b">
                             <TableRow>
+                                <TableHead className="bg-card sticky top-0 z-30 w-12 border-r text-center">
+                                    #
+                                </TableHead>
                                 <TableHead className="bg-card sticky top-0 z-30 border-r">
                                     Name
                                 </TableHead>
@@ -487,6 +541,9 @@ export default function AdminRestaurantsPage() {
                             {loading
                                 ? Array.from({ length: 5 }).map((_, i) => (
                                       <TableRow key={i}>
+                                          <TableCell className="border-r text-center">
+                                              <Skeleton className="mx-auto h-4 w-6" />
+                                          </TableCell>
                                           <TableCell className="border-r">
                                               <Skeleton className="h-4 w-32" />
                                           </TableCell>
@@ -510,7 +567,7 @@ export default function AdminRestaurantsPage() {
                                           </TableCell>
                                       </TableRow>
                                   ))
-                                : filteredRestaurants.map((restaurant: Restaurant) => (
+                                : filteredRestaurants.map((restaurant: Restaurant, idx: number) => (
                                       <TableRow
                                           key={restaurant.id}
                                           className="hover:bg-muted/50 cursor-pointer"
@@ -518,6 +575,11 @@ export default function AdminRestaurantsPage() {
                                               router.push(`/restaurant/${restaurant.id}/dashboard`)
                                           }
                                       >
+                                          <TableCell className="border-r text-center">
+                                              <div className="text-muted-foreground text-sm">
+                                                  {idx + 1}
+                                              </div>
+                                          </TableCell>
                                           <TableCell className="border-r font-medium">
                                               <div className="flex items-center gap-2">
                                                   <div
@@ -573,7 +635,6 @@ export default function AdminRestaurantsPage() {
                                                           onClick={() =>
                                                               setDeletingRestaurant(restaurant)
                                                           }
-                                                          className="text-destructive"
                                                       >
                                                           <Trash2 className="mr-2 h-4 w-4" />
                                                           Delete
@@ -739,11 +800,19 @@ export default function AdminRestaurantsPage() {
                     </Form>
 
                     <SheetFooter className="border-border border-t">
-                        <Button type="submit" form="edit-form">
-                            Save changes
+                        <Button type="submit" form="edit-form" disabled={updating}>
+                            {updating ? (
+                                <span className="flex items-center">
+                                    <Spinner className="mr-2" /> Saving
+                                </span>
+                            ) : (
+                                "Save changes"
+                            )}
                         </Button>
                         <SheetClose asChild>
-                            <Button variant="outline">Close</Button>
+                            <Button variant="outline" disabled={updating}>
+                                Close
+                            </Button>
                         </SheetClose>
                     </SheetFooter>
                 </SheetContent>
@@ -800,18 +869,29 @@ export default function AdminRestaurantsPage() {
                         </div>
                     </div>
                     <DialogFooter className="flex w-full sm:justify-between">
-                        <Button variant="outline" onClick={() => setDeletingRestaurant(null)}>
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeletingRestaurant(null)}
+                            disabled={deleting}
+                        >
                             Cancel
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={handleDelete}
                             disabled={
+                                deleting ||
                                 deleteConfirmName !== deletingRestaurant?.name ||
                                 deleteConfirmPhrase !== "delete my restaurant"
                             }
                         >
-                            Delete Restaurant
+                            {deleting ? (
+                                <span className="flex items-center">
+                                    <Spinner className="mr-2" /> Deleting
+                                </span>
+                            ) : (
+                                "Delete Restaurant"
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

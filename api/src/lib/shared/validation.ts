@@ -222,6 +222,7 @@ export const CreateRestaurantInputSchema = z.object({
         .transform(sanitize.string),
     phone: validationSchemas.phone.optional().or(z.literal("")),
     email: validationSchemas.email.optional().or(z.literal("")),
+    isActive: z.boolean().optional(),
 });
 
 /**

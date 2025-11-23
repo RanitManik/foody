@@ -51,6 +51,8 @@ export const typeDefs = `#graphql
         phone: String
         "Contact email address"
         email: String
+        "Whether the restaurant is initially active (defaults to true if omitted)"
+        isActive: Boolean
     }
 
     """
