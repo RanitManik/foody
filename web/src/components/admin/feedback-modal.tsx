@@ -94,7 +94,7 @@ export default function FeedbackModal({
                 <div>
                     <label className="mb-2 block text-sm font-medium">Share your thoughts</label>
                     <Textarea
-                        rows={10}
+                        rows={6}
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         placeholder={"What's working well? What's confusing? What's missing?"}
