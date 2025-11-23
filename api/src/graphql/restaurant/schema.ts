@@ -77,12 +77,22 @@ export const typeDefs = `#graphql
         isActive: Boolean
     }
 
+    """
+    Paginated result for restaurants query
+    """
+    type RestaurantsResult {
+        "Array of restaurants"
+        restaurants: [Restaurant!]!
+        "Total count of restaurants matching the query"
+        totalCount: Int!
+    }
+
     type Query {
         """
     Get a paginated list of restaurants. Can filter by location.
     Non-admin users can only see restaurants in their assigned restaurant.
     """
-    restaurants(location: String, first: Int, skip: Int): [Restaurant!]!
+    restaurants(location: String, first: Int, skip: Int): RestaurantsResult!
         """
         Get a specific restaurant by ID.
     Access control ensures users can only view restaurants in their assigned restaurant.

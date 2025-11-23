@@ -4,17 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
-import {
-    Search,
-    MoreVertical,
-    Eye,
-    X,
-    Clock,
-    CheckCircle,
-    ChefHat,
-    Truck,
-    Package,
-} from "lucide-react";
+import { Search, MoreVertical, Eye, X, Clock, CheckCircle, Package } from "lucide-react";
 import { toast } from "sonner";
 import extractErrorMessage from "@/lib/errors";
 import { Button } from "@/components/ui/button";
@@ -180,10 +170,7 @@ type OrdersData = {
 
 const statusConfig = {
     PENDING: { label: "Pending", color: "secondary", icon: Clock },
-    CONFIRMED: { label: "Confirmed", color: "default", icon: CheckCircle },
-    PREPARING: { label: "Preparing", color: "outline", icon: ChefHat },
-    READY: { label: "Ready", color: "secondary", icon: Package },
-    DELIVERED: { label: "Delivered", color: "default", icon: Truck },
+    COMPLETED: { label: "Completed", color: "default", icon: CheckCircle },
     CANCELLED: { label: "Cancelled", color: "destructive", icon: X },
 } as const;
 
@@ -236,16 +223,16 @@ export default function OrdersPage() {
     const handleConfirmOrder = async (orderId: string) => {
         toast.promise(
             updateOrderStatus({
-                variables: { id: orderId, status: "CONFIRMED" },
+                variables: { id: orderId, status: "COMPLETED" },
             }).then(() => {
                 refetch();
             }),
             {
-                loading: "Confirming order...",
-                success: "Order confirmed successfully",
+                loading: "Completing order...",
+                success: "Order completed successfully",
                 error: (error) => {
                     const msg = extractErrorMessage(error);
-                    return `Failed to confirm order: ${msg}`;
+                    return `Failed to complete order: ${msg}`;
                 },
             },
         );
@@ -538,23 +525,20 @@ export default function OrdersPage() {
                                                                       }
                                                                   >
                                                                       <CheckCircle className="mr-2 h-4 w-4" />
-                                                                      Confirm Order
+                                                                      Complete Order
                                                                   </DropdownMenuItem>
                                                               )}
-                                                              {order.status !== "DELIVERED" &&
-                                                                  order.status !== "CANCELLED" && (
-                                                                      <DropdownMenuItem
-                                                                          onClick={() =>
-                                                                              setCancellingOrder(
-                                                                                  order,
-                                                                              )
-                                                                          }
-                                                                          className="text-destructive"
-                                                                      >
-                                                                          <X className="mr-2 h-4 w-4" />
-                                                                          Cancel Order
-                                                                      </DropdownMenuItem>
-                                                                  )}
+                                                              {order.status !== "CANCELLED" && (
+                                                                  <DropdownMenuItem
+                                                                      onClick={() =>
+                                                                          setCancellingOrder(order)
+                                                                      }
+                                                                      className="text-destructive"
+                                                                  >
+                                                                      <X className="mr-2 h-4 w-4" />
+                                                                      Cancel Order
+                                                                  </DropdownMenuItem>
+                                                              )}
                                                           </DropdownMenuContent>
                                                       </DropdownMenu>
                                                   </TableCell>

@@ -37,7 +37,7 @@ import {
 import { parsePagination } from "../../lib/shared/pagination";
 import { GraphQLContext, CreateRestaurantInput } from "../../types/graphql";
 import { UserRole, restaurants, menu_items } from "@prisma/client";
-import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
+import { withCache, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
 const requireAssignedRestaurant = (user: NonNullable<GraphQLContext["user"]>): string => {
     if (!user.restaurantId) {
@@ -63,7 +63,7 @@ export const restaurantResolvers = {
          * @param {number} [params.first=10] - Number of restaurants to return
          * @param {number} [params.skip=0] - Number to skip for pagination
          * @param {GraphQLContext} context - GraphQL execution context
-         * @returns {Promise<Restaurant[]>} Array of restaurants with available menu items
+         * @returns {Promise<{restaurants: Restaurant[], totalCount: number}>} Paginated restaurants with total count
          *
          * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
          *
@@ -75,15 +75,17 @@ export const restaurantResolvers = {
          * Results include available menu items and are cached per location.
          *
          * @caching
-         * - Cache key: restaurants:{location}
+         * - Cache key: restaurants:{userId}:{restaurantScope}:{location}:{first}:{skip}
          * - TTL: CACHE_TTL.RESTAURANTS
          * - Invalidated on: restaurant create/update/delete
          *
          * @example
          * query {
          *   restaurants(location: "Downtown", first: 10) {
-         *     id name description city location
-         *     menuCategories
+         *     restaurants {
+         *       id name description city location
+         *     }
+         *     totalCount
          *   }
          * }
          */
@@ -115,45 +117,50 @@ export const restaurantResolvers = {
             }
 
             // Use Redis caching for restaurants queries
-            const cacheKey = createCacheKey.restaurants(
-                scopedRestaurantId
-                    ? { restaurantId: scopedRestaurantId }
-                    : sanitizedLocation
-                      ? { location: sanitizedLocation }
-                      : undefined,
-            );
+            const restaurantScope = currentUser.restaurantId ?? (isAdmin ? "all" : "unassigned");
+            const cacheKey = `restaurants:${currentUser.id}:${restaurantScope}:${sanitizedLocation || "all"}:${pagination.first}:${pagination.skip}`;
             return await withCache(
                 cacheKey,
                 async () => {
-                    return await prisma.restaurants.findMany({
-                        where: whereClause,
-                        select: {
-                            id: true,
-                            name: true,
-                            description: true,
-                            address: true,
-                            city: true,
-                            location: true,
-                            phone: true,
-                            email: true,
-                            isActive: true,
-                            createdAt: true,
-                            updatedAt: true,
-                            menu_items: {
-                                where: { isAvailable: true },
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    price: true,
-                                    isAvailable: true,
-                                    category: true,
+                    const [restaurants, totalCount] = await Promise.all([
+                        prisma.restaurants.findMany({
+                            where: whereClause,
+                            select: {
+                                id: true,
+                                name: true,
+                                description: true,
+                                address: true,
+                                city: true,
+                                location: true,
+                                phone: true,
+                                email: true,
+                                isActive: true,
+                                createdAt: true,
+                                updatedAt: true,
+                                menu_items: {
+                                    where: { isAvailable: true },
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        price: true,
+                                        isAvailable: true,
+                                        category: true,
+                                    },
+                                    orderBy: { name: "asc" },
                                 },
-                                orderBy: { name: "asc" },
                             },
-                        },
-                        take: pagination.first,
-                        skip: pagination.skip,
-                    });
+                            take: pagination.first,
+                            skip: pagination.skip,
+                        }),
+                        prisma.restaurants.count({
+                            where: whereClause,
+                        }),
+                    ]);
+
+                    return {
+                        restaurants,
+                        totalCount,
+                    };
                 },
                 CACHE_TTL.RESTAURANTS,
             );

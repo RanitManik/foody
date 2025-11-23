@@ -52,8 +52,15 @@ import {
     EmptyMedia,
     EmptyTitle,
 } from "@/components/ui/empty";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Textarea } from "@/components/ui/textarea";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -68,20 +75,25 @@ import {
 } from "@/components/ui/form";
 import { toast } from "sonner";
 import extractErrorMessage from "@/lib/errors";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const GET_RESTAURANTS = gql`
     query GetRestaurants($first: Int, $skip: Int) {
         restaurants(first: $first, skip: $skip) {
-            id
-            name
-            description
-            address
-            city
-            location
-            phone
-            email
-            isActive
-            createdAt
+            restaurants {
+                id
+                name
+                description
+                address
+                city
+                location
+                phone
+                email
+                isActive
+                createdAt
+            }
+            totalCount
         }
     }
 `;
@@ -150,7 +162,10 @@ type Restaurant = {
 };
 
 type RestaurantsData = {
-    restaurants: Restaurant[];
+    restaurants: {
+        restaurants: Restaurant[];
+        totalCount: number;
+    };
 };
 
 export default function AdminRestaurantsPage() {
@@ -162,10 +177,20 @@ export default function AdminRestaurantsPage() {
     const [deleteConfirmName, setDeleteConfirmName] = useState("");
     // second input expects user to type a confirmation phrase before deleting
     const [deleteConfirmPhrase, setDeleteConfirmPhrase] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 20;
 
     const { data, loading, error, refetch } = useQuery<RestaurantsData>(GET_RESTAURANTS, {
-        variables: { first: 100, skip: 0 },
+        variables: {
+            first: pageSize,
+            skip: (currentPage - 1) * pageSize,
+        },
+        fetchPolicy: "cache-first", // Use cache when available
     });
+
+    const totalCount = data?.restaurants?.totalCount ?? 0;
+    const totalPages = Math.ceil(totalCount / pageSize);
+    const hasNextPage = currentPage < totalPages;
 
     useEffect(() => {
         if (error) {
@@ -207,7 +232,7 @@ export default function AdminRestaurantsPage() {
     });
 
     const filteredRestaurants =
-        data?.restaurants?.filter(
+        data?.restaurants?.restaurants?.filter(
             (restaurant: Restaurant) =>
                 restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 restaurant.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -329,7 +354,7 @@ export default function AdminRestaurantsPage() {
     }
 
     return (
-        <div className="grid h-full min-h-0 grid-rows-[auto_auto_1fr] gap-6">
+        <div className="grid h-full min-h-0 grid-rows-[auto_auto_1fr] gap-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold tracking-tight">Restaurants</h1>
                 <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
@@ -532,7 +557,7 @@ export default function AdminRestaurantsPage() {
             <div className="min-h-0 overflow-hidden border">
                 <div className="h-full min-h-0 overflow-auto">
                     {/* Empty states */}
-                    {!loading && data?.restaurants?.length === 0 ? (
+                    {!loading && data?.restaurants?.restaurants?.length === 0 ? (
                         <div className="p-6">
                             <Empty>
                                 <EmptyHeader>
@@ -580,29 +605,28 @@ export default function AdminRestaurantsPage() {
                         </div>
                     ) : (
                         <Table>
-                            {/* make header opaque so the bottom border stays visible while sticky */}
                             <TableHeader className="bg-card border-border sticky top-0 border-b">
-                                <TableRow>
+                                <TableRow className="h-8">
                                     <TableHead className="bg-card sticky top-0 z-30 w-12 border-r text-center">
                                         #
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Name
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Location
                                     </TableHead>
                                     {/* Address column removed — shown in details and sheets instead */}
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Phone
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Email
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r text-center">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
                                         Status
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r text-center shadow-sm">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center shadow-sm sm:px-3 md:px-4">
                                         Created At
                                     </TableHead>
                                     <TableHead className="bg-card sticky top-0 z-30 w-[50px] text-center"></TableHead>
@@ -611,29 +635,29 @@ export default function AdminRestaurantsPage() {
                             <TableBody>
                                 {loading
                                     ? Array.from({ length: 5 }).map((_, i) => (
-                                          <TableRow key={i}>
-                                              <TableCell className="border-r text-center">
+                                          <TableRow key={i} className="h-10">
+                                              <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                   <Skeleton className="mx-auto h-4 w-6" />
                                               </TableCell>
-                                              <TableCell className="border-r">
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-4 w-32" />
                                               </TableCell>
-                                              <TableCell className="border-r">
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-4 w-24" />
                                               </TableCell>
-                                              <TableCell className="border-r">
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-4 w-28" />
                                               </TableCell>
-                                              <TableCell className="border-r">
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-4 w-36" />
                                               </TableCell>
-                                              <TableCell className="border-r text-center">
+                                              <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                   <Skeleton className="h-4 w-16" />
                                               </TableCell>
-                                              <TableCell className="border-r text-center">
+                                              <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                   <Skeleton className="h-4 w-24" />
                                               </TableCell>
-                                              <TableCell>
+                                              <TableCell className="px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-8 w-8" />
                                               </TableCell>
                                           </TableRow>
@@ -642,19 +666,19 @@ export default function AdminRestaurantsPage() {
                                           (restaurant: Restaurant, idx: number) => (
                                               <TableRow
                                                   key={restaurant.id}
-                                                  className="hover:bg-muted/50 cursor-pointer"
+                                                  className="hover:bg-muted/50 h-10 cursor-pointer"
                                                   onClick={() =>
                                                       router.push(
                                                           `/restaurant/${restaurant.id}/dashboard`,
                                                       )
                                                   }
                                               >
-                                                  <TableCell className="border-r text-center">
+                                                  <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                       <div className="text-muted-foreground text-sm">
-                                                          {idx + 1}
+                                                          {(currentPage - 1) * pageSize + idx + 1}
                                                       </div>
                                                   </TableCell>
-                                                  <TableCell className="border-r font-medium">
+                                                  <TableCell className="border-r px-2 font-medium sm:px-3 md:px-4">
                                                       <div className="flex items-center gap-2">
                                                           <div
                                                               className={`h-2 w-2 rounded-full ${restaurant.isActive ? "bg-green-500" : "bg-gray-400"}`}
@@ -662,17 +686,17 @@ export default function AdminRestaurantsPage() {
                                                           {restaurant.name}
                                                       </div>
                                                   </TableCell>
-                                                  <TableCell className="text-muted-foreground border-r">
+                                                  <TableCell className="text-muted-foreground border-r px-2 sm:px-3 md:px-4">
                                                       {restaurant.city}, {restaurant.location}
                                                   </TableCell>
                                                   {/* address removed from table row */}
-                                                  <TableCell className="text-muted-foreground border-r">
+                                                  <TableCell className="text-muted-foreground border-r px-2 sm:px-3 md:px-4">
                                                       {restaurant.phone || "-"}
                                                   </TableCell>
-                                                  <TableCell className="text-muted-foreground border-r">
+                                                  <TableCell className="text-muted-foreground border-r px-2 sm:px-3 md:px-4">
                                                       {restaurant.email || "-"}
                                                   </TableCell>
-                                                  <TableCell className="border-r text-center">
+                                                  <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                       <Badge
                                                           variant={
                                                               restaurant.isActive
@@ -685,7 +709,7 @@ export default function AdminRestaurantsPage() {
                                                               : "Inactive"}
                                                       </Badge>
                                                   </TableCell>
-                                                  <TableCell className="text-muted-foreground border-r text-center">
+                                                  <TableCell className="text-muted-foreground border-r px-2 text-center sm:px-3 md:px-4">
                                                       {new Date(
                                                           restaurant.createdAt,
                                                       ).toLocaleDateString()}
@@ -734,6 +758,125 @@ export default function AdminRestaurantsPage() {
                     )}
                 </div>
             </div>
+
+            {/* Pagination */}
+            {loading ? (
+                <div className="bg-background flex items-center justify-end px-3 py-3">
+                    <div className="flex gap-1">
+                        <Skeleton className="h-8 w-8" />
+                        <Skeleton className="h-8 w-8" />
+                        <Skeleton className="h-8 w-8" />
+                        <Skeleton className="h-8 w-8" />
+                        <Skeleton className="h-8 w-8" />
+                    </div>
+                </div>
+            ) : (
+                (currentPage > 1 || hasNextPage) && (
+                    <div className="bg-background flex items-center justify-between">
+                        <div className="text-muted-foreground text-sm whitespace-nowrap">
+                            Page {currentPage} of {totalPages} • {totalCount} total restaurants
+                        </div>
+                        <Pagination className="justify-end">
+                            <PaginationContent className="gap-1">
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        onClick={() =>
+                                            currentPage > 1 && setCurrentPage(currentPage - 1)
+                                        }
+                                        className={
+                                            currentPage <= 1
+                                                ? "pointer-events-none opacity-50"
+                                                : "cursor-pointer"
+                                        }
+                                    />
+                                </PaginationItem>
+
+                                {/* First page */}
+                                {currentPage > 3 && (
+                                    <PaginationItem>
+                                        <PaginationLink
+                                            onClick={() => setCurrentPage(1)}
+                                            className="h-8 w-8 cursor-pointer p-0"
+                                        >
+                                            1
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                )}
+
+                                {/* Ellipsis before current range */}
+                                {currentPage > 4 && (
+                                    <PaginationItem>
+                                        <PaginationEllipsis />
+                                    </PaginationItem>
+                                )}
+
+                                {/* Previous page */}
+                                {currentPage > 1 && (
+                                    <PaginationItem>
+                                        <PaginationLink
+                                            onClick={() => setCurrentPage(currentPage - 1)}
+                                            className="h-8 w-8 cursor-pointer p-0"
+                                        >
+                                            {currentPage - 1}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                )}
+
+                                {/* Current page */}
+                                <PaginationItem>
+                                    <PaginationLink isActive className="h-8 w-8 p-0">
+                                        {currentPage}
+                                    </PaginationLink>
+                                </PaginationItem>
+
+                                {/* Next page */}
+                                {hasNextPage && (
+                                    <PaginationItem>
+                                        <PaginationLink
+                                            onClick={() => setCurrentPage(currentPage + 1)}
+                                            className="h-8 w-8 cursor-pointer p-0"
+                                        >
+                                            {currentPage + 1}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                )}
+
+                                {/* Ellipsis after current range */}
+                                {currentPage < totalPages - 3 && (
+                                    <PaginationItem>
+                                        <PaginationEllipsis />
+                                    </PaginationItem>
+                                )}
+
+                                {/* Last page */}
+                                {currentPage < totalPages - 2 && (
+                                    <PaginationItem>
+                                        <PaginationLink
+                                            onClick={() => setCurrentPage(totalPages)}
+                                            className="h-8 w-8 cursor-pointer p-0"
+                                        >
+                                            {totalPages}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                )}
+
+                                <PaginationItem>
+                                    <PaginationNext
+                                        onClick={() =>
+                                            hasNextPage && setCurrentPage(currentPage + 1)
+                                        }
+                                        className={
+                                            !hasNextPage
+                                                ? "pointer-events-none opacity-50"
+                                                : "cursor-pointer"
+                                        }
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
+                )
+            )}
 
             {/* Edit Sheet */}
             <Sheet open={!!editingRestaurant} onOpenChange={() => setEditingRestaurant(null)}>

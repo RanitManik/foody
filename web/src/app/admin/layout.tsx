@@ -57,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
             <div className="flex min-h-0 min-w-0 flex-col">
                 <AdminHeader onOpenFeedback={setIsFeedbackOpen} />
-                <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden p-4 lg:gap-6 lg:p-6">
+                <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden p-4 lg:gap-4 lg:p-4">
                     {children}
                 </main>
                 <FeedbackModal open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
