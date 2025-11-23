@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { gql } from "@apollo/client/core";
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
+import { useAuth } from "@/lib/auth-context";
 import {
     Dialog,
     DialogContent,
@@ -25,17 +26,7 @@ export default function FeedbackModal({
 }) {
     const [value, setValue] = useState("");
     const [isSending, setIsSending] = useState(false);
-
-    const ME = gql`
-        query Me {
-            me {
-                id
-                email
-                firstName
-                lastName
-            }
-        }
-    `;
+    const { user } = useAuth();
 
     const CREATE_FEEDBACK = gql`
         mutation CreateFeedback($input: CreateFeedbackInput!) {
@@ -45,10 +36,6 @@ export default function FeedbackModal({
             }
         }
     `;
-
-    type MeData = { me?: { id: string; email?: string; firstName?: string; lastName?: string } };
-    const { data: meData } = useQuery<MeData>(ME);
-    const me = meData?.me;
 
     type CreateFeedbackData = { createFeedback: { id: string; createdAt: string } };
     type CreateFeedbackVars = { input: { message: string; email?: string } };
@@ -68,7 +55,7 @@ export default function FeedbackModal({
                 input: { message: value.trim() },
             };
 
-            if (me?.email) variables.input.email = me.email;
+            if (user?.email) variables.input.email = user.email;
 
             await createFeedback({ variables });
 

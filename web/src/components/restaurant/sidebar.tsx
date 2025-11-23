@@ -3,25 +3,36 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, MessageSquare, PanelLeftClose } from "lucide-react";
+import { MessageSquare, PanelLeftClose, Utensils, ClipboardList } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
     {
-        title: "Restaurants",
-        href: "/admin/restaurants",
-        icon: LayoutDashboard,
+        title: "Menu Management",
+        href: "/restaurant/[id]/menu-management",
+        icon: Utensils,
+    },
+    {
+        title: "Orders",
+        href: "/restaurant/[id]/orders",
+        icon: ClipboardList,
     },
 ];
 
-export interface AdminSidebarProps {
+export interface RestaurantSidebarProps {
     isCollapsed?: boolean;
     toggleCollapse?: () => void;
     onOpenFeedback?: (open: boolean) => void;
+    restaurantId: string;
 }
 
-export function AdminSidebar({ isCollapsed, toggleCollapse, onOpenFeedback }: AdminSidebarProps) {
+export function RestaurantSidebar({
+    isCollapsed,
+    toggleCollapse,
+    onOpenFeedback,
+    restaurantId,
+}: RestaurantSidebarProps) {
     const pathname = usePathname();
 
     return (
@@ -41,21 +52,17 @@ export function AdminSidebar({ isCollapsed, toggleCollapse, onOpenFeedback }: Ad
                 </div>
             </div>
             <div className="flex-1 overflow-x-hidden py-4">
-                {/* {!isCollapsed && (
-                    <div className="mb-2 px-4">
-                        <h2 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider">
-                            ORGANIZATION
-                        </h2>
-                    </div>
-                )} */}
                 <nav className="grid items-start gap-1 px-2 text-sm font-medium lg:px-4">
                     {sidebarItems.map((item) => (
                         <Link
                             key={item.href}
-                            href={item.href}
+                            href={item.href.replace("[id]", restaurantId)}
                             className={cn(
-                                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-3 rounded-md p-2 transition-all",
-                                pathname === item.href || pathname.startsWith(item.href + "/")
+                                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-3 rounded-md p-2 whitespace-nowrap transition-all",
+                                pathname === item.href.replace("[id]", restaurantId) ||
+                                    pathname.startsWith(
+                                        item.href.replace("[id]", restaurantId) + "/",
+                                    )
                                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                                     : "text-muted-foreground",
                             )}

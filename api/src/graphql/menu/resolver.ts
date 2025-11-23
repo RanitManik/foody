@@ -68,11 +68,11 @@ export const menuResolvers = {
          *
          * @description
          * Fetches available menu items with restaurant information and caching.
-         * Only returns items marked as available. Results are cached in Redis
-         * for improved performance on repeated queries.
+         * Only returns items marked as available for non-manager users.
+         * Results are cached in Redis for improved performance.
          *
          * @caching
-         * - Cache key: menuItems:{restaurantId}
+         * - Cache key: menuItems:{restaurantId}:{first}:{skip}
          * - TTL: CACHE_TTL.MENU_ITEMS
          * - Invalidated on: menu item create/update/delete operations
          *
@@ -95,9 +95,15 @@ export const menuResolvers = {
 
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
 
             const pagination = parsePagination({ first, skip });
-            const whereClause: Record<string, unknown> = { isAvailable: true };
+            const whereClause: Record<string, unknown> = {};
+
+            // Only filter by isAvailable for non-manager users (members)
+            if (!isManager && !isAdmin) {
+                whereClause.isAvailable = true;
+            }
 
             let scopedRestaurantId: string | null = null;
             if (!isAdmin) {
@@ -126,12 +132,18 @@ export const menuResolvers = {
                 targetRestaurantId = validatedRestaurantId;
             }
 
-            const cacheKey = createCacheKey.menuItems(targetRestaurantId ?? undefined);
+            const cacheKey = `menuItems:${targetRestaurantId ?? "all"}:${pagination.first}:${pagination.skip}`;
 
             return await withCache(
                 cacheKey,
                 async () => {
-                    return await prisma.menu_items.findMany({
+                    // Get total count
+                    const totalCount = await prisma.menu_items.count({
+                        where: whereClause,
+                    });
+
+                    // Get paginated items
+                    const menuItems = await prisma.menu_items.findMany({
                         where: whereClause,
                         select: {
                             id: true,
@@ -155,12 +167,15 @@ export const menuResolvers = {
                                 },
                             },
                         },
-                        orderBy: {
-                            name: "asc",
-                        },
+                        orderBy: [{ name: "asc" }, { id: "asc" }],
                         take: pagination.first,
                         skip: pagination.skip,
                     });
+
+                    return {
+                        menuItems,
+                        totalCount,
+                    };
                 },
                 CACHE_TTL.MENU_ITEMS,
             );

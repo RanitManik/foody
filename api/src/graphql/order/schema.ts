@@ -97,12 +97,22 @@ export const typeDefs = `#graphql
         CANCELLED
     }
 
+    """
+    Connection type for paginated orders with total count
+    """
+    type OrderConnection {
+        "List of orders for the current page"
+        orders: [Order!]!
+        "Total number of orders matching the query"
+        totalCount: Int!
+    }
+
     type Query {
         """
         Get a paginated list of orders. Non-admin users can only see their own orders.
     Managers can see orders from users in their assigned restaurant.
         """
-        orders(first: Int, skip: Int): [Order!]!
+        orders(first: Int, skip: Int): OrderConnection!
         """
         Get a specific order by ID. Access control ensures users can only view their own orders
     or orders from their restaurant's members (for managers).

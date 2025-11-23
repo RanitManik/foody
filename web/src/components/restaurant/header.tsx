@@ -16,12 +16,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Menu, Moon, Sun, Monitor, Check } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { AdminSidebar } from "./sidebar";
+import { RestaurantSidebar } from "./sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
-import FeedbackModal from "./feedback-modal";
+import FeedbackModal from "@/components/admin/feedback-modal";
 
-export function AdminHeader({ onOpenFeedback }: { onOpenFeedback?: (open: boolean) => void }) {
+export function RestaurantHeader({
+    restaurantId,
+    onOpenFeedback,
+}: {
+    restaurantId: string;
+    onOpenFeedback?: (open: boolean) => void;
+}) {
     const { user, logout } = useAuth();
     const { theme, setTheme } = useTheme();
     const themeLabel = theme ? theme.charAt(0).toUpperCase() + theme.slice(1) : "System";
@@ -39,7 +45,7 @@ export function AdminHeader({ onOpenFeedback }: { onOpenFeedback?: (open: boolea
                 </SheetTrigger>
                 {/* Sheet only used for small screens (mobile). Hide on md+ to avoid duplicate sidebar. */}
                 <SheetContent side="left" className="flex w-72 flex-col p-0 md:hidden">
-                    <AdminSidebar onOpenFeedback={openFeedback} />
+                    <RestaurantSidebar restaurantId={restaurantId} onOpenFeedback={openFeedback} />
                 </SheetContent>
             </Sheet>
 

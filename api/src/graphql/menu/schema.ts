@@ -62,12 +62,22 @@ export const typeDefs = `#graphql
         category: String
     }
 
+    """
+    Paginated result for menu items query
+    """
+    type MenuItemsResult {
+        "Array of menu items"
+        menuItems: [MenuItem!]!
+        "Total count of menu items matching the query"
+        totalCount: Int!
+    }
+
     type Query {
         """
         Get a paginated list of menu items. Can filter by restaurant.
-        Only returns items that are currently available.
+        Returns all items for restaurant managers and admins, only available items for others.
         """
-        menuItems(restaurantId: ID, first: Int, skip: Int): [MenuItem!]!
+        menuItems(restaurantId: ID, first: Int, skip: Int): MenuItemsResult!
         """
         Get a specific menu item by ID.
         """

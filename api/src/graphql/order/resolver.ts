@@ -141,7 +141,13 @@ export const orderResolvers = {
             return await withCache(
                 cacheKey,
                 async () => {
-                    return await prisma.orders.findMany({
+                    // Get total count
+                    const totalCount = await prisma.orders.count({
+                        where: whereClause,
+                    });
+
+                    // Get paginated orders
+                    const orders = await prisma.orders.findMany({
                         where: whereClause,
                         select: {
                             id: true,
@@ -208,6 +214,11 @@ export const orderResolvers = {
                         take: pagination.first,
                         skip: pagination.skip,
                     });
+
+                    return {
+                        orders: orders ?? [],
+                        totalCount,
+                    };
                 },
                 CACHE_TTL.ORDERS,
             );
