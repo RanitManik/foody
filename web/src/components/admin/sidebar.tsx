@@ -32,17 +32,12 @@ export function AdminSidebar({ isCollapsed, toggleCollapse, onOpenFeedback }: Ad
         >
             <div
                 className={cn(
-                    "flex h-14 items-center border-b px-4 lg:h-[60px]",
-                    isCollapsed ? "justify-center px-2" : "lg:px-6",
+                    "hover:bg-secondary flex h-14 cursor-pointer items-center border-b px-2 transition-all lg:h-[60px] lg:px-6",
                 )}
             >
                 <div className="flex items-center gap-2 font-semibold">
                     <Logo className="h-6 w-6" size={24} />
-                    {!isCollapsed && (
-                        <>
-                            <span className="">Foody</span>
-                        </>
-                    )}
+                    {!isCollapsed && <span>Foody</span>}
                 </div>
             </div>
             <div className="flex-1 overflow-x-hidden py-4">
@@ -59,11 +54,10 @@ export function AdminSidebar({ isCollapsed, toggleCollapse, onOpenFeedback }: Ad
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-3 rounded-md px-3 py-2 transition-all",
+                                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-3 rounded-md p-2 transition-all",
                                 pathname === item.href || pathname.startsWith(item.href + "/")
                                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                                     : "text-muted-foreground",
-                                isCollapsed && "justify-center px-2",
                             )}
                             title={isCollapsed ? item.title : undefined}
                         >
@@ -75,23 +69,21 @@ export function AdminSidebar({ isCollapsed, toggleCollapse, onOpenFeedback }: Ad
             </div>
             <div className="mt-auto border-t p-4">
                 <nav className="grid gap-1">
-                    <button
-                        type="button"
+                    <Button
+                        variant="ghost"
                         onClick={() => onOpenFeedback?.(true)}
                         className={cn(
-                            "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
-                            isCollapsed && "justify-center px-2",
+                            "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer justify-start gap-3 px-2!",
                         )}
                         title={isCollapsed ? "Feedback" : undefined}
                     >
                         <MessageSquare className="size-5 shrink-0" />
                         {!isCollapsed && "Feedback"}
-                    </button>
+                    </Button>
                     <Button
                         variant="ghost"
                         className={cn(
-                            "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer justify-start gap-3 px-3",
-                            isCollapsed && "justify-center px-2",
+                            "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer justify-start gap-3 px-2!",
                         )}
                         onClick={toggleCollapse}
                         title={isCollapsed ? "Expand menu" : "Collapse menu"}
