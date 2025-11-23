@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
     {
-        title: "Projects",
+        title: "Restaurants",
         href: "/admin/restaurants",
         icon: LayoutDashboard,
     },
@@ -55,8 +55,7 @@ export function AdminSidebar({ isCollapsed, toggleCollapse }: AdminSidebarProps)
     return (
         <div
             className={cn(
-                "bg-sidebar text-sidebar-foreground flex h-full flex-col border-r transition-all duration-300",
-                isCollapsed ? "w-[60px]" : "w-full",
+                "bg-sidebar text-sidebar-foreground flex h-full flex-col overflow-x-hidden border-r transition-all duration-300",
             )}
         >
             <div
@@ -70,25 +69,19 @@ export function AdminSidebar({ isCollapsed, toggleCollapse }: AdminSidebarProps)
                     {!isCollapsed && (
                         <>
                             <span className="">Foody</span>
-                            <Badge
-                                variant="secondary"
-                                className="h-5 px-1.5 text-[10px] font-normal"
-                            >
-                                Free
-                            </Badge>
                         </>
                     )}
                 </div>
             </div>
-            <div className="flex-1 overflow-auto py-4">
-                {!isCollapsed && (
+            <div className="flex-1 overflow-x-hidden py-4">
+                {/* {!isCollapsed && (
                     <div className="mb-2 px-4">
                         <h2 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider">
                             ORGANIZATION
                         </h2>
                     </div>
-                )}
-                <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+                )} */}
+                <nav className="grid items-start gap-1 px-2 text-sm font-medium lg:px-4">
                     {sidebarItems.map((item) => (
                         <Link
                             key={item.href}
@@ -102,7 +95,7 @@ export function AdminSidebar({ isCollapsed, toggleCollapse }: AdminSidebarProps)
                             )}
                             title={isCollapsed ? item.title : undefined}
                         >
-                            <item.icon className="h-4 w-4 shrink-0" />
+                            <item.icon className="size-5 shrink-0" />
                             {!isCollapsed && item.title}
                         </Link>
                     ))}
@@ -118,7 +111,7 @@ export function AdminSidebar({ isCollapsed, toggleCollapse }: AdminSidebarProps)
                         )}
                         title={isCollapsed ? "Feedback" : undefined}
                     >
-                        <MessageSquare className="h-4 w-4 shrink-0" />
+                        <MessageSquare className="size-5 shrink-0" />
                         {!isCollapsed && "Feedback"}
                     </Link>
                     <Button
@@ -131,10 +124,7 @@ export function AdminSidebar({ isCollapsed, toggleCollapse }: AdminSidebarProps)
                         title={isCollapsed ? "Expand menu" : "Collapse menu"}
                     >
                         <PanelLeftClose
-                            className={cn(
-                                "h-4 w-4 shrink-0 transition-transform",
-                                isCollapsed && "rotate-180",
-                            )}
+                            className={cn("h-4 w-4 shrink-0", isCollapsed && "rotate-180")}
                         />
                         {!isCollapsed && "Collapse menu"}
                     </Button>

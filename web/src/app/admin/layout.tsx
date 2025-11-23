@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className={cn(
                 "grid min-h-screen w-full transition-all duration-300 ease-in-out",
                 isCollapsed
-                    ? "md:grid-cols-[60px_1fr]"
+                    ? "md:grid-cols-[70px_1fr]"
                     : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]",
             )}
         >
