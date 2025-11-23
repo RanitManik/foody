@@ -3,17 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-    LayoutDashboard,
-    Settings,
-    CreditCard,
-    Blocks,
-    Users,
-    MessageSquare,
-    PanelLeftClose,
-} from "lucide-react";
+import { LayoutDashboard, Settings, MessageSquare, PanelLeftClose } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
@@ -21,21 +12,6 @@ const sidebarItems = [
         title: "Restaurants",
         href: "/admin/restaurants",
         icon: LayoutDashboard,
-    },
-    {
-        title: "People",
-        href: "/admin/users",
-        icon: Users,
-    },
-    {
-        title: "Billing",
-        href: "/admin/billing",
-        icon: CreditCard,
-    },
-    {
-        title: "Integrations",
-        href: "/admin/integrations",
-        icon: Blocks,
     },
     {
         title: "Settings",
