@@ -359,7 +359,7 @@ export default function AdminRestaurantsPage() {
                 <h1 className="text-2xl font-semibold tracking-tight">Restaurants</h1>
                 <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
                     <SheetTrigger asChild>
-                        <Button>
+                        <Button size="sm">
                             <Plus className="h-4 w-4" />
                             New Restaurant
                         </Button>
@@ -669,7 +669,7 @@ export default function AdminRestaurantsPage() {
                                                   className="hover:bg-muted/50 h-10 cursor-pointer"
                                                   onClick={() =>
                                                       router.push(
-                                                          `/restaurant/${restaurant.id}/dashboard`,
+                                                          `/restaurant/${restaurant.id}/orders`,
                                                       )
                                                   }
                                               >
