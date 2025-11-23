@@ -154,7 +154,6 @@ export const orderResolvers = {
                             userId: true,
                             totalAmount: true,
                             status: true,
-                            deliveryAddress: true,
                             phone: true,
                             specialInstructions: true,
                             createdAt: true,
@@ -258,7 +257,7 @@ export const orderResolvers = {
          * @example
          * query {
          *   order(id: "order123") {
-         *     id status totalAmount deliveryAddress
+         *     id status totalAmount
          *     items { quantity price menuItem { name } }
          *     payment { amount status transactionId }
          *   }
@@ -285,7 +284,6 @@ export const orderResolvers = {
                             userId: true,
                             status: true,
                             totalAmount: true,
-                            deliveryAddress: true,
                             phone: true,
                             specialInstructions: true,
                             createdAt: true,
@@ -387,7 +385,7 @@ export const orderResolvers = {
          * @async
          * @param {unknown} _parent - Parent resolver (unused)
          * @param {Object} params - Mutation parameters
-         * @param {CreateOrderInput} params.input - Order data with items and delivery info
+         * @param {CreateOrderInput} params.input - Order data with items
          * @param {GraphQLContext} context - GraphQL execution context
          * @returns {Promise<Order>} Newly created order with all details
          *
@@ -423,9 +421,6 @@ export const orderResolvers = {
          *       { menuItemId: "item1", quantity: 2, notes: "Extra spicy" }
          *       { menuItemId: "item2", quantity: 1 }
          *     ]
-         *     deliveryAddress: "123 Main St, Apt 4B, Mumbai 400001"
-         *     phone: "+91-98765-43210"
-         *     specialInstructions: "Ring doorbell twice"
          *   }) {
          *     id totalAmount status
          *   }
@@ -444,8 +439,7 @@ export const orderResolvers = {
             try {
                 // Validate input
                 const validated = validateInput(CreateOrderInputSchema, input);
-                const { items, deliveryAddress, phone, specialInstructions, paymentMethodId } =
-                    validated;
+                const { items, phone, specialInstructions, paymentMethodId } = validated;
                 const role: UserRole = context.user.role;
                 const assignedRestaurantId =
                     role === UserRole.ADMIN ? null : requireAssignedRestaurant(context.user);
@@ -573,7 +567,6 @@ export const orderResolvers = {
                         data: {
                             userId: context.user.id,
                             totalAmount,
-                            deliveryAddress,
                             phone,
                             specialInstructions,
                             order_items: {
@@ -644,8 +637,8 @@ export const orderResolvers = {
          * - **Members**: **CANNOT UPDATE STATUS** (forbidden)
          *
          * @statusFlow
-         * Typical order flow:
-         * PENDING → CONFIRMED → PREPARING → OUT_FOR_DELIVERY → DELIVERED
+         * Simplified POS order flow:
+         * PENDING → COMPLETED
          *
          * Alternative:
          * Any status → CANCELLED

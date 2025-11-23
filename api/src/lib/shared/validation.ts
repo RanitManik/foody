@@ -201,7 +201,6 @@ export const OrderItemInputSchema = z.object({
 
 export const CreateOrderInputSchema = z.object({
     items: z.array(OrderItemInputSchema).min(1, "At least one item is required"),
-    deliveryAddress: z.string().min(1, "Delivery address is required").max(500, "Address too long"),
     phone: validationSchemas.phone,
     specialInstructions: z.string().max(1000, "Special instructions too long").optional(),
     paymentMethodId: validationSchemas.id.optional(),

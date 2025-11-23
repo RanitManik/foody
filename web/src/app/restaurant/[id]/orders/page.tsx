@@ -86,7 +86,7 @@ const GET_ORDERS = gql`
                 id
                 status
                 totalAmount
-                deliveryAddress
+
                 phone
                 specialInstructions
                 user {
@@ -143,7 +143,6 @@ type Order = {
     id: string;
     status: string;
     totalAmount: number;
-    deliveryAddress: string;
     phone: string;
     specialInstructions?: string;
     user: {
@@ -401,10 +400,10 @@ export default function OrdersPage() {
                                     <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Total
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4 text-center">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
                                         Status
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4 text-center">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
                                         Created
                                     </TableHead>
                                     <TableHead className="bg-card sticky top-0 z-30 w-[50px] px-1 text-center"></TableHead>
@@ -429,10 +428,10 @@ export default function OrdersPage() {
                                               <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-3 w-12" />
                                               </TableCell>
-                                              <TableCell className="border-r px-2 sm:px-3 md:px-4 text-center">
+                                              <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                   <Skeleton className="mx-auto h-4 w-16" />
                                               </TableCell>
-                                              <TableCell className="border-r px-2 sm:px-3 md:px-4 text-center">
+                                              <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                   <Skeleton className="mx-auto h-3 w-20" />
                                               </TableCell>
                                               <TableCell className="px-1 text-center">
@@ -457,7 +456,7 @@ export default function OrdersPage() {
                                                           {(currentPage - 1) * pageSize + idx + 1}
                                                       </div>
                                                   </TableCell>
-                                                  <TableCell className="border-r px-2 sm:px-3 md:px-4 font-mono text-xs font-medium">
+                                                  <TableCell className="border-r px-2 font-mono text-xs font-medium sm:px-3 md:px-4">
                                                       {order.id.slice(-8)}
                                                   </TableCell>
                                                   <TableCell className="border-r px-2 sm:px-3 md:px-4">
@@ -484,10 +483,10 @@ export default function OrdersPage() {
                                                               ` +${order.items.length - 1}`}
                                                       </div>
                                                   </TableCell>
-                                                  <TableCell className="border-r px-2 sm:px-3 md:px-4 text-sm font-medium">
+                                                  <TableCell className="border-r px-2 text-sm font-medium sm:px-3 md:px-4">
                                                       ${order.totalAmount.toFixed(2)}
                                                   </TableCell>
-                                                  <TableCell className="border-r px-2 sm:px-3 md:px-4 text-center">
+                                                  <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                       <Badge
                                                           variant={
                                                               statusInfo.color as
@@ -502,7 +501,7 @@ export default function OrdersPage() {
                                                           {statusInfo.label}
                                                       </Badge>
                                                   </TableCell>
-                                                  <TableCell className="text-muted-foreground border-r px-2 sm:px-3 md:px-4 text-center text-xs">
+                                                  <TableCell className="text-muted-foreground border-r px-2 text-center text-xs sm:px-3 md:px-4">
                                                       {new Date(
                                                           order.createdAt,
                                                       ).toLocaleDateString()}
@@ -691,7 +690,7 @@ export default function OrdersPage() {
             <Sheet open={!!viewingOrder} onOpenChange={() => setViewingOrder(null)}>
                 <SheetContent>
                     <div className="flex h-full flex-col">
-                        <SheetHeader className="border-b pb-4 px-6">
+                        <SheetHeader className="border-b px-6 pb-4">
                             <SheetTitle className="flex items-center gap-2">
                                 <Package className="h-5 w-5" />
                                 Order Details
@@ -746,16 +745,6 @@ export default function OrdersPage() {
                                                     ].label
                                                 }
                                             </Badge>
-                                        </div>
-                                    </div>
-
-                                    {/* Delivery Address */}
-                                    <div className="space-y-2">
-                                        <h4 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
-                                            Delivery Address
-                                        </h4>
-                                        <div className="bg-muted/50 rounded-md p-3 text-sm">
-                                            {viewingOrder.deliveryAddress}
                                         </div>
                                     </div>
 
@@ -815,10 +804,14 @@ export default function OrdersPage() {
                                                     </div>
                                                     <div className="space-y-1 text-right">
                                                         <div className="font-medium">
-                                                            ${item.price.toFixed(2)} × {item.quantity}
+                                                            ${item.price.toFixed(2)} ×{" "}
+                                                            {item.quantity}
                                                         </div>
                                                         <div className="text-muted-foreground text-sm">
-                                                            ${(item.price * item.quantity).toFixed(2)}
+                                                            $
+                                                            {(item.price * item.quantity).toFixed(
+                                                                2,
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -855,7 +848,7 @@ export default function OrdersPage() {
                             )}
                         </div>
 
-                        <SheetFooter className="border-t pt-4 px-6">
+                        <SheetFooter className="border-t px-6 pt-4">
                             <SheetClose asChild>
                                 <Button variant="outline" className="w-full">
                                     Close

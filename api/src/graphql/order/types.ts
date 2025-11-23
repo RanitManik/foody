@@ -4,7 +4,6 @@ export interface Order {
     id: string;
     status: string;
     totalAmount: number;
-    deliveryAddress: string;
     phone: string;
     specialInstructions?: string;
     userId: string;
@@ -27,7 +26,6 @@ export interface CreateOrderInput {
         quantity: number;
         notes?: string;
     }>;
-    deliveryAddress: string;
     phone: string;
     specialInstructions?: string;
     paymentMethodId?: string;

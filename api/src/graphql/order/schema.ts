@@ -1,19 +1,17 @@
 // Order GraphQL schema definitions
 export const typeDefs = `#graphql
     """
-    Represents a customer order containing menu items, delivery details, and payment information.
-    Orders go through various statuses from pending to delivered.
+    Represents a customer order containing menu items and payment information.
+    Orders go through simplified statuses for POS system record-keeping.
     """
     type Order {
         "Unique identifier for the order"
         id: ID!
-        "Current status of the order (PENDING, CONFIRMED, PREPARING, READY, DELIVERED, CANCELLED)"
+        "Current status of the order (PENDING, COMPLETED, CANCELLED)"
         status: OrderStatus!
         "Total amount of the order including all items"
         totalAmount: Decimal!
-        "Delivery address for the order"
-        deliveryAddress: String!
-        "Contact phone number for delivery"
+        "Contact phone number for the order"
         phone: String!
         "Special instructions for the order (optional)"
         specialInstructions: String
@@ -52,14 +50,12 @@ export const typeDefs = `#graphql
     }
 
     """
-    Input for creating a new order with menu items and delivery details.
+    Input for creating a new order with menu items.
     """
     input CreateOrderInput {
         "List of menu items to order with quantities"
         items: [OrderItemInput!]!
-        "Delivery address for the order"
-        deliveryAddress: String!
-        "Contact phone number for delivery"
+        "Contact phone number for the order"
         phone: String!
         "Special instructions for the order (optional)"
         specialInstructions: String
@@ -83,16 +79,10 @@ export const typeDefs = `#graphql
     Enumeration of possible order statuses throughout the order lifecycle.
     """
     enum OrderStatus {
-        "Order has been placed but not yet confirmed"
+        "Order has been placed but not yet completed"
         PENDING
-        "Order has been confirmed by restaurant"
-        CONFIRMED
-        "Order is being prepared"
-        PREPARING
-        "Order is ready for pickup/delivery"
-        READY
-        "Order has been delivered successfully"
-        DELIVERED
+        "Order has been completed and paid"
+        COMPLETED
         "Order has been cancelled"
         CANCELLED
     }
@@ -122,7 +112,7 @@ export const typeDefs = `#graphql
 
     type Mutation {
         """
-        Create a new order with menu items and delivery details.
+        Create a new order with menu items.
     Validates menu item availability and (optionally) payment method ownership.
     All roles can create orders, but only admins/managers can attach payment methods.
         """

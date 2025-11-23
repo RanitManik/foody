@@ -47,7 +47,6 @@ model orders {
   userId              String
   totalAmount         Float
   status              OrderStatus   @default(PENDING)
-  deliveryAddress     String
   phone               String
   specialInstructions String?
   createdAt           DateTime      @default(now())
@@ -142,10 +141,7 @@ model feedbacks {
 
 enum OrderStatus {
   PENDING
-  CONFIRMED
-  PREPARING
-  READY
-  DELIVERED
+  COMPLETED
   CANCELLED
 }
 

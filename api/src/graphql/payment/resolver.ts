@@ -312,7 +312,7 @@ export const paymentResolvers = {
          *   payment(id: "pay123") {
          *     id amount status transactionId
          *     method { type last4 }
-         *     order { id totalAmount deliveryAddress }
+         *     order { id totalAmount }
          *   }
          * }
          */
@@ -351,7 +351,6 @@ export const paymentResolvers = {
                                 userId: true,
                                 status: true,
                                 totalAmount: true,
-                                deliveryAddress: true,
                                 phone: true,
                                 specialInstructions: true,
                                 createdAt: true,
@@ -815,7 +814,7 @@ export const paymentResolvers = {
          *   }) {
          *     id amount status transactionId
          *     method { type provider last4 }
-         *     order { id totalAmount deliveryAddress }
+         *     order { id totalAmount }
          *   }
          * }
          */
@@ -1061,7 +1060,7 @@ export const paymentResolvers = {
 
                     await tx.orders.update({
                         where: { id: validatedOrderId },
-                        data: { status: OrderStatus.CONFIRMED },
+                        data: { status: OrderStatus.COMPLETED },
                     });
 
                     return paymentRecord;

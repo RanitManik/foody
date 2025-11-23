@@ -315,7 +315,6 @@ type Order {
     id: ID!
     status: OrderStatus!
     totalAmount: Decimal!
-    deliveryAddress: String!
     phone: String!
     specialInstructions: String
     user: User!
@@ -448,7 +447,6 @@ query GetOrders($first: Int, $skip: Int) {
         id
         status
         totalAmount
-        deliveryAddress
         phone
         createdAt
         items {
@@ -472,7 +470,6 @@ query GetOrder($id: ID!) {
         id
         status
         totalAmount
-        deliveryAddress
         phone
         specialInstructions
         items {
@@ -563,7 +560,6 @@ mutation CreateOrder($input: CreateOrderInput!) {
         id
         totalAmount
         status
-        deliveryAddress
         phone
         items {
             id
