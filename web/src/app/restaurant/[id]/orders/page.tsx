@@ -389,22 +389,22 @@ export default function OrdersPage() {
                                     <TableHead className="bg-card sticky top-0 z-30 w-12 border-r px-1 text-center">
                                         #
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Order ID
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Customer
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Items
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Total
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4 text-center">
                                         Status
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4 text-center">
                                         Created
                                     </TableHead>
                                     <TableHead className="bg-card sticky top-0 z-30 w-[50px] px-1 text-center"></TableHead>
@@ -417,22 +417,22 @@ export default function OrdersPage() {
                                               <TableCell className="border-r px-1 text-center">
                                                   <Skeleton className="mx-auto h-3 w-4" />
                                               </TableCell>
-                                              <TableCell className="border-r px-2">
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-3 w-16" />
                                               </TableCell>
-                                              <TableCell className="border-r px-2">
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-3 w-32" />
                                               </TableCell>
-                                              <TableCell className="border-r px-2">
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-3 w-24" />
                                               </TableCell>
-                                              <TableCell className="border-r px-2">
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-3 w-12" />
                                               </TableCell>
-                                              <TableCell className="border-r px-2 text-center">
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4 text-center">
                                                   <Skeleton className="mx-auto h-4 w-16" />
                                               </TableCell>
-                                              <TableCell className="border-r px-2 text-center">
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4 text-center">
                                                   <Skeleton className="mx-auto h-3 w-20" />
                                               </TableCell>
                                               <TableCell className="px-1 text-center">
@@ -457,10 +457,10 @@ export default function OrdersPage() {
                                                           {(currentPage - 1) * pageSize + idx + 1}
                                                       </div>
                                                   </TableCell>
-                                                  <TableCell className="border-r px-2 font-mono text-xs font-medium">
+                                                  <TableCell className="border-r px-2 sm:px-3 md:px-4 font-mono text-xs font-medium">
                                                       {order.id.slice(-8)}
                                                   </TableCell>
-                                                  <TableCell className="border-r px-2">
+                                                  <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                       <div
                                                           className="max-w-40 truncate text-xs md:max-w-none md:overflow-visible md:text-sm"
                                                           title={`${order.user.firstName} ${order.user.lastName} (${order.user.email})`}
@@ -469,7 +469,7 @@ export default function OrdersPage() {
                                                           {order.user.lastName} • {order.user.email}
                                                       </div>
                                                   </TableCell>
-                                                  <TableCell className="border-r px-2">
+                                                  <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                       <div
                                                           className="max-w-40 truncate text-xs md:max-w-none md:overflow-visible md:text-sm"
                                                           title={`${order.items.length} item${order.items.length !== 1 ? "s" : ""}: ${order.items[0]?.menuItem?.name || "Unknown"}${order.items.length > 1 ? ` +${order.items.length - 1} more` : ""}`}
@@ -484,10 +484,10 @@ export default function OrdersPage() {
                                                               ` +${order.items.length - 1}`}
                                                       </div>
                                                   </TableCell>
-                                                  <TableCell className="border-r px-2 text-sm font-medium">
+                                                  <TableCell className="border-r px-2 sm:px-3 md:px-4 text-sm font-medium">
                                                       ${order.totalAmount.toFixed(2)}
                                                   </TableCell>
-                                                  <TableCell className="border-r px-2 text-center">
+                                                  <TableCell className="border-r px-2 sm:px-3 md:px-4 text-center">
                                                       <Badge
                                                           variant={
                                                               statusInfo.color as
@@ -502,7 +502,7 @@ export default function OrdersPage() {
                                                           {statusInfo.label}
                                                       </Badge>
                                                   </TableCell>
-                                                  <TableCell className="text-muted-foreground border-r px-2 text-center text-xs">
+                                                  <TableCell className="text-muted-foreground border-r px-2 sm:px-3 md:px-4 text-center text-xs">
                                                       {new Date(
                                                           order.createdAt,
                                                       ).toLocaleDateString()}
