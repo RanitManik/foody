@@ -12,7 +12,7 @@ export const typeDefs = `#graphql
         "Total amount of the order including all items"
         totalAmount: Decimal!
         "Contact phone number for the order"
-        phone: String!
+        phone: String
         "Special instructions for the order (optional)"
         specialInstructions: String
         "User who placed the order"
@@ -56,7 +56,7 @@ export const typeDefs = `#graphql
         "List of menu items to order with quantities"
         items: [OrderItemInput!]!
         "Contact phone number for the order"
-        phone: String!
+        phone: String
         "Special instructions for the order (optional)"
         specialInstructions: String
         "Optional payment method to associate when managers/admins place orders"

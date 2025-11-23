@@ -191,7 +191,7 @@ export const CreateMenuItemInputSchema = z.object({
  * Order Input Schemas
  */
 export const OrderItemInputSchema = z.object({
-    menuItemId: validationSchemas.cuid,
+    menuItemId: validationSchemas.id,
     quantity: z
         .number()
         .int("Quantity must be an integer")
@@ -201,8 +201,12 @@ export const OrderItemInputSchema = z.object({
 
 export const CreateOrderInputSchema = z.object({
     items: z.array(OrderItemInputSchema).min(1, "At least one item is required"),
-    phone: validationSchemas.phone,
-    specialInstructions: z.string().max(1000, "Special instructions too long").optional(),
+    phone: validationSchemas.phone.optional().or(z.literal("")).or(z.null()),
+    specialInstructions: z
+        .string()
+        .max(1000, "Special instructions too long")
+        .nullable()
+        .optional(),
     paymentMethodId: validationSchemas.id.optional(),
 });
 

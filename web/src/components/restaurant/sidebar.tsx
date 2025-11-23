@@ -3,11 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { MessageSquare, PanelLeftClose, Utensils, ClipboardList } from "lucide-react";
+import { MessageSquare, PanelLeftClose, Utensils, ClipboardList, CreditCard } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
+    {
+        title: "Menu Order",
+        href: "/restaurant/[id]/orders/create",
+        icon: ClipboardList,
+    },
     {
         title: "Menu Management",
         href: "/restaurant/[id]/menu-management",
@@ -16,7 +21,7 @@ const sidebarItems = [
     {
         title: "Orders",
         href: "/restaurant/[id]/orders",
-        icon: ClipboardList,
+        icon: CreditCard,
     },
 ];
 
@@ -53,25 +58,27 @@ export function RestaurantSidebar({
             </div>
             <div className="flex-1 overflow-x-hidden py-4">
                 <nav className="grid items-start gap-1 px-2 text-sm font-medium lg:px-4">
-                    {sidebarItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href.replace("[id]", restaurantId)}
-                            className={cn(
-                                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-3 rounded-md p-2 whitespace-nowrap transition-all",
-                                pathname === item.href.replace("[id]", restaurantId) ||
-                                    pathname.startsWith(
-                                        item.href.replace("[id]", restaurantId) + "/",
-                                    )
-                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                    : "text-muted-foreground",
-                            )}
-                            title={isCollapsed ? item.title : undefined}
-                        >
-                            <item.icon className="size-5 shrink-0" />
-                            {!isCollapsed && item.title}
-                        </Link>
-                    ))}
+                    {sidebarItems.map((item) => {
+                        const itemHref = item.href.replace("[id]", restaurantId);
+                        const isActive = pathname === itemHref;
+
+                        return (
+                            <Link
+                                key={item.href}
+                                href={itemHref}
+                                className={cn(
+                                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-3 rounded-md p-2 whitespace-nowrap transition-all",
+                                    isActive
+                                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                        : "text-muted-foreground",
+                                )}
+                                title={isCollapsed ? item.title : undefined}
+                            >
+                                <item.icon className="size-5 shrink-0" />
+                                {!isCollapsed && item.title}
+                            </Link>
+                        );
+                    })}
                 </nav>
             </div>
             <div className="mt-auto border-t p-4">
