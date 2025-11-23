@@ -35,7 +35,7 @@ model order_items {
     quantity   Int
     price      Float
     notes      String?
-    menu_items menu_items @relation(fields: [menuItemId], references: [id])
+    menu_items menu_items @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
     orders     orders     @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
     @@index([orderId])
