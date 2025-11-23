@@ -48,7 +48,7 @@ export function AdminHeader({ onOpenFeedback }: { onOpenFeedback?: (open: boolea
     const openFeedback = () => (onOpenFeedback ? onOpenFeedback(true) : setIsFeedbackOpen(true));
 
     return (
-        <header className="bg-background flex h-14 items-center justify-end gap-4 border-b px-4 lg:h-[60px] lg:px-6">
+        <header className="bg-background flex h-14 items-center justify-between gap-4 border-b px-4 md:justify-end lg:h-[60px] lg:px-6">
             <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -56,7 +56,8 @@ export function AdminHeader({ onOpenFeedback }: { onOpenFeedback?: (open: boolea
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="flex w-72 flex-col p-0">
+                {/* Sheet only used for small screens (mobile). Hide on md+ to avoid duplicate sidebar. */}
+                <SheetContent side="left" className="flex w-72 flex-col p-0 md:hidden">
                     <AdminSidebar onOpenFeedback={openFeedback} />
                 </SheetContent>
             </Sheet>

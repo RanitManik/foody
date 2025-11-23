@@ -676,8 +676,8 @@ export default function AdminRestaurantsPage() {
                                                       <Badge
                                                           variant={
                                                               restaurant.isActive
-                                                                  ? "default"
-                                                                  : "secondary"
+                                                                  ? "secondary"
+                                                                  : "destructive"
                                                           }
                                                       >
                                                           {restaurant.isActive

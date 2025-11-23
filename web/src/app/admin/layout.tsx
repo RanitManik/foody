@@ -38,15 +38,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         >
             {isCollapsed === null ? (
                 // While we read user's sidebar preference, render a slim skeleton to avoid layout flash
-                <aside className={cn("bg-sidebar text-sidebar-foreground border-r p-4")}>
+                // Hide the static sidebar on small screens; mobile uses the header sheet instead
+                <aside
+                    className={cn(
+                        "bg-sidebar text-sidebar-foreground hidden border-r p-4 md:block",
+                    )}
+                >
                     <div className="bg-muted/50 h-full w-10 animate-pulse rounded-md" />
                 </aside>
             ) : (
-                <AdminSidebar
-                    isCollapsed={isCollapsed}
-                    toggleCollapse={toggleCollapse}
-                    onOpenFeedback={setIsFeedbackOpen}
-                />
+                <div className="hidden md:block">
+                    <AdminSidebar
+                        isCollapsed={isCollapsed}
+                        toggleCollapse={toggleCollapse}
+                        onOpenFeedback={setIsFeedbackOpen}
+                    />
+                </div>
             )}
             <div className="flex min-h-0 min-w-0 flex-col">
                 <AdminHeader onOpenFeedback={setIsFeedbackOpen} />
