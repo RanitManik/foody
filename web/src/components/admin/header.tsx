@@ -81,7 +81,7 @@ export function AdminHeader({ onOpenFeedback }: { onOpenFeedback?: (open: boolea
                             </p>
                         </div>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>Account settings</DropdownMenuItem>
+                        {/* <DropdownMenuItem>Account settings</DropdownMenuItem> */}
                         <DropdownMenuSub>
                             <DropdownMenuSubTrigger>Theme: {themeLabel}</DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
