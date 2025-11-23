@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
 import { useRouter } from "next/navigation";
-import { Plus, Search, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, MoreVertical, Edit, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -44,6 +44,14 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from "@/components/ui/empty";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
@@ -497,155 +505,233 @@ export default function AdminRestaurantsPage() {
             </div>
 
             <div className="relative">
-                <Search className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+                <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
                 <Input
-                    placeholder="Search restaurants..."
-                    className="pl-9"
+                    aria-label="Search restaurants by name, city or location"
+                    placeholder="Search restaurants — name, city or location"
+                    className="pr-10 pl-9"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Escape") setSearchTerm("");
+                    }}
                 />
+                {searchTerm && (
+                    <Button
+                        variant="ghost"
+                        aria-label="Clear search"
+                        className="absolute top-1.5 right-2 size-6 cursor-pointer rounded-full"
+                        onClick={() => setSearchTerm("")}
+                        size="icon"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                )}
             </div>
 
             <div className="min-h-0 overflow-hidden border">
                 <div className="h-full min-h-0 overflow-auto">
-                    <Table>
-                        {/* make header opaque so the bottom border stays visible while sticky */}
-                        <TableHeader className="bg-card border-border sticky top-0 border-b">
-                            <TableRow>
-                                <TableHead className="bg-card sticky top-0 z-30 w-12 border-r text-center">
-                                    #
-                                </TableHead>
-                                <TableHead className="bg-card sticky top-0 z-30 border-r">
-                                    Name
-                                </TableHead>
-                                <TableHead className="bg-card sticky top-0 z-30 border-r">
-                                    Location
-                                </TableHead>
-                                {/* Address column removed — shown in details and sheets instead */}
-                                <TableHead className="bg-card sticky top-0 z-30 border-r">
-                                    Phone
-                                </TableHead>
-                                <TableHead className="bg-card sticky top-0 z-30 border-r">
-                                    Email
-                                </TableHead>
-                                <TableHead className="bg-card sticky top-0 z-30 border-r text-center">
-                                    Status
-                                </TableHead>
-                                <TableHead className="bg-card sticky top-0 z-30 border-r text-center shadow-sm">
-                                    Created At
-                                </TableHead>
-                                <TableHead className="bg-card sticky top-0 z-30 w-[50px] text-center"></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading
-                                ? Array.from({ length: 5 }).map((_, i) => (
-                                      <TableRow key={i}>
-                                          <TableCell className="border-r text-center">
-                                              <Skeleton className="mx-auto h-4 w-6" />
-                                          </TableCell>
-                                          <TableCell className="border-r">
-                                              <Skeleton className="h-4 w-32" />
-                                          </TableCell>
-                                          <TableCell className="border-r">
-                                              <Skeleton className="h-4 w-24" />
-                                          </TableCell>
-                                          <TableCell className="border-r">
-                                              <Skeleton className="h-4 w-28" />
-                                          </TableCell>
-                                          <TableCell className="border-r">
-                                              <Skeleton className="h-4 w-36" />
-                                          </TableCell>
-                                          <TableCell className="border-r text-center">
-                                              <Skeleton className="h-4 w-16" />
-                                          </TableCell>
-                                          <TableCell className="border-r text-center">
-                                              <Skeleton className="h-4 w-24" />
-                                          </TableCell>
-                                          <TableCell>
-                                              <Skeleton className="h-8 w-8" />
-                                          </TableCell>
-                                      </TableRow>
-                                  ))
-                                : filteredRestaurants.map((restaurant: Restaurant, idx: number) => (
-                                      <TableRow
-                                          key={restaurant.id}
-                                          className="hover:bg-muted/50 cursor-pointer"
-                                          onClick={() =>
-                                              router.push(`/restaurant/${restaurant.id}/dashboard`)
-                                          }
-                                      >
-                                          <TableCell className="border-r text-center">
-                                              <div className="text-muted-foreground text-sm">
-                                                  {idx + 1}
-                                              </div>
-                                          </TableCell>
-                                          <TableCell className="border-r font-medium">
-                                              <div className="flex items-center gap-2">
-                                                  <div
-                                                      className={`h-2 w-2 rounded-full ${restaurant.isActive ? "bg-green-500" : "bg-gray-400"}`}
-                                                  />
-                                                  {restaurant.name}
-                                              </div>
-                                          </TableCell>
-                                          <TableCell className="text-muted-foreground border-r">
-                                              {restaurant.city}, {restaurant.location}
-                                          </TableCell>
-                                          {/* address removed from table row */}
-                                          <TableCell className="text-muted-foreground border-r">
-                                              {restaurant.phone || "-"}
-                                          </TableCell>
-                                          <TableCell className="text-muted-foreground border-r">
-                                              {restaurant.email || "-"}
-                                          </TableCell>
-                                          <TableCell className="border-r text-center">
-                                              <Badge
-                                                  variant={
-                                                      restaurant.isActive ? "default" : "secondary"
+                    {/* Empty states */}
+                    {!loading && data?.restaurants?.length === 0 ? (
+                        <div className="p-6">
+                            <Empty>
+                                <EmptyHeader>
+                                    <EmptyMedia variant="icon">
+                                        <Plus />
+                                    </EmptyMedia>
+                                    <EmptyTitle>No restaurants yet</EmptyTitle>
+                                    <EmptyDescription>
+                                        {`You don't have any restaurants added. Create a restaurant to get started.`}
+                                    </EmptyDescription>
+                                </EmptyHeader>
+                                <EmptyContent>
+                                    <div className="flex gap-2">
+                                        <Button onClick={() => setIsCreateSheetOpen(true)}>
+                                            Create Restaurant
+                                        </Button>
+                                    </div>
+                                </EmptyContent>
+                            </Empty>
+                        </div>
+                    ) : !loading && filteredRestaurants.length === 0 && searchTerm ? (
+                        <div className="p-6">
+                            <Empty>
+                                <EmptyHeader>
+                                    <EmptyMedia variant="icon">
+                                        <Search />
+                                    </EmptyMedia>
+                                    <EmptyTitle>No results</EmptyTitle>
+                                    <EmptyDescription>
+                                        No restaurants match{" "}
+                                        <span className="font-semibold">
+                                            &quot;{searchTerm}&quot;
+                                        </span>
+                                        . Try a different search term or clear the search.
+                                    </EmptyDescription>
+                                </EmptyHeader>
+                                <EmptyContent>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" onClick={() => setSearchTerm("")}>
+                                            Clear Search
+                                        </Button>
+                                    </div>
+                                </EmptyContent>
+                            </Empty>
+                        </div>
+                    ) : (
+                        <Table>
+                            {/* make header opaque so the bottom border stays visible while sticky */}
+                            <TableHeader className="bg-card border-border sticky top-0 border-b">
+                                <TableRow>
+                                    <TableHead className="bg-card sticky top-0 z-30 w-12 border-r text-center">
+                                        #
+                                    </TableHead>
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r">
+                                        Name
+                                    </TableHead>
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r">
+                                        Location
+                                    </TableHead>
+                                    {/* Address column removed — shown in details and sheets instead */}
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r">
+                                        Phone
+                                    </TableHead>
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r">
+                                        Email
+                                    </TableHead>
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r text-center">
+                                        Status
+                                    </TableHead>
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r text-center shadow-sm">
+                                        Created At
+                                    </TableHead>
+                                    <TableHead className="bg-card sticky top-0 z-30 w-[50px] text-center"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {loading
+                                    ? Array.from({ length: 5 }).map((_, i) => (
+                                          <TableRow key={i}>
+                                              <TableCell className="border-r text-center">
+                                                  <Skeleton className="mx-auto h-4 w-6" />
+                                              </TableCell>
+                                              <TableCell className="border-r">
+                                                  <Skeleton className="h-4 w-32" />
+                                              </TableCell>
+                                              <TableCell className="border-r">
+                                                  <Skeleton className="h-4 w-24" />
+                                              </TableCell>
+                                              <TableCell className="border-r">
+                                                  <Skeleton className="h-4 w-28" />
+                                              </TableCell>
+                                              <TableCell className="border-r">
+                                                  <Skeleton className="h-4 w-36" />
+                                              </TableCell>
+                                              <TableCell className="border-r text-center">
+                                                  <Skeleton className="h-4 w-16" />
+                                              </TableCell>
+                                              <TableCell className="border-r text-center">
+                                                  <Skeleton className="h-4 w-24" />
+                                              </TableCell>
+                                              <TableCell>
+                                                  <Skeleton className="h-8 w-8" />
+                                              </TableCell>
+                                          </TableRow>
+                                      ))
+                                    : filteredRestaurants.map(
+                                          (restaurant: Restaurant, idx: number) => (
+                                              <TableRow
+                                                  key={restaurant.id}
+                                                  className="hover:bg-muted/50 cursor-pointer"
+                                                  onClick={() =>
+                                                      router.push(
+                                                          `/restaurant/${restaurant.id}/dashboard`,
+                                                      )
                                                   }
                                               >
-                                                  {restaurant.isActive ? "Active" : "Inactive"}
-                                              </Badge>
-                                          </TableCell>
-                                          <TableCell className="text-muted-foreground border-r text-center">
-                                              {new Date(restaurant.createdAt).toLocaleDateString()}
-                                          </TableCell>
-                                          <TableCell
-                                              className="text-center"
-                                              onClick={(e) => e.stopPropagation()}
-                                          >
-                                              <DropdownMenu>
-                                                  <DropdownMenuTrigger asChild>
-                                                      <Button
-                                                          variant="ghost"
-                                                          size="icon"
-                                                          className="h-8 w-8"
-                                                      >
-                                                          <MoreVertical className="h-4 w-4" />
-                                                      </Button>
-                                                  </DropdownMenuTrigger>
-                                                  <DropdownMenuContent align="end">
-                                                      <DropdownMenuItem
-                                                          onClick={() => openEditSheet(restaurant)}
-                                                      >
-                                                          <Edit className="mr-2 h-4 w-4" />
-                                                          Edit
-                                                      </DropdownMenuItem>
-                                                      <DropdownMenuItem
-                                                          onClick={() =>
-                                                              setDeletingRestaurant(restaurant)
+                                                  <TableCell className="border-r text-center">
+                                                      <div className="text-muted-foreground text-sm">
+                                                          {idx + 1}
+                                                      </div>
+                                                  </TableCell>
+                                                  <TableCell className="border-r font-medium">
+                                                      <div className="flex items-center gap-2">
+                                                          <div
+                                                              className={`h-2 w-2 rounded-full ${restaurant.isActive ? "bg-green-500" : "bg-gray-400"}`}
+                                                          />
+                                                          {restaurant.name}
+                                                      </div>
+                                                  </TableCell>
+                                                  <TableCell className="text-muted-foreground border-r">
+                                                      {restaurant.city}, {restaurant.location}
+                                                  </TableCell>
+                                                  {/* address removed from table row */}
+                                                  <TableCell className="text-muted-foreground border-r">
+                                                      {restaurant.phone || "-"}
+                                                  </TableCell>
+                                                  <TableCell className="text-muted-foreground border-r">
+                                                      {restaurant.email || "-"}
+                                                  </TableCell>
+                                                  <TableCell className="border-r text-center">
+                                                      <Badge
+                                                          variant={
+                                                              restaurant.isActive
+                                                                  ? "default"
+                                                                  : "secondary"
                                                           }
                                                       >
-                                                          <Trash2 className="mr-2 h-4 w-4" />
-                                                          Delete
-                                                      </DropdownMenuItem>
-                                                  </DropdownMenuContent>
-                                              </DropdownMenu>
-                                          </TableCell>
-                                      </TableRow>
-                                  ))}
-                        </TableBody>
-                    </Table>
+                                                          {restaurant.isActive
+                                                              ? "Active"
+                                                              : "Inactive"}
+                                                      </Badge>
+                                                  </TableCell>
+                                                  <TableCell className="text-muted-foreground border-r text-center">
+                                                      {new Date(
+                                                          restaurant.createdAt,
+                                                      ).toLocaleDateString()}
+                                                  </TableCell>
+                                                  <TableCell
+                                                      className="text-center"
+                                                      onClick={(e) => e.stopPropagation()}
+                                                  >
+                                                      <DropdownMenu>
+                                                          <DropdownMenuTrigger asChild>
+                                                              <Button
+                                                                  variant="ghost"
+                                                                  size="icon"
+                                                                  className="h-8 w-8"
+                                                              >
+                                                                  <MoreVertical className="h-4 w-4" />
+                                                              </Button>
+                                                          </DropdownMenuTrigger>
+                                                          <DropdownMenuContent align="end">
+                                                              <DropdownMenuItem
+                                                                  onClick={() =>
+                                                                      openEditSheet(restaurant)
+                                                                  }
+                                                              >
+                                                                  <Edit className="mr-2 h-4 w-4" />
+                                                                  Edit
+                                                              </DropdownMenuItem>
+                                                              <DropdownMenuItem
+                                                                  onClick={() =>
+                                                                      setDeletingRestaurant(
+                                                                          restaurant,
+                                                                      )
+                                                                  }
+                                                              >
+                                                                  <Trash2 className="mr-2 h-4 w-4" />
+                                                                  Delete
+                                                              </DropdownMenuItem>
+                                                          </DropdownMenuContent>
+                                                      </DropdownMenu>
+                                                  </TableCell>
+                                              </TableRow>
+                                          ),
+                                      )}
+                            </TableBody>
+                        </Table>
+                    )}
                 </div>
             </div>
 

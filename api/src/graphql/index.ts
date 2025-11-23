@@ -16,6 +16,8 @@ import { typeDefs as paymentTypeDefs } from "./payment/schema";
 import { paymentResolvers } from "./payment/resolver";
 import { typeDefs as restaurantTypeDefs } from "./restaurant/schema";
 import { restaurantResolvers } from "./restaurant/resolver";
+import { typeDefs as feedbackTypeDefs } from "./feedback/schema";
+import { feedbackResolvers } from "./feedback/resolver";
 import { typeDefs as userTypeDefs } from "./user/schema";
 import { userResolvers } from "./user/resolver";
 
@@ -27,6 +29,7 @@ export const typeDefs = mergeTypeDefs([
     orderTypeDefs,
     paymentTypeDefs,
     restaurantTypeDefs,
+    feedbackTypeDefs,
     userTypeDefs,
 ]);
 
@@ -38,5 +41,6 @@ export const resolvers = mergeResolvers([
     orderResolvers,
     paymentResolvers,
     restaurantResolvers,
+    feedbackResolvers,
     userResolvers,
 ]);

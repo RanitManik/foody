@@ -226,6 +226,15 @@ export const CreateRestaurantInputSchema = z.object({
 });
 
 /**
+ * Feedback Input Schema
+ * Accepts a message and optional email address. Message is sanitized and required.
+ */
+export const CreateFeedbackInputSchema = z.object({
+    message: validationSchemas.safeHtml,
+    email: validationSchemas.email.optional().or(z.literal("")),
+});
+
+/**
  * Payment Input Schemas
  */
 export const CreatePaymentMethodInputSchema = z.object({

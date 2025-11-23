@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
     return (
-        <div className="relative container grid min-h-screen flex-col lg:max-w-none lg:grid-cols-2 lg:px-0">
+        <div className="relative grid min-h-screen flex-col lg:max-w-none lg:grid-cols-2 lg:px-0">
             <div className="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
                 <div className="absolute inset-0 bg-zinc-900" />
                 <div className="absolute inset-0">
@@ -44,7 +44,7 @@ export default function LoginPage() {
                     </div>
                     <ThemeToggle />
                 </div>
-                <div className="mx-auto flex w-full flex-1 flex-col justify-center space-y-6 sm:w-[350px]">
+                <div className="mx-auto flex w-full flex-1 flex-col justify-center space-y-6 sm:w-[400px]">
                     <div className="flex flex-col space-y-2 text-center">
                         <h1 className="text-2xl font-semibold tracking-tight">
                             Login to Dashboard

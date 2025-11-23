@@ -23,9 +23,10 @@ const sidebarItems = [
 export interface AdminSidebarProps {
     isCollapsed?: boolean;
     toggleCollapse?: () => void;
+    onOpenFeedback?: (open: boolean) => void;
 }
 
-export function AdminSidebar({ isCollapsed, toggleCollapse }: AdminSidebarProps) {
+export function AdminSidebar({ isCollapsed, toggleCollapse, onOpenFeedback }: AdminSidebarProps) {
     const pathname = usePathname();
 
     return (
@@ -79,8 +80,9 @@ export function AdminSidebar({ isCollapsed, toggleCollapse }: AdminSidebarProps)
             </div>
             <div className="mt-auto border-t p-4">
                 <nav className="grid gap-1">
-                    <Link
-                        href="#"
+                    <button
+                        type="button"
+                        onClick={() => onOpenFeedback?.(true)}
                         className={cn(
                             "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
                             isCollapsed && "justify-center px-2",
@@ -89,18 +91,18 @@ export function AdminSidebar({ isCollapsed, toggleCollapse }: AdminSidebarProps)
                     >
                         <MessageSquare className="size-5 shrink-0" />
                         {!isCollapsed && "Feedback"}
-                    </Link>
+                    </button>
                     <Button
                         variant="ghost"
                         className={cn(
-                            "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground justify-start gap-3 px-3",
+                            "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer justify-start gap-3 px-3",
                             isCollapsed && "justify-center px-2",
                         )}
                         onClick={toggleCollapse}
                         title={isCollapsed ? "Expand menu" : "Collapse menu"}
                     >
                         <PanelLeftClose
-                            className={cn("h-4 w-4 shrink-0", isCollapsed && "rotate-180")}
+                            className={cn("size-5 shrink-0", isCollapsed && "rotate-180")}
                         />
                         {!isCollapsed && "Collapse menu"}
                     </Button>

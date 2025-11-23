@@ -3,15 +3,19 @@
 import { useState, useEffect } from "react";
 import { AdminHeader } from "@/components/admin/header";
 import { AdminSidebar } from "@/components/admin/sidebar";
+import FeedbackModal from "@/components/admin/feedback-modal";
 import { cn } from "@/lib/utils";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState<boolean | null>(null);
 
     useEffect(() => {
         const saved = localStorage.getItem("admin-sidebar-collapsed");
         if (saved) {
             setIsCollapsed(JSON.parse(saved));
+        } else {
+            // If not saved, default to expanded (false)
+            setIsCollapsed(false);
         }
     }, []);
 
@@ -20,6 +24,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setIsCollapsed(newCollapsed);
         localStorage.setItem("admin-sidebar-collapsed", JSON.stringify(newCollapsed));
     };
+
+    const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
     return (
         <div
@@ -30,12 +36,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]",
             )}
         >
-            <AdminSidebar isCollapsed={isCollapsed} toggleCollapse={toggleCollapse} />
+            {isCollapsed === null ? (
+                // While we read user's sidebar preference, render a slim skeleton to avoid layout flash
+                <aside className={cn("bg-sidebar text-sidebar-foreground border-r p-4")}>
+                    <div className="bg-muted/50 h-full w-10 animate-pulse rounded-md" />
+                </aside>
+            ) : (
+                <AdminSidebar
+                    isCollapsed={isCollapsed}
+                    toggleCollapse={toggleCollapse}
+                    onOpenFeedback={setIsFeedbackOpen}
+                />
+            )}
             <div className="flex min-h-0 min-w-0 flex-col">
-                <AdminHeader />
+                <AdminHeader onOpenFeedback={setIsFeedbackOpen} />
                 <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden p-4 lg:gap-6 lg:p-6">
                     {children}
                 </main>
+                <FeedbackModal open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
             </div>
         </div>
     );
