@@ -2,34 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { useQuery } from "@apollo/client/react";
-import { gql } from "@apollo/client/core";
 import { RestaurantHeader } from "@/components/restaurant/header";
 import { RestaurantSidebar } from "@/components/restaurant/sidebar";
 import FeedbackModal from "@/components/admin/feedback-modal";
 import { cn } from "@/lib/utils";
 
-const GET_RESTAURANT = gql`
-    query GetRestaurant($id: ID!) {
-        restaurant(id: $id) {
-            id
-            name
-        }
-    }
-`;
-
-type RestaurantData = {
-    restaurant?: { id: string; name: string };
-};
-
 export default function RestaurantLayout({ children }: { children: React.ReactNode }) {
     const params = useParams();
     const restaurantId = params.id as string;
-
-    const { data, loading } = useQuery<RestaurantData>(GET_RESTAURANT, {
-        variables: { id: restaurantId },
-        skip: !restaurantId,
-    });
 
     const [isCollapsed, setIsCollapsed] = useState<boolean | null>(null);
 
@@ -50,27 +30,6 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
     };
 
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-
-    // if (loading) {
-    //     return (
-    //         <div className="flex min-h-screen items-center justify-center">
-    //             <div className="text-center">
-    //                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
-    //                 <p>Loading restaurant...</p>
-    //             </div>
-    //         </div>
-    //     );
-    // }
-
-    // if (!data?.restaurant) {
-    //     return (
-    //         <div className="flex min-h-screen items-center justify-center">
-    //             <div className="text-center">
-    //                 <p className="text-destructive">Restaurant not found</p>
-    //             </div>
-    //         </div>
-    //     );
-    // }
 
     return (
         <div

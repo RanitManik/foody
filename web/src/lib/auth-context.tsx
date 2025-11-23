@@ -52,30 +52,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const [user, setUser] = useState<User | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
 
-    const { data, loading } = useQuery(ME_QUERY, {
+    const { data, loading, error } = useQuery<{ me: User }>(ME_QUERY, {
         skip: typeof window === "undefined" || !localStorage.getItem("auth_token") || isInitialized,
-        onCompleted: (data) => {
-            if (data?.me) {
-                setUser(data.me);
-            }
+    });
+
+    useEffect(() => {
+        if (data?.me) {
+            setUser(data.me);
             setIsInitialized(true);
-        },
-        onError: () => {
+        }
+    }, [data]);
+
+    useEffect(() => {
+        if (error) {
             // Token might be invalid, clear it
             if (typeof window !== "undefined") {
                 localStorage.removeItem("auth_token");
                 localStorage.removeItem("user_role");
             }
             setIsInitialized(true);
-        },
-    });
-
-    useEffect(() => {
-        // If we have data from the query, set the user
-        if (data?.me && !user) {
-            setUser(data.me);
         }
-    }, [data, user]);
+    }, [error]);
 
     const logout = () => {
         if (typeof window !== "undefined") {
