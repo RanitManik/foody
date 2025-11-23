@@ -433,7 +433,7 @@ export default function CreateOrderPage() {
                                             <Card
                                                 key={item.id}
                                                 className={cn(
-                                                    "group relative flex flex-col overflow-hidden border-none py-0 shadow-sm transition-all hover:shadow-md",
+                                                    "group relative flex flex-col overflow-hidden border-none py-0 shadow-sm transition-all hover:shadow-md gap-0",
                                                     !item.isAvailable && "opacity-60",
                                                 )}
                                             >

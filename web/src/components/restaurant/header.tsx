@@ -1,7 +1,5 @@
-"use client";
-
 import { useAuth } from "@/lib/auth-context";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -14,12 +12,37 @@ import {
     DropdownMenuSubContent,
     DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
-import { Menu, Moon, Sun, Monitor, Check } from "lucide-react";
+import {
+    Menu,
+    Moon,
+    Sun,
+    Monitor,
+    Check,
+    ChevronDown,
+    Calendar,
+    User as UserIcon,
+    LogOut,
+    Settings,
+} from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { RestaurantSidebar } from "./sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import FeedbackModal from "@/components/admin/feedback-modal";
+import { useQuery } from "@apollo/client/react";
+import { gql } from "@apollo/client/core";
+import { cn } from "@/lib/utils";
+
+const GET_RESTAURANT = gql`
+    query GetRestaurantHeader($id: ID!) {
+        restaurant(id: $id) {
+            id
+            name
+            isActive
+            location
+        }
+    }
+`;
 
 export function RestaurantHeader({
     restaurantId,
@@ -34,8 +57,44 @@ export function RestaurantHeader({
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const openFeedback = () => (onOpenFeedback ? onOpenFeedback(true) : setIsFeedbackOpen(true));
 
+    const { data } = useQuery(GET_RESTAURANT, {
+        variables: { id: restaurantId },
+        skip: !restaurantId,
+    });
+
+    const restaurant = data?.restaurant;
+
+    // Date and Time State
+    const [currentDate, setCurrentDate] = useState<Date | null>(null);
+
+    useEffect(() => {
+        setCurrentDate(new Date());
+        const timer = setInterval(() => {
+            setCurrentDate(new Date());
+        }, 60000); // Update every minute
+
+        return () => clearInterval(timer);
+    }, []);
+
+    const formattedDate = currentDate
+        ? new Intl.DateTimeFormat("en-US", {
+              weekday: "long",
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+          }).format(currentDate)
+        : "";
+
+    const formattedTime = currentDate
+        ? new Intl.DateTimeFormat("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+          }).format(currentDate)
+        : "";
+
     return (
-        <header className="bg-background flex h-12 items-center justify-between gap-4 border-b px-4 md:justify-end lg:h-14 lg:px-6">
+        <header className="bg-background flex h-14 items-center justify-between gap-4 border-b px-4">
             <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -43,20 +102,53 @@ export function RestaurantHeader({
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
                 </SheetTrigger>
-                {/* Sheet only used for small screens (mobile). Hide on md+ to avoid duplicate sidebar. */}
                 <SheetContent side="left" className="flex w-72 flex-col p-0 md:hidden">
                     <RestaurantSidebar restaurantId={restaurantId} onOpenFeedback={openFeedback} />
                 </SheetContent>
             </Sheet>
 
+            {/* Left Side: Restaurant Info */}
             <div className="flex items-center gap-4">
+                {restaurant && (
+                    <>
+                        <div className="bg-card flex items-center gap-3 rounded-lg border px-3 py-1.5 shadow-sm">
+                            <div
+                                className={cn(
+                                    "h-2 w-2 rounded-full",
+                                    restaurant.isActive ? "bg-green-500" : "bg-red-500",
+                                )}
+                            />
+                            <span className="text-sm font-semibold">{restaurant.name}</span>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* Right Side: Date, Time, Profile */}
+            <div className="flex items-center gap-3">
+                {/* Date & Time */}
+                <div className="bg-card hidden items-center gap-2 rounded-lg border px-3 py-1.5 shadow-sm lg:flex">
+                    <Calendar className="text-muted-foreground h-4 w-4" />
+                    <span className="text-sm font-medium">
+                        {formattedDate} at {formattedTime}
+                    </span>
+                </div>
+
+                {/* Profile Dropdown */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                            <Avatar className="h-8 w-8">
+                        <Button
+                            variant="outline"
+                            className="hover:bg-accent flex h-9 items-center gap-2 rounded-lg px-2 shadow-sm"
+                        >
+                            <Avatar className="h-6 w-6">
                                 <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                                 <AvatarFallback>CN</AvatarFallback>
                             </Avatar>
+                            <span className="hidden text-sm font-medium sm:inline-block">
+                                {user ? `${user.firstName} ${user.lastName}` : "User"}
+                            </span>
+                            <ChevronDown className="text-muted-foreground h-3 w-3" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
@@ -69,27 +161,29 @@ export function RestaurantHeader({
                             </p>
                         </div>
                         <DropdownMenuSeparator />
-                        {/* <DropdownMenuItem>Account settings</DropdownMenuItem> */}
                         <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>Theme: {themeLabel}</DropdownMenuSubTrigger>
+                            <DropdownMenuSubTrigger>
+                                <Settings className="mr-2 h-4 w-4" />
+                                Theme: {themeLabel}
+                            </DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
                                 <DropdownMenuSubContent>
                                     <DropdownMenuItem onClick={() => setTheme("light")}>
-                                        <Sun className="h-4 w-4" />
+                                        <Sun className="mr-2 h-4 w-4" />
                                         Light
                                         {theme === "light" && (
                                             <Check className="text-accent-foreground ml-auto h-4 w-4" />
                                         )}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setTheme("dark")}>
-                                        <Moon className="h-4 w-4" />
+                                        <Moon className="mr-2 h-4 w-4" />
                                         Dark
                                         {theme === "dark" && (
                                             <Check className="text-accent-foreground ml-auto h-4 w-4" />
                                         )}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setTheme("system")}>
-                                        <Monitor className="h-4 w-4" />
+                                        <Monitor className="mr-2 h-4 w-4" />
                                         System
                                         {(theme === "system" || theme === undefined) && (
                                             <Check className="text-accent-foreground ml-auto h-4 w-4" />
@@ -99,12 +193,14 @@ export function RestaurantHeader({
                             </DropdownMenuPortal>
                         </DropdownMenuSub>
                         <DropdownMenuItem onClick={openFeedback}>
+                            <UserIcon className="mr-2 h-4 w-4" />
                             Help &amp; Feedback
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-
-                        <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
-                        {/* Feedback dialog is controlled by local state when header is used without an external handler */}
+                        <DropdownMenuItem onClick={logout}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Logout
+                        </DropdownMenuItem>
                         {!onOpenFeedback ? (
                             <FeedbackModal open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
                         ) : null}
