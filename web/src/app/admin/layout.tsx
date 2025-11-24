@@ -1,12 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AdminHeader } from "@/components/admin/header";
 import { AdminSidebar } from "@/components/admin/sidebar";
 import FeedbackModal from "@/components/admin/feedback-modal";
+import { AccessDenied } from "@/components/auth/access-denied";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const router = useRouter();
+    const { user, loading, hasToken } = useAuth();
+
     const [isCollapsed, setIsCollapsed] = useState<boolean | null>(null);
 
     useEffect(() => {
@@ -26,6 +32,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
 
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
+    useEffect(() => {
+        if (!loading && !user && !hasToken) {
+            router.replace("/login");
+        }
+    }, [loading, user, hasToken, router]);
+
+    // Check permissions
+    if (loading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                {/* <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" /> */}
+            </div>
+        );
+    }
+
+    if (!user) {
+        if (!hasToken) {
+            return (
+                <div className="flex min-h-screen items-center justify-center">
+                    {/* <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" /> */}
+                </div>
+            );
+        }
+        return <AccessDenied />;
+    }
+
+    if (user.role !== "ADMIN") {
+        return <AccessDenied />;
+    }
 
     return (
         <div

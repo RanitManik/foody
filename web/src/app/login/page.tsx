@@ -55,7 +55,8 @@ export default function LoginPage() {
                     </div>
                     <LoginForm />
                     <p className="text-muted-foreground px-8 text-center text-sm">
-                        By clicking continue, you agree to our{" "}
+                        By clicking continue, you agree to our
+                        <br />
                         <Link
                             href="/terms"
                             className="hover:text-primary underline underline-offset-4"

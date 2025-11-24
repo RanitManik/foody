@@ -284,14 +284,94 @@ export default function CreateOrderPage() {
 
     if (orderLoading && orderId) {
         return (
-            <div className="flex h-screen items-center justify-center">
-                <Spinner className="h-8 w-8" />
+            <div className="grid h-full min-h-0 grid-cols-1 gap-6 lg:grid-cols-[1fr_350px] xl:grid-cols-[1fr_400px]">
+                {/* Left Column: Title, Search, and Menu Items Skeleton */}
+                <div className="flex min-h-0 flex-col">
+                    <div className="mb-4 flex items-center justify-between">
+                        <Skeleton className="h-8 w-32" />
+                        <Skeleton className="h-6 w-20" />
+                    </div>
+
+                    <div className="mb-6 flex flex-col gap-4 sm:flex-row">
+                        <Skeleton className="h-10 flex-1" />
+                        <Skeleton className="h-10 w-full sm:w-[200px]" />
+                    </div>
+
+                    {/* Menu Items Grid Skeleton */}
+                    <div className="min-h-0 flex-1">
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <Card
+                                    key={i}
+                                    className="overflow-hidden border-none py-0 shadow-sm"
+                                >
+                                    <Skeleton className="aspect-video w-full rounded-t-lg" />
+                                    <CardContent className="p-4">
+                                        <Skeleton className="mb-2 h-6 w-3/4" />
+                                        <Skeleton className="h-4 w-1/2" />
+                                        <Skeleton className="mt-4 h-10 w-full" />
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Column: Order Summary Skeleton */}
+                <div className="flex h-full min-h-0 flex-col">
+                    <div className="bg-background flex h-full flex-col rounded-xl border shadow-sm">
+                        {/* Cart Header Skeleton */}
+                        <div className="bg-muted/20 border-b p-4">
+                            <div className="flex items-center justify-between">
+                                <Skeleton className="h-6 w-32" />
+                                <Skeleton className="h-6 w-16" />
+                            </div>
+                        </div>
+
+                        {/* Cart Items Skeleton */}
+                        <div className="flex-1 p-4">
+                            <div className="space-y-3">
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="bg-card flex gap-4 rounded-lg border p-3"
+                                    >
+                                        <Skeleton className="size-14 rounded-md" />
+                                        <div className="flex-1 space-y-2">
+                                            <div className="flex justify-between">
+                                                <Skeleton className="h-5 w-24" />
+                                                <Skeleton className="h-5 w-12" />
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Skeleton className="h-4 w-4" />
+                                                    <Skeleton className="h-4 w-4" />
+                                                    <Skeleton className="h-4 w-4" />
+                                                </div>
+                                                <Skeleton className="h-6 w-6" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Footer Section Skeleton */}
+                        <div className="bg-muted/20 space-y-3 border-t p-4">
+                            <div className="flex justify-between">
+                                <Skeleton className="h-6 w-12" />
+                                <Skeleton className="h-6 w-16" />
+                            </div>
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="grid h-full min-h-0 grid-cols-1 gap-6 lg:grid-cols-[1fr_400px]">
+        <div className="grid h-full min-h-0 grid-cols-1 gap-6 lg:grid-cols-[1fr_350px] xl:grid-cols-[1fr_400px]">
             {/* Left Column: Title, Search, and Menu Items */}
             <div className="flex min-h-0 flex-col">
                 <div className="mb-4 flex items-center justify-between">
@@ -314,11 +394,11 @@ export default function CreateOrderPage() {
                                 }
                             >
                                 {(orderData as { order?: OrderData })?.order?.status ===
-                                    "COMPLETED" && <CheckCircle className="mr-1 h-3 w-3" />}
+                                    "COMPLETED" && <CheckCircle className="h-3 w-3" />}
                                 {(orderData as { order?: OrderData })?.order?.status ===
-                                    "CANCELLED" && <XCircle className="mr-1 h-3 w-3" />}
+                                    "CANCELLED" && <XCircle className="h-3 w-3" />}
                                 {(orderData as { order?: OrderData })?.order?.status ===
-                                    "PENDING" && <Clock className="mr-1 h-3 w-3" />}
+                                    "PENDING" && <Clock className="h-3 w-3" />}
                                 {(orderData as { order?: OrderData })?.order?.status}
                             </Badge>
                         </div>
@@ -367,7 +447,7 @@ export default function CreateOrderPage() {
 
                 {/* Menu Items Grid */}
                 <div className="min-h-0 flex-1">
-                    <ScrollArea className="h-[calc(100vh-220px)]">
+                    <ScrollArea className="flex-1">
                         <div>
                             {menuLoading ? (
                                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -491,7 +571,7 @@ export default function CreateOrderPage() {
                     </div>
 
                     {/* Cart Items */}
-                    <ScrollArea className="h-[calc(100vh-400px)] flex-1">
+                    <ScrollArea className="flex-1">
                         <div className="p-4">
                             {cart.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">

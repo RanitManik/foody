@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { RestaurantHeader } from "@/components/restaurant/header";
 import { RestaurantSidebar } from "@/components/restaurant/sidebar";
 import FeedbackModal from "@/components/admin/feedback-modal";
+import { AccessDenied } from "@/components/auth/access-denied";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 export default function RestaurantLayout({ children }: { children: React.ReactNode }) {
     const params = useParams();
+    const router = useRouter();
     const restaurantId = params.id as string;
+    const { user, loading, hasToken } = useAuth();
 
     const [isCollapsed, setIsCollapsed] = useState<boolean | null>(null);
 
@@ -30,6 +34,41 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
     };
 
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
+    useEffect(() => {
+        if (!loading && !user && !hasToken) {
+            router.replace("/login");
+        }
+    }, [loading, user, hasToken, router]);
+
+    // Check permissions
+    if (loading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                {/* <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" /> */}
+            </div>
+        );
+    }
+
+    if (!user) {
+        if (!hasToken) {
+            return (
+                <div className="flex min-h-screen items-center justify-center">
+                    {/* <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" /> */}
+                </div>
+            );
+        }
+        return <AccessDenied />;
+    }
+
+    // Allow ADMIN to access any restaurant
+    // Allow MANAGER/MEMBER to access only their assigned restaurant
+    const hasPermission =
+        user.role === "ADMIN" || (user.restaurantId && user.restaurantId === restaurantId);
+
+    if (!hasPermission) {
+        return <AccessDenied />;
+    }
 
     return (
         <div

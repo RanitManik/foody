@@ -59,14 +59,21 @@ export function useAuth() {
 
             if (response.data?.login) {
                 const { token, user } = response.data.login;
-                localStorage.setItem("auth_token", token);
+                // Set token in cookie for middleware access
+                document.cookie = `auth_token=${token}; path=/; max-age=86400; samesite=strict`; // 24 hours
+                localStorage.setItem("auth_token", token); // Keep for backward compatibility and Apollo
                 localStorage.setItem("user_role", user.role);
+                localStorage.setItem("user_data", JSON.stringify(user));
+
+                if (typeof window !== "undefined") {
+                    window.dispatchEvent(new Event("auth-changed"));
+                }
 
                 // Redirect based on role
                 if (user.role === "ADMIN") {
                     router.push("/admin/restaurants");
                 } else if (user.restaurantId) {
-                    router.push(`/restaurant/${user.restaurantId}/dashboard`);
+                    router.push(`/restaurant/${user.restaurantId}/orders`);
                 } else {
                     // Fallback if no restaurant ID for non-admin (shouldn't happen based on schema but good safety)
                     router.push("/");
@@ -79,8 +86,15 @@ export function useAuth() {
     };
 
     const logout = () => {
+        // Clear cookie
+        document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user_role");
+        localStorage.removeItem("user_data");
+
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event("auth-changed"));
+        }
         router.push("/login");
     };
 
