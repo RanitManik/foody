@@ -468,7 +468,7 @@ export default function CreateOrderPage() {
                                     {Array.from({ length: 8 }).map((_, i) => (
                                         <Card
                                             key={i}
-                                            className="gap-0 overflow-hidden border-none py-0 shadow-sm"
+                                            className="gap-0 xl:max-w-[350px] overflow-hidden border-none py-0 shadow-sm"
                                         >
                                             <Skeleton className="aspect-4/3 w-full rounded-t-lg" />
                                             <CardContent className="p-4">
@@ -486,7 +486,7 @@ export default function CreateOrderPage() {
                                             <Card
                                                 key={item.id}
                                                 className={cn(
-                                                    "group relative flex flex-col gap-0 overflow-hidden border-none py-0 shadow-sm transition-all hover:shadow-md",
+                                                    "group relative flex flex-col gap-0 xl:max-w-[300px] overflow-hidden border-none py-0 shadow-sm transition-all hover:shadow-md",
                                                     !item.isAvailable && "opacity-60",
                                                 )}
                                             >
