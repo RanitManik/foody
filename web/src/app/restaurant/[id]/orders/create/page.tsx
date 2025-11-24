@@ -304,7 +304,7 @@ export default function CreateOrderPage() {
                             {Array.from({ length: 8 }).map((_, i) => (
                                 <Card
                                     key={i}
-                                    className="overflow-hidden border-none py-0 shadow-sm"
+                                    className="gap-0 overflow-hidden border-none py-0 shadow-sm"
                                 >
                                     <Skeleton className="aspect-video w-full rounded-t-lg" />
                                     <CardContent className="p-4">
@@ -458,111 +458,112 @@ export default function CreateOrderPage() {
                     {/* Menu Items Grid */}
                     <div className="min-h-0 flex-1 overflow-y-auto">
                         <div className="mr-2">
-                                {menuLoading ? (
-                                    <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
-                                        {Array.from({ length: 8 }).map((_, i) => (
+                            {menuLoading ? (
+                                <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6 lg:grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
+                                    {Array.from({ length: 8 }).map((_, i) => (
+                                        <Card
+                                            key={i}
+                                            className="gap-0 overflow-hidden border-none py-0 shadow-sm"
+                                        >
+                                            <Skeleton className="aspect-4/3 w-full rounded-t-lg" />
+                                            <CardContent className="p-4">
+                                                <Skeleton className="mb-2 h-6 w-3/4" />
+                                                <Skeleton className="h-4 w-1/2" />
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6 lg:grid-cols-[repeat(auto-fit,minmax(250px,1fr))]">
+                                    {filteredMenuItems.map((item: MenuItem) => {
+                                        const quantityInCart = getCartItemQuantity(item.id);
+                                        return (
                                             <Card
-                                                key={i}
-                                                className="overflow-hidden border-none py-0 shadow-sm"
+                                                key={item.id}
+                                                className={cn(
+                                                    "group relative flex flex-col gap-0 overflow-hidden border-none py-0 shadow-sm transition-all hover:shadow-md",
+                                                    !item.isAvailable && "opacity-60",
+                                                )}
                                             >
-                                                <Skeleton className="aspect-4/3 w-full rounded-t-lg" />
-                                                <CardContent className="p-4">
-                                                    <Skeleton className="mb-2 h-6 w-3/4" />
-                                                    <Skeleton className="h-4 w-1/2" />
+                                                <div className="relative aspect-video w-full overflow-hidden">
+                                                    {item.imageUrl ? (
+                                                        <Image
+                                                            src={item.imageUrl}
+                                                            alt={item.name}
+                                                            fill
+                                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                                            onError={(e) => {
+                                                                e.currentTarget.src =
+                                                                    "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?q=80&w=2070&auto=format&fit=crop";
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div className="bg-muted flex h-full w-full items-center justify-center">
+                                                            <Utensils className="text-muted-foreground/20 h-12 w-12" />
+                                                        </div>
+                                                    )}
+
+                                                    <div className="absolute top-3 right-3">
+                                                        {item.isAvailable ? (
+                                                            <Badge className="bg-white/90 text-black backdrop-blur-sm hover:bg-white">
+                                                                <span className="mr-1.5 h-2 w-2 rounded-full bg-green-500" />
+                                                                Available
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge variant="destructive">
+                                                                <span className="mr-1.5 h-2 w-2 rounded-full bg-white" />
+                                                                Unavailable
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <CardContent className="flex flex-1 flex-col p-4">
+                                                    <div className="mb-2 flex items-start justify-between gap-2">
+                                                        <h3 className="line-clamp-1 font-semibold">
+                                                            {item.name}
+                                                        </h3>
+                                                        <span className="font-semibold">
+                                                            ${item.price.toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                    {item.description && (
+                                                        <p className="text-muted-foreground mb-4 line-clamp-1 text-sm">
+                                                            {item.description}
+                                                        </p>
+                                                    )}
+
+                                                    <div className="mt-auto">
+                                                        {quantityInCart > 0 ? (
+                                                            <Button
+                                                                variant="outline"
+                                                                className="border-primary/20 bg-primary/5 hover:bg-primary/10 w-full"
+                                                                onClick={() => addToCart(item)}
+                                                                disabled={!item.isAvailable}
+                                                            >
+                                                                <Plus className="h-4 w-4" />
+                                                                Add More ({quantityInCart})
+                                                            </Button>
+                                                        ) : (
+                                                            <Button
+                                                                className="w-full"
+                                                                onClick={() => addToCart(item)}
+                                                                disabled={!item.isAvailable}
+                                                                variant="secondary"
+                                                            >
+                                                                <Plus className="h-4 w-4" />
+                                                                Add to Cart
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </CardContent>
                                             </Card>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
-                                        {filteredMenuItems.map((item: MenuItem) => {
-                                            const quantityInCart = getCartItemQuantity(item.id);
-                                            return (
-                                                <Card
-                                                    key={item.id}
-                                                    className={cn(
-                                                        "group relative flex flex-col gap-0 overflow-hidden border-none py-0 shadow-sm transition-all hover:shadow-md",
-                                                        !item.isAvailable && "opacity-60",
-                                                    )}
-                                                >
-                                                    <div className="relative aspect-video w-full overflow-hidden">
-                                                        {item.imageUrl ? (
-                                                            <Image
-                                                                src={item.imageUrl}
-                                                                alt={item.name}
-                                                                fill
-                                                                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                                                onError={(e) => {
-                                                                    e.currentTarget.src =
-                                                                        "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?q=80&w=2070&auto=format&fit=crop";
-                                                                }}
-                                                            />
-                                                        ) : (
-                                                            <div className="bg-muted flex h-full w-full items-center justify-center">
-                                                                <Utensils className="text-muted-foreground/20 h-12 w-12" />
-                                                            </div>
-                                                        )}
-
-                                                        <div className="absolute top-3 right-3">
-                                                            {item.isAvailable ? (
-                                                                <Badge className="bg-white/90 text-black backdrop-blur-sm hover:bg-white">
-                                                                    <span className="mr-1.5 h-2 w-2 rounded-full bg-green-500" />
-                                                                    Available
-                                                                </Badge>
-                                                            ) : (
-                                                                <Badge variant="destructive">
-                                                                    <span className="mr-1.5 h-2 w-2 rounded-full bg-white" />
-                                                                    Unavailable
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    <CardContent className="flex flex-1 flex-col p-4">
-                                                        <div className="mb-2 flex items-start justify-between gap-2">
-                                                            <h3 className="line-clamp-1 font-semibold">
-                                                                {item.name}
-                                                            </h3>
-                                                            <span className="font-semibold">
-                                                                ${item.price.toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                        {item.description && (
-                                                            <p className="text-muted-foreground mb-4 line-clamp-1 text-sm">
-                                                                {item.description}
-                                                            </p>
-                                                        )}
-
-                                                        <div className="mt-auto pt-2">
-                                                            {quantityInCart > 0 ? (
-                                                                <Button
-                                                                    variant="outline"
-                                                                    className="border-primary/20 bg-primary/5 hover:bg-primary/10 w-full"
-                                                                    onClick={() => addToCart(item)}
-                                                                    disabled={!item.isAvailable}
-                                                                >
-                                                                    <Plus className="h-4 w-4" />
-                                                                    Add More ({quantityInCart})
-                                                                </Button>
-                                                            ) : (
-                                                                <Button
-                                                                    className="w-full"
-                                                                    onClick={() => addToCart(item)}
-                                                                    disabled={!item.isAvailable}
-                                                                >
-                                                                    <Plus className="h-4 w-4" />
-                                                                    Add to Cart
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
+                    </div>
                 </div>
 
                 {/* Right Column: Order Summary */}
@@ -630,10 +631,12 @@ export default function CreateOrderPage() {
                                                         </p>
                                                     </div>
 
-                                                    <div className="mt-2 flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <button
-                                                                className="text-muted-foreground hover:text-primary transition-colors"
+                                                    <div className="mt-1 flex items-center justify-between">
+                                                        <div className="flex items-center gap-1">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="text-muted-foreground hover:text-primary size-7 rounded-full transition-colors"
                                                                 onClick={() =>
                                                                     updateQuantity(
                                                                         item.menuItem.id,
@@ -642,12 +645,14 @@ export default function CreateOrderPage() {
                                                                 }
                                                             >
                                                                 <Minus className="h-4 w-4" />
-                                                            </button>
+                                                            </Button>
                                                             <span className="w-4 text-center text-sm font-medium">
                                                                 {item.quantity}
                                                             </span>
-                                                            <button
-                                                                className="text-muted-foreground hover:text-primary transition-colors"
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="text-muted-foreground hover:text-primary size-7 rounded-full transition-colors"
                                                                 onClick={() =>
                                                                     updateQuantity(
                                                                         item.menuItem.id,
@@ -656,14 +661,14 @@ export default function CreateOrderPage() {
                                                                 }
                                                             >
                                                                 <Plus className="h-4 w-4" />
-                                                            </button>
+                                                            </Button>
                                                         </div>
 
                                                         <div className="flex items-center gap-2">
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                className="text-muted-foreground hover:text-destructive h-7 w-7"
+                                                                className="text-muted-foreground hover:text-destructive h-7 w-7 rounded-full"
                                                                 onClick={() =>
                                                                     removeFromCart(item.menuItem.id)
                                                                 }
@@ -791,10 +796,12 @@ export default function CreateOrderPage() {
                                                 </p>
                                             </div>
 
-                                            <div className="mt-2 flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <button
-                                                        className="text-muted-foreground hover:text-primary transition-colors"
+                                            <div className="mt-1 flex items-center justify-between">
+                                                <div className="flex items-center gap-1">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-muted-foreground hover:text-primary size-7 rounded-full transition-colors"
                                                         onClick={() =>
                                                             updateQuantity(
                                                                 item.menuItem.id,
@@ -803,12 +810,14 @@ export default function CreateOrderPage() {
                                                         }
                                                     >
                                                         <Minus className="h-4 w-4" />
-                                                    </button>
+                                                    </Button>
                                                     <span className="w-4 text-center text-sm font-medium">
                                                         {item.quantity}
                                                     </span>
-                                                    <button
-                                                        className="text-muted-foreground hover:text-primary transition-colors"
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-muted-foreground hover:text-primary size-7 rounded-full transition-colors"
                                                         onClick={() =>
                                                             updateQuantity(
                                                                 item.menuItem.id,
@@ -817,14 +826,14 @@ export default function CreateOrderPage() {
                                                         }
                                                     >
                                                         <Plus className="h-4 w-4" />
-                                                    </button>
+                                                    </Button>
                                                 </div>
 
                                                 <div className="flex items-center gap-2">
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="text-muted-foreground hover:text-destructive h-7 w-7"
+                                                        className="text-muted-foreground hover:text-destructive h-7 w-7 rounded-full"
                                                         onClick={() =>
                                                             removeFromCart(item.menuItem.id)
                                                         }
