@@ -12,6 +12,16 @@ export interface User {
     updatedAt: Date;
 }
 
+export interface CreateUserInput {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    restaurantId?: string;
+    isActive?: boolean;
+}
+
 export interface UpdateUserInput {
     email?: string;
     password?: string;

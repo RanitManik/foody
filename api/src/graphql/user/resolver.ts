@@ -33,11 +33,12 @@ import { GraphQLErrors } from "../../lib/shared/errors";
 import {
     validationSchemas,
     UpdateUserInputSchema,
+    CreateUserInputSchema,
     validateInput,
 } from "../../lib/shared/validation";
 import { parsePagination } from "../../lib/shared/pagination";
 import { GraphQLContext } from "../../types/graphql";
-import type { UpdateUserInput } from "./types";
+import type { UpdateUserInput, CreateUserInput } from "./types";
 import type { Prisma } from "@prisma/client";
 import { UserRole } from "@prisma/client";
 import { withCache, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
@@ -179,6 +180,160 @@ export const userResolvers = {
     },
 
     Mutation: {
+        /**
+         * Create a new user account (Admin only)
+         *
+         * @async
+         * @param {unknown} _parent - Parent resolver (unused)
+         * @param {{ input: CreateUserInput }} params - Mutation parameters
+         * @param {GraphQLContext} context - GraphQL execution context
+         * @returns {Promise<User>} Created user object
+         *
+         * @throws {GraphQLError} UNAUTHENTICATED - If user is not authenticated
+         * @throws {GraphQLError} FORBIDDEN - If user is not admin
+         * @throws {GraphQLError} BAD_INPUT - If validation fails or user already exists
+         *
+         * @description
+         * Creates a new user account with comprehensive validation:
+         * 1. Validates admin permissions
+         * 2. Validates and sanitizes all input fields
+         * 3. Checks for existing user with same email
+         * 4. Ensures non-admin roles have restaurant assignment
+         * 5. Hashes password securely
+         * 6. Creates user record in database
+         * 7. Invalidates user caches and logs creation
+         *
+         * @permissions
+         * - **Admin**: Can create any user account
+         * - **Others**: Forbidden
+         *
+         * @security
+         * - Passwords are hashed with bcrypt (12 salt rounds)
+         * - Email uniqueness enforced
+         * - Restaurant assignment required for non-admin roles
+         *
+         * @example
+         * mutation {
+         *   createUser(input: {
+         *     email: "user@example.com"
+         *     password: "SecurePass123"
+         *     firstName: "John"
+         *     lastName: "Doe"
+         *     role: MEMBER
+         *     restaurantId: "restaurant-123"
+         *     isActive: true
+         *   }) {
+         *     id email firstName lastName role restaurantId isActive
+         *   }
+         * }
+         */
+        createUser: async (
+            _parent: unknown,
+            { input }: { input: CreateUserInput },
+            context: GraphQLContext,
+        ) => {
+            if (!context.user || context.user.role !== UserRole.ADMIN) {
+                logger.warn("User creation failed: access denied", {
+                    userId: context.user?.id,
+                    userRole: context.user?.role,
+                });
+                throw GraphQLErrors.forbidden("Admin access required to create users");
+            }
+
+            try {
+                const validatedInput = validateInput(CreateUserInputSchema, input);
+
+                // Check if user already exists
+                const existingUser = await prisma.users.findUnique({
+                    where: { email: validatedInput.email },
+                });
+
+                if (existingUser) {
+                    logger.warn("User creation failed: user already exists", {
+                        email: validatedInput.email,
+                        adminId: context.user.id,
+                    });
+                    throw GraphQLErrors.badInput("User already exists");
+                }
+
+                // Validate restaurant assignment for non-admin roles
+                if (validatedInput.role !== UserRole.ADMIN && !validatedInput.restaurantId) {
+                    logger.warn("User creation failed: restaurant required for non-admin role", {
+                        email: validatedInput.email,
+                        requestedRole: validatedInput.role,
+                        adminId: context.user.id,
+                    });
+                    throw GraphQLErrors.badInput(
+                        "Managers and members must have an assigned restaurant",
+                    );
+                }
+
+                // If restaurantId is provided, verify it exists
+                if (validatedInput.restaurantId) {
+                    const restaurant = await prisma.restaurants.findUnique({
+                        where: { id: validatedInput.restaurantId },
+                        select: { id: true },
+                    });
+
+                    if (!restaurant) {
+                        logger.warn("User creation failed: restaurant not found", {
+                            email: validatedInput.email,
+                            restaurantId: validatedInput.restaurantId,
+                            adminId: context.user.id,
+                        });
+                        throw GraphQLErrors.badInput("Restaurant not found");
+                    }
+                }
+
+                // Hash password
+                const hashedPassword = await bcrypt.hash(validatedInput.password, 12);
+
+                // Create user
+                const user = await prisma.users.create({
+                    data: {
+                        email: validatedInput.email,
+                        password: hashedPassword,
+                        firstName: validatedInput.firstName,
+                        lastName: validatedInput.lastName,
+                        role: validatedInput.role,
+                        restaurantId: validatedInput.restaurantId || null,
+                        isActive: validatedInput.isActive ?? true,
+                    },
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        role: true,
+                        restaurantId: true,
+                        isActive: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    },
+                });
+
+                logger.info("User created successfully", {
+                    userId: user.id,
+                    email: user.email,
+                    role: user.role,
+                    adminId: context.user.id,
+                });
+
+                // Invalidate user caches since a new user was added
+                await deleteCacheByPattern("users:admin:*");
+                await deleteCacheByPattern("user:*");
+
+                return user;
+            } catch (error) {
+                logger.error("User creation failed", {
+                    adminId: context.user?.id,
+                    input: { ...input, password: "[REDACTED]" },
+                    error: error instanceof Error ? error.message : String(error),
+                });
+                throw error;
+            }
+        },
+
         /**
          * Update user properties (Admin only)
          *

@@ -48,6 +48,26 @@ export const typeDefs = `#graphql
     }
 
     """
+    Input for creating a new user account. Admin-only operation.
+    """
+    input CreateUserInput {
+        "Email address for the new account"
+        email: String!
+        "Password for the new account"
+        password: String!
+        "User's first name"
+        firstName: String!
+        "User's last name"
+        lastName: String!
+        "Role to assign to the user"
+        role: UserRole!
+        "Restaurant assignment for the user (required for non-admin roles)"
+        restaurantId: ID
+        "Whether the account should be active"
+        isActive: Boolean
+    }
+
+    """
     Connection type for paginated users with total count
     """
     type UserConnection {
@@ -75,6 +95,11 @@ export const typeDefs = `#graphql
     }
 
     type Mutation {
+        """
+        Create a new user account.
+        Only admins can create user accounts.
+        """
+        createUser(input: CreateUserInput!): User!
         """
         Update a user's profile information.
         Only admins can update user information.

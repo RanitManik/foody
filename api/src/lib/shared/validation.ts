@@ -269,3 +269,24 @@ export const UpdateUserInputSchema = z.object({
     restaurantId: validationSchemas.id.optional(),
     isActive: z.boolean().optional(),
 });
+
+/**
+ * User Create Input Schema
+ */
+export const CreateUserInputSchema = z.object({
+    email: validationSchemas.email,
+    password: validationSchemas.password,
+    firstName: z
+        .string()
+        .min(1, "First name is required")
+        .max(100, "First name too long")
+        .transform(sanitize.string),
+    lastName: z
+        .string()
+        .min(1, "Last name is required")
+        .max(100, "Last name too long")
+        .transform(sanitize.string),
+    role: UserRoleEnum,
+    restaurantId: validationSchemas.id.optional(),
+    isActive: z.boolean().optional(),
+});

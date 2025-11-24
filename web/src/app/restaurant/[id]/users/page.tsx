@@ -7,6 +7,7 @@ import {
     Search,
     MoreVertical,
     Eye,
+    EyeOff,
     Users,
     UserCheck,
     UserX,
@@ -199,12 +200,29 @@ const userSchema = z.object({
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
     email: z.string().email("Invalid email address"),
+    password: z
+        .string()
+        .min(8, "Password must be at least 8 characters long")
+        .optional()
+        .or(z.literal("")),
+    role: z.enum(["ADMIN", "MANAGER", "MEMBER"]),
+    restaurantId: z.string().optional(),
+    isActive: z.boolean().optional(),
+});
+
+const createUserSchema = z.object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters long"),
     role: z.enum(["ADMIN", "MANAGER", "MEMBER"]),
     restaurantId: z.string().optional(),
     isActive: z.boolean().optional(),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
+
+type CreateUserFormData = z.infer<typeof createUserSchema>;
 
 export default function UsersPage() {
     const { user } = useAuth();
@@ -216,6 +234,7 @@ export default function UsersPage() {
     const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
     const [deleteConfirmName, setDeleteConfirmName] = useState("");
     const [deleteConfirmPhrase, setDeleteConfirmPhrase] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 20;
 
@@ -245,12 +264,13 @@ export default function UsersPage() {
     const [deleteUser, { loading: deleting }] = useMutation(DELETE_USER);
     const [createUser, { loading: creating }] = useMutation(CREATE_USER);
 
-    const createForm = useForm<UserFormData>({
-        resolver: zodResolver(userSchema),
+    const createForm = useForm<CreateUserFormData>({
+        resolver: zodResolver(createUserSchema),
         defaultValues: {
             firstName: "",
             lastName: "",
             email: "",
+            password: "",
             role: "MEMBER",
             restaurantId: "",
             isActive: true,
@@ -323,7 +343,7 @@ export default function UsersPage() {
         }
     };
 
-    const handleCreateUser = async (values: UserFormData) => {
+    const handleCreateUser = async (values: CreateUserFormData) => {
         try {
             await createUser({
                 variables: {
@@ -331,6 +351,7 @@ export default function UsersPage() {
                         firstName: values.firstName,
                         lastName: values.lastName,
                         email: values.email,
+                        password: values.password,
                         role: values.role,
                         restaurantId:
                             values.restaurantId === "none" ? null : values.restaurantId || null,
@@ -445,6 +466,49 @@ export default function UsersPage() {
                                                     placeholder="Enter email address"
                                                     {...field}
                                                 />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={createForm.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>
+                                                Password <span className="text-destructive">*</span>
+                                            </FormLabel>
+                                            <FormControl>
+                                                <div className="relative">
+                                                    <Input
+                                                        type={showPassword ? "text" : "password"}
+                                                        placeholder="Enter password"
+                                                        className="pr-10"
+                                                        {...field}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute top-0 right-0 h-full hover:bg-transparent!"
+                                                        onClick={() =>
+                                                            setShowPassword(!showPassword)
+                                                        }
+                                                        aria-label={
+                                                            showPassword
+                                                                ? "Hide password"
+                                                                : "Show password"
+                                                        }
+                                                    >
+                                                        {showPassword ? (
+                                                            <EyeOff className="h-4 w-4" />
+                                                        ) : (
+                                                            <Eye className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
