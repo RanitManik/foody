@@ -106,26 +106,75 @@ export const menuResolvers = {
             }
 
             let scopedRestaurantId: string | null = null;
+            let scopedLocation: string | null = null;
+
             if (!isAdmin) {
-                scopedRestaurantId = requireAssignedRestaurant(currentUser);
-                whereClause.restaurantId = scopedRestaurantId;
+                if (isManager) {
+                    // For managers, get their restaurant's location to scope to country
+                    const userRestaurant = await prisma.restaurants.findUnique({
+                        where: { id: requireAssignedRestaurant(currentUser) },
+                        select: { location: true },
+                    });
+                    if (userRestaurant) {
+                        scopedLocation = userRestaurant.location;
+                        // Get all restaurants in this location
+                        const restaurantsInLocation = await prisma.restaurants.findMany({
+                            where: { location: scopedLocation },
+                            select: { id: true },
+                        });
+                        whereClause.restaurantId = { in: restaurantsInLocation.map((r) => r.id) };
+                    }
+                } else {
+                    // For members, only their assigned restaurant
+                    scopedRestaurantId = requireAssignedRestaurant(currentUser);
+                    whereClause.restaurantId = scopedRestaurantId;
+                }
             }
 
             let targetRestaurantId = scopedRestaurantId;
             if (restaurantId) {
                 const validatedRestaurantId = validationSchemas.id.parse(restaurantId);
 
-                if (
-                    !isAdmin &&
-                    scopedRestaurantId &&
-                    validatedRestaurantId !== scopedRestaurantId
-                ) {
-                    logger.warn("Menu items query forbidden for mismatched restaurant", {
-                        userId: currentUser.id,
-                        restaurantId: validatedRestaurantId,
-                        assignedRestaurantId: scopedRestaurantId,
-                    });
-                    throw GraphQLErrors.forbidden("Access denied to this restaurant's menu items");
+                if (!isAdmin) {
+                    if (isManager) {
+                        // For managers, check if the requested restaurant is in their location
+                        const requestedRestaurant = await prisma.restaurants.findUnique({
+                            where: { id: validatedRestaurantId },
+                            select: { location: true },
+                        });
+                        if (
+                            !requestedRestaurant ||
+                            requestedRestaurant.location !== scopedLocation
+                        ) {
+                            logger.warn(
+                                "Menu items query forbidden for manager: restaurant not in location",
+                                {
+                                    userId: currentUser.id,
+                                    restaurantId: validatedRestaurantId,
+                                    userLocation: scopedLocation,
+                                    requestedLocation: requestedRestaurant?.location,
+                                },
+                            );
+                            throw GraphQLErrors.forbidden(
+                                "Access denied to this restaurant's menu items",
+                            );
+                        }
+                    } else {
+                        // For members, only their assigned restaurant
+                        if (scopedRestaurantId && validatedRestaurantId !== scopedRestaurantId) {
+                            logger.warn(
+                                "Menu items query forbidden for member: mismatched restaurant",
+                                {
+                                    userId: currentUser.id,
+                                    restaurantId: validatedRestaurantId,
+                                    assignedRestaurantId: scopedRestaurantId,
+                                },
+                            );
+                            throw GraphQLErrors.forbidden(
+                                "Access denied to this restaurant's menu items",
+                            );
+                        }
+                    }
                 }
 
                 whereClause.restaurantId = validatedRestaurantId;
@@ -219,6 +268,7 @@ export const menuResolvers = {
 
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
 
             const validatedId = validationSchemas.id.parse(id);
 
@@ -257,15 +307,42 @@ export const menuResolvers = {
                     }
 
                     if (!isAdmin) {
-                        const assignedRestaurantId = requireAssignedRestaurant(currentUser);
-                        if (menuItem.restaurantId !== assignedRestaurantId) {
-                            logger.warn("Menu item access denied due to restaurant restriction", {
-                                userId: currentUser.id,
-                                menuItemId: validatedId,
-                                assignedRestaurantId,
-                                menuItemRestaurantId: menuItem.restaurantId,
+                        if (isManager) {
+                            // For managers, check if menu item belongs to a restaurant in their location
+                            const userRestaurant = await prisma.restaurants.findUnique({
+                                where: { id: requireAssignedRestaurant(currentUser) },
+                                select: { location: true },
                             });
-                            throw GraphQLErrors.forbidden("Access denied to this menu item");
+                            if (
+                                !userRestaurant ||
+                                userRestaurant.location !== menuItem.restaurants?.location
+                            ) {
+                                logger.warn(
+                                    "Menu item access denied for manager: not in location",
+                                    {
+                                        userId: currentUser.id,
+                                        menuItemId: validatedId,
+                                        userLocation: userRestaurant?.location,
+                                        menuItemLocation: menuItem.restaurants?.location,
+                                    },
+                                );
+                                throw GraphQLErrors.forbidden("Access denied to this menu item");
+                            }
+                        } else {
+                            // For members, only their assigned restaurant
+                            const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                            if (menuItem.restaurantId !== assignedRestaurantId) {
+                                logger.warn(
+                                    "Menu item access denied for member: wrong restaurant",
+                                    {
+                                        userId: currentUser.id,
+                                        menuItemId: validatedId,
+                                        assignedRestaurantId,
+                                        menuItemRestaurantId: menuItem.restaurantId,
+                                    },
+                                );
+                                throw GraphQLErrors.forbidden("Access denied to this menu item");
+                            }
                         }
                     }
 
@@ -309,27 +386,73 @@ export const menuResolvers = {
             const whereClause: Record<string, unknown> = {};
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
 
             let scopedRestaurantId: string | null = null;
+            let scopedLocation: string | null = null;
+
             if (!isAdmin) {
-                scopedRestaurantId = requireAssignedRestaurant(currentUser);
-                whereClause.restaurantId = scopedRestaurantId;
+                if (isManager) {
+                    // For managers, get their restaurant's location to scope to country
+                    const userRestaurant = await prisma.restaurants.findUnique({
+                        where: { id: requireAssignedRestaurant(currentUser) },
+                        select: { location: true },
+                    });
+                    if (userRestaurant) {
+                        scopedLocation = userRestaurant.location;
+                        // Get all restaurants in this location
+                        const restaurantsInLocation = await prisma.restaurants.findMany({
+                            where: { location: scopedLocation },
+                            select: { id: true },
+                        });
+                        whereClause.restaurantId = { in: restaurantsInLocation.map((r) => r.id) };
+                    }
+                } else {
+                    // For members, only their assigned restaurant
+                    scopedRestaurantId = requireAssignedRestaurant(currentUser);
+                    whereClause.restaurantId = scopedRestaurantId;
+                }
             }
 
             if (restaurantId) {
                 const validatedRestaurantId = validationSchemas.id.parse(restaurantId);
 
-                if (
-                    !isAdmin &&
-                    scopedRestaurantId &&
-                    validatedRestaurantId !== scopedRestaurantId
-                ) {
-                    logger.warn("Menu categories query forbidden for mismatched restaurant", {
-                        userId: currentUser.id,
-                        restaurantId: validatedRestaurantId,
-                        assignedRestaurantId: scopedRestaurantId,
-                    });
-                    throw GraphQLErrors.forbidden("Access denied to this restaurant");
+                if (!isAdmin) {
+                    if (isManager) {
+                        // For managers, check if the requested restaurant is in their location
+                        const requestedRestaurant = await prisma.restaurants.findUnique({
+                            where: { id: validatedRestaurantId },
+                            select: { location: true },
+                        });
+                        if (
+                            !requestedRestaurant ||
+                            requestedRestaurant.location !== scopedLocation
+                        ) {
+                            logger.warn(
+                                "Menu categories query forbidden for manager: restaurant not in location",
+                                {
+                                    userId: currentUser.id,
+                                    restaurantId: validatedRestaurantId,
+                                    userLocation: scopedLocation,
+                                    requestedLocation: requestedRestaurant?.location,
+                                },
+                            );
+                            throw GraphQLErrors.forbidden("Access denied to this restaurant");
+                        }
+                    } else {
+                        // For members, only their assigned restaurant
+                        if (scopedRestaurantId && validatedRestaurantId !== scopedRestaurantId) {
+                            logger.warn(
+                                "Menu categories query forbidden for member: mismatched restaurant",
+                                {
+                                    userId: currentUser.id,
+                                    restaurantId: validatedRestaurantId,
+                                    assignedRestaurantId: scopedRestaurantId,
+                                },
+                            );
+                            throw GraphQLErrors.forbidden("Access denied to this restaurant");
+                        }
+                    }
                 }
 
                 whereClause.restaurantId = validatedRestaurantId;
@@ -377,7 +500,8 @@ export const menuResolvers = {
 
             try {
                 const validated = validateInput(CreateMenuItemInputSchema, input);
-                const { name, description, price, category, restaurantId, imageUrl, isAvailable } = validated;
+                const { name, description, price, category, restaurantId, imageUrl, isAvailable } =
+                    validated;
 
                 const restaurant = await prisma.restaurants.findUnique({
                     where: { id: restaurantId },

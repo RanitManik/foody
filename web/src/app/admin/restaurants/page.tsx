@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
-import { useRouter } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { Plus, Search, MoreVertical, Edit, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

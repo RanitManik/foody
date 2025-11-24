@@ -242,6 +242,24 @@ export const userResolvers = {
                     throw GraphQLErrors.notFound("User not found");
                 }
 
+                // Prevent admin from deactivating themselves
+                if (validatedInput.isActive === false && existingUser.id === context.user.id) {
+                    logger.warn("User update failed: cannot deactivate self", {
+                        targetUserId: validatedId,
+                        adminId: context.user.id,
+                    });
+                    throw GraphQLErrors.badInput("You cannot deactivate your own account");
+                }
+
+                // Prevent deactivating any admin
+                if (validatedInput.isActive === false && existingUser.role === UserRole.ADMIN) {
+                    logger.warn("User update failed: cannot deactivate admin", {
+                        targetUserId: validatedId,
+                        adminId: context.user.id,
+                    });
+                    throw GraphQLErrors.badInput("Admin accounts cannot be deactivated");
+                }
+
                 const nextRole = validatedInput.role ?? existingUser.role;
                 const nextRestaurantId =
                     validatedInput.restaurantId !== undefined
@@ -479,6 +497,15 @@ export const userResolvers = {
                         adminId: context.user.id,
                     });
                     throw GraphQLErrors.notFound("User not found");
+                }
+
+                // Prevent deleting any admin
+                if (userToDelete.role === UserRole.ADMIN) {
+                    logger.warn("User deletion failed: cannot delete admin", {
+                        targetUserId: validatedId,
+                        adminId: context.user.id,
+                    });
+                    throw GraphQLErrors.badInput("Admin accounts cannot be deleted");
                 }
 
                 // Delete user (cascade deletes orders, payments, etc.)

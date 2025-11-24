@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client/core";
 import { useMutation } from "@apollo/client/react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useRouter } from "nextjs-toploader/app";
 
 const LOGIN_MUTATION = gql`
     mutation Login($input: LoginInput!) {

@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import { useQuery } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
-import { useRouter } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 
 const ME_QUERY = gql`
     query Me {

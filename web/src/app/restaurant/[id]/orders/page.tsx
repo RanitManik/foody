@@ -81,6 +81,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/lib/auth-context";
 
 const GET_ORDERS = gql`
     query GetOrders($first: Int, $skip: Int) {
@@ -217,6 +218,7 @@ const statusConfig = {
 export default function OrdersPage() {
     const params = useParams();
     const restaurantId = params.id as string;
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
@@ -606,29 +608,33 @@ export default function OrdersPage() {
                                                                       </Link>
                                                                   </DropdownMenuItem>
                                                               )}
-                                                              {order.status === "PENDING" && (
-                                                                  <DropdownMenuItem
-                                                                      onClick={() =>
-                                                                          handleConfirmOrder(
-                                                                              order.id,
-                                                                          )
-                                                                      }
-                                                                  >
-                                                                      <CheckCircle className="h-4 w-4" />
-                                                                      Complete Order
-                                                                  </DropdownMenuItem>
-                                                              )}
-                                                              {order.status !== "CANCELLED" && (
-                                                                  <DropdownMenuItem
-                                                                      onClick={() =>
-                                                                          setCancellingOrder(order)
-                                                                      }
-                                                                      variant="destructive"
-                                                                  >
-                                                                      <X className="h-4 w-4" />
-                                                                      Cancel Order
-                                                                  </DropdownMenuItem>
-                                                              )}
+                                                              {order.status === "PENDING" &&
+                                                                  user?.role !== "MEMBER" && (
+                                                                      <DropdownMenuItem
+                                                                          onClick={() =>
+                                                                              handleConfirmOrder(
+                                                                                  order.id,
+                                                                              )
+                                                                          }
+                                                                      >
+                                                                          <CheckCircle className="h-4 w-4" />
+                                                                          Complete Order
+                                                                      </DropdownMenuItem>
+                                                                  )}
+                                                              {order.status !== "CANCELLED" &&
+                                                                  user?.role !== "MEMBER" && (
+                                                                      <DropdownMenuItem
+                                                                          onClick={() =>
+                                                                              setCancellingOrder(
+                                                                                  order,
+                                                                              )
+                                                                          }
+                                                                          variant="destructive"
+                                                                      >
+                                                                          <X className="h-4 w-4" />
+                                                                          Cancel Order
+                                                                      </DropdownMenuItem>
+                                                                  )}
                                                           </DropdownMenuContent>
                                                       </DropdownMenu>
                                                   </TableCell>
@@ -929,7 +935,7 @@ export default function OrdersPage() {
                                         Close
                                     </Button>
                                 </SheetClose>
-                                {viewingOrder?.status === "PENDING" && (
+                                {viewingOrder?.status === "PENDING" && user?.role !== "MEMBER" && (
                                     <Button
                                         onClick={() => handleConfirmOrder(viewingOrder.id)}
                                         className="flex-1"
@@ -1062,32 +1068,28 @@ export default function OrdersPage() {
                         </div>
 
                         <SheetFooter className="border-t px-6 pt-4">
-                            <div className="flex w-full gap-3">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setProcessingOrder(null)}
-                                    className="flex-1"
-                                >
-                                    Cancel
+                            <Button
+                                onClick={handleProcessPayment}
+                                disabled={!selectedPaymentMethod || processing}
+                                className="flex-1"
+                            >
+                                {processing ? (
+                                    <>
+                                        <Spinner className="h-4 w-4" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CreditCard className="h-4 w-4" />
+                                        Process Payment
+                                    </>
+                                )}
+                            </Button>
+                            <SheetClose asChild>
+                                <Button variant="outline" disabled={processing}>
+                                    Close
                                 </Button>
-                                <Button
-                                    onClick={handleProcessPayment}
-                                    disabled={!selectedPaymentMethod || processing}
-                                    className="flex-1"
-                                >
-                                    {processing ? (
-                                        <>
-                                            <Spinner className="h-4 w-4" />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CreditCard className="h-4 w-4" />
-                                            Process Payment
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
+                            </SheetClose>
                         </SheetFooter>
                     </div>
                 </SheetContent>

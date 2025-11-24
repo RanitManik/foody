@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { AdminHeader } from "@/components/admin/header";
 import { AdminSidebar } from "@/components/admin/sidebar";
 import FeedbackModal from "@/components/admin/feedback-modal";
@@ -43,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center">
-                {/* <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" /> */}
+                <div className="border-foreground h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
             </div>
         );
     }
@@ -52,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (!hasToken) {
             return (
                 <div className="flex min-h-screen items-center justify-center">
-                    {/* <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" /> */}
+                    <div className="border-foreground h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
                 </div>
             );
         }

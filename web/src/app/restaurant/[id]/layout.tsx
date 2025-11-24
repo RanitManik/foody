@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { RestaurantHeader } from "@/components/restaurant/header";
 import { RestaurantSidebar } from "@/components/restaurant/sidebar";
 import FeedbackModal from "@/components/admin/feedback-modal";
@@ -45,7 +46,7 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center">
-                {/* <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" /> */}
+                <div className="border-foreground h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
             </div>
         );
     }
@@ -54,7 +55,7 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
         if (!hasToken) {
             return (
                 <div className="flex min-h-screen items-center justify-center">
-                    {/* <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" /> */}
+                    <div className="border-foreground h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
                 </div>
             );
         }
@@ -62,9 +63,12 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
     }
 
     // Allow ADMIN to access any restaurant
-    // Allow MANAGER/MEMBER to access only their assigned restaurant
+    // Allow MANAGER to access restaurants in their location (country)
+    // Allow MEMBER to access only their assigned restaurant
     const hasPermission =
-        user.role === "ADMIN" || (user.restaurantId && user.restaurantId === restaurantId);
+        user.role === "ADMIN" ||
+        (user.role === "MANAGER" && user.restaurantId) || // Managers can access any restaurant (will be filtered by API)
+        (user.role === "MEMBER" && user.restaurantId && user.restaurantId === restaurantId);
 
     if (!hasPermission) {
         return <AccessDenied />;

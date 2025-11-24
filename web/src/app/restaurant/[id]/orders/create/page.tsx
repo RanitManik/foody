@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
+
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
 import {
@@ -468,7 +470,7 @@ export default function CreateOrderPage() {
                                     {Array.from({ length: 8 }).map((_, i) => (
                                         <Card
                                             key={i}
-                                            className="gap-0 xl:max-w-[350px] overflow-hidden border-none py-0 shadow-sm"
+                                            className="gap-0 overflow-hidden border-none py-0 shadow-sm xl:max-w-[350px]"
                                         >
                                             <Skeleton className="aspect-4/3 w-full rounded-t-lg" />
                                             <CardContent className="p-4">
@@ -486,7 +488,7 @@ export default function CreateOrderPage() {
                                             <Card
                                                 key={item.id}
                                                 className={cn(
-                                                    "group relative flex flex-col gap-0 xl:max-w-[300px] overflow-hidden border-none py-0 shadow-sm transition-all hover:shadow-md",
+                                                    "group relative flex flex-col gap-0 overflow-hidden border-none py-0 shadow-sm transition-all hover:shadow-md xl:max-w-[300px]",
                                                     !item.isAvailable && "opacity-60",
                                                 )}
                                             >

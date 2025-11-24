@@ -103,11 +103,27 @@ export const restaurantResolvers = {
 
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
 
             let scopedRestaurantId: string | null = null;
+            let scopedLocation: string | null = null;
+
             if (!isAdmin) {
-                scopedRestaurantId = requireAssignedRestaurant(currentUser);
-                whereClause.id = scopedRestaurantId;
+                if (isManager) {
+                    // For managers, get their restaurant's location to scope to country
+                    const userRestaurant = await prisma.restaurants.findUnique({
+                        where: { id: requireAssignedRestaurant(currentUser) },
+                        select: { location: true },
+                    });
+                    if (userRestaurant) {
+                        scopedLocation = userRestaurant.location;
+                        whereClause.location = scopedLocation;
+                    }
+                } else {
+                    // For members, only their assigned restaurant
+                    scopedRestaurantId = requireAssignedRestaurant(currentUser);
+                    whereClause.id = scopedRestaurantId;
+                }
             }
 
             let sanitizedLocation: string | null = null;
@@ -117,7 +133,8 @@ export const restaurantResolvers = {
             }
 
             // Use Redis caching for restaurants queries
-            const restaurantScope = currentUser.restaurantId ?? (isAdmin ? "all" : "unassigned");
+            const restaurantScope =
+                scopedRestaurantId ?? scopedLocation ?? (isAdmin ? "all" : "unassigned");
             const cacheKey = `restaurants:${currentUser.id}:${restaurantScope}:${sanitizedLocation || "all"}:${pagination.first}:${pagination.skip}`;
             return await withCache(
                 cacheKey,
@@ -215,10 +232,26 @@ export const restaurantResolvers = {
 
             if (!restaurant) return null;
 
-            if (context.user.role !== UserRole.ADMIN) {
-                const assignedRestaurantId = requireAssignedRestaurant(context.user);
-                if (restaurant.id !== assignedRestaurantId) {
-                    throw GraphQLErrors.forbidden("Access denied to this restaurant");
+            const currentUser = context.user;
+            const isAdmin = currentUser.role === UserRole.ADMIN;
+            const isManager = currentUser.role === UserRole.MANAGER;
+
+            if (!isAdmin) {
+                if (isManager) {
+                    // For managers, check if restaurant is in their location (country)
+                    const userRestaurant = await prisma.restaurants.findUnique({
+                        where: { id: requireAssignedRestaurant(currentUser) },
+                        select: { location: true },
+                    });
+                    if (!userRestaurant || userRestaurant.location !== restaurant.location) {
+                        throw GraphQLErrors.forbidden("Access denied to this restaurant");
+                    }
+                } else {
+                    // For members, only their assigned restaurant
+                    const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                    if (restaurant.id !== assignedRestaurantId) {
+                        throw GraphQLErrors.forbidden("Access denied to this restaurant");
+                    }
                 }
             }
 

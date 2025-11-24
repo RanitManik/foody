@@ -21,29 +21,31 @@ const sidebarItems = [
         title: "Menu Order",
         href: "/restaurant/[id]/orders/create",
         icon: ClipboardList,
+        roles: ["ADMIN", "MANAGER", "MEMBER"],
     },
     {
         title: "Orders",
         href: "/restaurant/[id]/orders",
         icon: CreditCard,
+        roles: ["ADMIN", "MANAGER", "MEMBER"],
     },
     {
         title: "Menu Management",
         href: "/restaurant/[id]/menu-management",
         icon: Utensils,
+        roles: ["ADMIN", "MANAGER"],
     },
     {
         title: "Payment Methods",
         href: "/restaurant/[id]/payment-methods",
         icon: Settings,
+        roles: ["ADMIN", "MANAGER"], // Only admins and managers can access payment methods
     },
-];
-
-const adminSidebarItems = [
     {
         title: "User Management",
         href: "/restaurant/[id]/users",
         icon: Users,
+        roles: ["ADMIN"],
     },
 ];
 
@@ -63,8 +65,10 @@ export function RestaurantSidebar({
     const pathname = usePathname();
     const { user } = useAuth();
 
-    const allSidebarItems =
-        user?.role === "ADMIN" ? [...sidebarItems, ...adminSidebarItems] : sidebarItems;
+    // Filter sidebar items based on user role
+    const filteredSidebarItems = sidebarItems.filter(
+        (item) => !item.roles || (user?.role && item.roles.includes(user.role)),
+    );
 
     return (
         <div
@@ -84,7 +88,7 @@ export function RestaurantSidebar({
             </div>
             <div className="flex-1 overflow-x-hidden py-4">
                 <nav className="grid items-start gap-1 px-2 text-sm font-medium lg:px-4">
-                    {allSidebarItems.map((item) => {
+                    {filteredSidebarItems.map((item) => {
                         const itemHref = item.href.replace("[id]", restaurantId);
                         const isActive = pathname === itemHref;
 
