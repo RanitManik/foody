@@ -2,6 +2,12 @@
     "name": "@foody/web",
     "version": "0.0.1",
     "private": true,
+    "scripts": {
+        "build": "next build",
+        "dev": "next dev",
+        "lint": "next lint",
+        "start": "next start"
+    },
     "dependencies": {
         "@apollo/client": "^4.0.9",
         "@hookform/resolvers": "^5.2.2",
