@@ -185,6 +185,7 @@ type UserUpdates = {
     firstName?: string;
     lastName?: string;
     email?: string;
+    password?: string;
     role?: string;
     restaurantId?: string | null;
     isActive?: boolean;
@@ -400,7 +401,7 @@ export default function UsersPage() {
                             Add User
                         </Button>
                     </SheetTrigger>
-                    <SheetContent className="sm:max-w-[425px]">
+                    <SheetContent>
                         <SheetHeader className="border-border border-b">
                             <SheetTitle>Create User</SheetTitle>
                             <SheetDescription>Add a new user to the system.</SheetDescription>
@@ -589,8 +590,7 @@ export default function UsersPage() {
                                             <div>
                                                 <FormLabel>Active</FormLabel>
                                                 <FormDescription className="text-muted-foreground mt-1 text-sm">
-                                                    Whether the user account is active and can log
-                                                    in
+                                                    Whether the user can log in and access
                                                 </FormDescription>
                                             </div>
                                             <FormControl>
@@ -725,7 +725,10 @@ export default function UsersPage() {
                                         User ID
                                     </TableHead>
                                     <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
-                                        User
+                                        Name
+                                    </TableHead>
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
+                                        Email
                                     </TableHead>
                                     <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Role
@@ -753,6 +756,9 @@ export default function UsersPage() {
                                                   <Skeleton className="h-3 w-16" />
                                               </TableCell>
                                               <TableCell className="border-r px-2 sm:px-3 md:px-4">
+                                                  <Skeleton className="h-3 w-24" />
+                                              </TableCell>
+                                              <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-3 w-32" />
                                               </TableCell>
                                               <TableCell className="border-r px-2 sm:px-3 md:px-4">
@@ -766,9 +772,6 @@ export default function UsersPage() {
                                               </TableCell>
                                               <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                   <Skeleton className="mx-auto h-4 w-16" />
-                                              </TableCell>
-                                              <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
-                                                  <Skeleton className="mx-auto h-3 w-20" />
                                               </TableCell>
                                               <TableCell className="px-1 text-center">
                                                   <Skeleton className="mx-auto h-6 w-6" />
@@ -801,12 +804,19 @@ export default function UsersPage() {
                                                           />
                                                           <span
                                                               className="max-w-40 truncate text-xs md:max-w-none md:overflow-visible md:text-sm"
-                                                              title={`${user.firstName} ${user.lastName} (${user.email})`}
+                                                              title={`${user.firstName} ${user.lastName}`}
                                                           >
-                                                              {user.firstName} {user.lastName} •{" "}
-                                                              {user.email}
+                                                              {user.firstName} {user.lastName}
                                                           </span>
                                                       </div>
+                                                  </TableCell>
+                                                  <TableCell className="border-r px-2 sm:px-3 md:px-4">
+                                                      <span
+                                                          className="max-w-40 truncate text-xs md:max-w-none md:overflow-visible md:text-sm"
+                                                          title={user.email}
+                                                      >
+                                                          {user.email}
+                                                      </span>
                                                   </TableCell>
                                                   <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                       <div className="text-muted-foreground text-xs">
@@ -1261,6 +1271,8 @@ function EditUserForm({
     const { data: restaurantsData } = useQuery<RestaurantsData>(GET_RESTAURANTS);
     const availableRestaurants = restaurantsData?.restaurants?.restaurants || [];
 
+    const [showPassword, setShowPassword] = useState(false);
+
     const form = useForm<UserFormData>({
         resolver: zodResolver(userSchema),
         defaultValues: {
@@ -1273,12 +1285,27 @@ function EditUserForm({
         },
     });
 
+    const watchedRole = form.watch("role");
+
     const handleSubmit = (values: UserFormData) => {
+        // Validate restaurant requirement based on role
+        if (
+            (values.role === "MANAGER" || values.role === "MEMBER") &&
+            (!values.restaurantId || values.restaurantId === "none")
+        ) {
+            form.setError("restaurantId", {
+                type: "manual",
+                message: "Restaurant is required for this role",
+            });
+            return;
+        }
+
         const updates: UserUpdates = {};
 
         if (values.firstName !== user.firstName) updates.firstName = values.firstName;
         if (values.lastName !== user.lastName) updates.lastName = values.lastName;
         if (values.email !== user.email) updates.email = values.email;
+        if (values.password && values.password.trim() !== "") updates.password = values.password;
         if (values.role !== user.role) updates.role = values.role;
         if (values.restaurantId !== (user.restaurantId || "none")) {
             updates.restaurantId = values.restaurantId === "none" ? null : values.restaurantId;
@@ -1350,6 +1377,43 @@ function EditUserForm({
 
                 <FormField
                     control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <Input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Leave blank to keep current password"
+                                        className="pr-10"
+                                        {...field}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute top-0 right-0 h-full hover:bg-transparent!"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        aria-label={
+                                            showPassword ? "Hide password" : "Show password"
+                                        }
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </Button>
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
                     name="role"
                     render={({ field }) => (
                         <FormItem>
@@ -1378,7 +1442,12 @@ function EditUserForm({
                     name="restaurantId"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Restaurant</FormLabel>
+                            <FormLabel>
+                                Restaurant{" "}
+                                {watchedRole === "MANAGER" || watchedRole === "MEMBER" ? (
+                                    <span className="text-destructive">*</span>
+                                ) : null}
+                            </FormLabel>
                             <FormControl>
                                 <Select
                                     value={field.value || "none"}
@@ -1410,7 +1479,7 @@ function EditUserForm({
                             <div>
                                 <FormLabel>Active</FormLabel>
                                 <FormDescription className="text-muted-foreground mt-1 text-sm">
-                                    Whether the user account is active and can log in
+                                    Whether the user can log in and access
                                 </FormDescription>
                             </div>
                             <FormControl>
