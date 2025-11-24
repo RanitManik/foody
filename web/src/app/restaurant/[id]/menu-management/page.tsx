@@ -593,10 +593,10 @@ export default function MenuManagementPage() {
                                     <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Price
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4 text-center">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
                                         Status
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4 text-center">
+                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
                                         Created At
                                     </TableHead>
                                     <TableHead className="bg-card sticky top-0 z-30 w-[50px] px-1 text-center"></TableHead>
@@ -618,10 +618,10 @@ export default function MenuManagementPage() {
                                               <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                   <Skeleton className="h-3 w-12" />
                                               </TableCell>
-                                              <TableCell className="border-r px-2 sm:px-3 md:px-4 text-center">
+                                              <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                   <Skeleton className="mx-auto h-4 w-16" />
                                               </TableCell>
-                                              <TableCell className="border-r px-2 sm:px-3 md:px-4 text-center">
+                                              <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                   <Skeleton className="mx-auto h-3 w-20" />
                                               </TableCell>
                                               <TableCell className="px-1 text-center">
@@ -640,7 +640,7 @@ export default function MenuManagementPage() {
                                                       {(currentPage - 1) * pageSize + idx + 1}
                                                   </div>
                                               </TableCell>
-                                              <TableCell className="border-r px-2 sm:px-3 md:px-4 font-medium">
+                                              <TableCell className="border-r px-2 font-medium sm:px-3 md:px-4">
                                                   <div className="flex items-center gap-2">
                                                       <div
                                                           className={`h-2 w-2 rounded-full ${item.isAvailable ? "bg-green-500" : "bg-gray-400"}`}
@@ -661,10 +661,10 @@ export default function MenuManagementPage() {
                                                       {item.category || "-"}
                                                   </span>
                                               </TableCell>
-                                              <TableCell className="text-muted-foreground border-r px-2 sm:px-3 md:px-4 text-sm font-medium">
+                                              <TableCell className="text-muted-foreground border-r px-2 text-sm font-medium sm:px-3 md:px-4">
                                                   ${item.price.toFixed(2)}
                                               </TableCell>
-                                              <TableCell className="border-r px-2 sm:px-3 md:px-4 text-center">
+                                              <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                   <Badge
                                                       variant={
                                                           item.isAvailable
@@ -678,7 +678,7 @@ export default function MenuManagementPage() {
                                                           : "Unavailable"}
                                                   </Badge>
                                               </TableCell>
-                                              <TableCell className="text-muted-foreground border-r px-2 sm:px-3 md:px-4 text-center text-xs">
+                                              <TableCell className="text-muted-foreground border-r px-2 text-center text-xs sm:px-3 md:px-4">
                                                   {new Date(item.createdAt).toLocaleDateString()}
                                               </TableCell>
                                               <TableCell
@@ -701,13 +701,13 @@ export default function MenuManagementPage() {
                                                                   setViewingMenuItem(item)
                                                               }
                                                           >
-                                                              <Eye className="mr-2 h-4 w-4" />
+                                                              <Eye className="h-4 w-4" />
                                                               View Details
                                                           </DropdownMenuItem>
                                                           <DropdownMenuItem
                                                               onClick={() => openEditSheet(item)}
                                                           >
-                                                              <Edit className="mr-2 h-4 w-4" />
+                                                              <Edit className="h-4 w-4" />
                                                               Edit
                                                           </DropdownMenuItem>
                                                           <DropdownMenuItem
@@ -995,7 +995,7 @@ export default function MenuManagementPage() {
             <Sheet open={!!viewingMenuItem} onOpenChange={() => setViewingMenuItem(null)}>
                 <SheetContent>
                     <div className="flex h-full flex-col">
-                        <SheetHeader className="border-b pb-4 px-6">
+                        <SheetHeader className="border-b px-6 pb-4">
                             <SheetTitle className="flex items-center gap-2">
                                 <Eye className="h-5 w-5" />
                                 Menu Item Details
@@ -1097,7 +1097,7 @@ export default function MenuManagementPage() {
                             )}
                         </div>
 
-                        <SheetFooter className="border-t pt-4 px-6">
+                        <SheetFooter className="border-t px-6 pt-4">
                             <SheetClose asChild>
                                 <Button variant="outline" className="w-full">
                                     Close

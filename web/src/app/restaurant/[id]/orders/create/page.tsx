@@ -17,7 +17,6 @@ import {
     XCircle,
     Search,
     Trash2,
-    Edit2,
     Utensils,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -417,7 +416,7 @@ export default function CreateOrderPage() {
                                             key={i}
                                             className="overflow-hidden border-none py-0 shadow-sm"
                                         >
-                                            <Skeleton className="aspect-[4/3] w-full rounded-t-lg" />
+                                            <Skeleton className="aspect-4/3 w-full rounded-t-lg" />
                                             <CardContent className="p-4">
                                                 <Skeleton className="mb-2 h-6 w-3/4" />
                                                 <Skeleton className="h-4 w-1/2" />
@@ -433,11 +432,11 @@ export default function CreateOrderPage() {
                                             <Card
                                                 key={item.id}
                                                 className={cn(
-                                                    "group relative flex flex-col overflow-hidden border-none py-0 shadow-sm transition-all hover:shadow-md gap-0",
+                                                    "group relative flex flex-col gap-0 overflow-hidden border-none py-0 shadow-sm transition-all hover:shadow-md",
                                                     !item.isAvailable && "opacity-60",
                                                 )}
                                             >
-                                                <div className="relative aspect-[16/9] w-full overflow-hidden">
+                                                <div className="relative aspect-video w-full overflow-hidden">
                                                     {item.imageUrl ? (
                                                         <Image
                                                             src={item.imageUrl}
@@ -457,7 +456,7 @@ export default function CreateOrderPage() {
 
                                                     <div className="absolute top-3 right-3">
                                                         {item.isAvailable ? (
-                                                            <Badge className="bg-white/90 text-black backdrop-blur-sm hover:bg-white/100">
+                                                            <Badge className="bg-white/90 text-black backdrop-blur-sm hover:bg-white">
                                                                 <span className="mr-1.5 h-2 w-2 rounded-full bg-green-500" />
                                                                 Available
                                                             </Badge>
@@ -680,12 +679,12 @@ export default function CreateOrderPage() {
                                     >
                                         {isSubmitting ? (
                                             <>
-                                                <Spinner className="mr-2 h-4 w-4" />
+                                                <Spinner className="h-4 w-4" />
                                                 Saving...
                                             </>
                                         ) : (
                                             <>
-                                                <Save className="mr-2 h-4 w-4" />
+                                                <Save className="h-4 w-4" />
                                                 Save
                                             </>
                                         )}
@@ -699,7 +698,7 @@ export default function CreateOrderPage() {
                                         variant="secondary"
                                         className="h-10"
                                     >
-                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        <CheckCircle className="h-4 w-4" />
                                         Complete
                                     </Button>
                                 </div>

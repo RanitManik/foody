@@ -513,7 +513,7 @@ export default function OrdersPage() {
                                                                       setViewingOrder(order)
                                                                   }
                                                               >
-                                                                  <Eye className="mr-2 h-4 w-4" />
+                                                                  <Eye className="h-4 w-4" />
                                                                   View Details
                                                               </DropdownMenuItem>
                                                               {order.status === "PENDING" && (
@@ -524,7 +524,7 @@ export default function OrdersPage() {
                                                                           )
                                                                       }
                                                                   >
-                                                                      <CheckCircle className="mr-2 h-4 w-4" />
+                                                                      <CheckCircle className="h-4 w-4" />
                                                                       Complete Order
                                                                   </DropdownMenuItem>
                                                               )}
@@ -535,7 +535,7 @@ export default function OrdersPage() {
                                                                       }
                                                                       className="text-destructive"
                                                                   >
-                                                                      <X className="mr-2 h-4 w-4" />
+                                                                      <X className="h-4 w-4" />
                                                                       Cancel Order
                                                                   </DropdownMenuItem>
                                                               )}

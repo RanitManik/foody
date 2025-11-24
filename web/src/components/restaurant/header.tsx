@@ -44,6 +44,15 @@ const GET_RESTAURANT = gql`
     }
 `;
 
+interface RestaurantData {
+    restaurant: {
+        id: string;
+        name: string;
+        isActive: boolean;
+        location: string;
+    };
+}
+
 export function RestaurantHeader({
     restaurantId,
     onOpenFeedback,
@@ -57,7 +66,7 @@ export function RestaurantHeader({
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const openFeedback = () => (onOpenFeedback ? onOpenFeedback(true) : setIsFeedbackOpen(true));
 
-    const { data } = useQuery(GET_RESTAURANT, {
+    const { data } = useQuery<RestaurantData>(GET_RESTAURANT, {
         variables: { id: restaurantId },
         skip: !restaurantId,
     });
@@ -163,27 +172,27 @@ export function RestaurantHeader({
                         <DropdownMenuSeparator />
                         <DropdownMenuSub>
                             <DropdownMenuSubTrigger>
-                                <Settings className="mr-2 h-4 w-4" />
+                                <Settings className="h-4 w-4" />
                                 Theme: {themeLabel}
                             </DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
                                 <DropdownMenuSubContent>
                                     <DropdownMenuItem onClick={() => setTheme("light")}>
-                                        <Sun className="mr-2 h-4 w-4" />
+                                        <Sun className="h-4 w-4" />
                                         Light
                                         {theme === "light" && (
                                             <Check className="text-accent-foreground ml-auto h-4 w-4" />
                                         )}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setTheme("dark")}>
-                                        <Moon className="mr-2 h-4 w-4" />
+                                        <Moon className="h-4 w-4" />
                                         Dark
                                         {theme === "dark" && (
                                             <Check className="text-accent-foreground ml-auto h-4 w-4" />
                                         )}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setTheme("system")}>
-                                        <Monitor className="mr-2 h-4 w-4" />
+                                        <Monitor className="h-4 w-4" />
                                         System
                                         {(theme === "system" || theme === undefined) && (
                                             <Check className="text-accent-foreground ml-auto h-4 w-4" />
@@ -193,12 +202,12 @@ export function RestaurantHeader({
                             </DropdownMenuPortal>
                         </DropdownMenuSub>
                         <DropdownMenuItem onClick={openFeedback}>
-                            <UserIcon className="mr-2 h-4 w-4" />
+                            <UserIcon className="h-4 w-4" />
                             Help &amp; Feedback
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={logout}>
-                            <LogOut className="mr-2 h-4 w-4" />
+                            <LogOut className="h-4 w-4" />
                             Logout
                         </DropdownMenuItem>
                         {!onOpenFeedback ? (
