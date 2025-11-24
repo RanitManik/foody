@@ -339,7 +339,6 @@ PORT=4000
 
 ```env
 NEXT_PUBLIC_API_URL="http://localhost:4000/graphql"
-NEXT_PUBLIC_WS_URL="ws://localhost:4000/graphql"
 ```
 
 ## Monitoring & Observability
