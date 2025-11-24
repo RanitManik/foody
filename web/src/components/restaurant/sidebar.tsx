@@ -10,9 +10,11 @@ import {
     ClipboardList,
     CreditCard,
     Settings,
+    Users,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth-context";
 
 const sidebarItems = [
     {
@@ -37,6 +39,14 @@ const sidebarItems = [
     },
 ];
 
+const adminSidebarItems = [
+    {
+        title: "User Management",
+        href: "/restaurant/[id]/users",
+        icon: Users,
+    },
+];
+
 export interface RestaurantSidebarProps {
     isCollapsed?: boolean;
     toggleCollapse?: () => void;
@@ -51,6 +61,10 @@ export function RestaurantSidebar({
     restaurantId,
 }: RestaurantSidebarProps) {
     const pathname = usePathname();
+    const { user } = useAuth();
+
+    const allSidebarItems =
+        user?.role === "ADMIN" ? [...sidebarItems, ...adminSidebarItems] : sidebarItems;
 
     return (
         <div
@@ -70,7 +84,7 @@ export function RestaurantSidebar({
             </div>
             <div className="flex-1 overflow-x-hidden py-4">
                 <nav className="grid items-start gap-1 px-2 text-sm font-medium lg:px-4">
-                    {sidebarItems.map((item) => {
+                    {allSidebarItems.map((item) => {
                         const itemHref = item.href.replace("[id]", restaurantId);
                         const isActive = pathname === itemHref;
 

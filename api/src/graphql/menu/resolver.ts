@@ -377,7 +377,7 @@ export const menuResolvers = {
 
             try {
                 const validated = validateInput(CreateMenuItemInputSchema, input);
-                const { name, description, price, category, restaurantId, imageUrl } = validated;
+                const { name, description, price, category, restaurantId, imageUrl, isAvailable } = validated;
 
                 const restaurant = await prisma.restaurants.findUnique({
                     where: { id: restaurantId },
@@ -419,7 +419,7 @@ export const menuResolvers = {
                         category,
                         restaurantId,
                         imageUrl,
-                        isAvailable: true,
+                        isAvailable: isAvailable ?? true,
                     },
                     include: {
                         restaurants: {

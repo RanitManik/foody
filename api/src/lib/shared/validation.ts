@@ -185,6 +185,7 @@ export const CreateMenuItemInputSchema = z.object({
     category: z.string().min(1, "Category is required").max(100, "Category too long"),
     imageUrl: z.url("Invalid image URL").optional().or(z.literal("")),
     restaurantId: validationSchemas.id,
+    isAvailable: z.boolean().optional(),
 });
 
 /**

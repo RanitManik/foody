@@ -176,7 +176,12 @@ export default function CreateOrderPage() {
         skip: !orderId,
     });
 
-    const [createOrder] = useMutation(CREATE_ORDER);
+    const [createOrder] = useMutation(CREATE_ORDER, {
+        update: (cache) => {
+            cache.evict({ fieldName: "orders" });
+            cache.gc();
+        },
+    });
 
     // Initialize form with existing order data
     useEffect(() => {
@@ -262,7 +267,7 @@ export default function CreateOrderPage() {
                 items: cart.map((item) => ({
                     menuItemId: item.menuItem.id,
                     quantity: item.quantity,
-                    notes: item.notes,
+                    notes: item.notes || "",
                 })),
                 phone: null,
                 specialInstructions: null,
@@ -441,7 +446,7 @@ export default function CreateOrderPage() {
                             )}
                         </div>
                         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="sm:w-[180px]">
                                 <SelectValue placeholder="Filter by category" />
                             </SelectTrigger>
                             <SelectContent>

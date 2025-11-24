@@ -411,7 +411,7 @@ export default function PaymentMethodsPage() {
                     value={providerFilter || "all"}
                     onValueChange={(value) => setProviderFilter(value === "all" ? "" : value)}
                 >
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="sm:w-[180px]">
                         <SelectValue placeholder="Filter by provider" />
                     </SelectTrigger>
                     <SelectContent>
@@ -694,7 +694,7 @@ export default function PaymentMethodsPage() {
                 onOpenChange={() => setDeletingPaymentMethod(null)}
             >
                 <DialogContent>
-                    <DialogHeader className="pb-2">
+                    <DialogHeader>
                         <DialogTitle>Delete Payment Method</DialogTitle>
                         <DialogDescription>
                             This action cannot be undone. To confirm deletion, please enter the

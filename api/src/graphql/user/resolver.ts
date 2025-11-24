@@ -39,8 +39,8 @@ import { parsePagination } from "../../lib/shared/pagination";
 import { GraphQLContext } from "../../types/graphql";
 import type { UpdateUserInput } from "./types";
 import type { Prisma } from "@prisma/client";
-import { UserRole, payment_methods } from "@prisma/client";
-import { withCache, createCacheKey, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
+import { UserRole } from "@prisma/client";
+import { withCache, CACHE_TTL, deleteCacheByPattern } from "../../lib/shared/cache";
 
 export const userResolvers = {
     Query: {
@@ -90,65 +90,53 @@ export const userResolvers = {
                 throw GraphQLErrors.forbidden();
             }
 
-            try {
-                const pagination = parsePagination({ first, skip });
+            const pagination = parsePagination({ first, skip });
+            const whereClause: Prisma.usersWhereInput = {};
 
-                // Use Redis caching for users queries (admin only)
-                const cacheKey = createCacheKey.user("admin");
-                const users = await withCache(
-                    cacheKey,
-                    async () => {
-                        return await prisma.users.findMany({
-                            select: {
-                                id: true,
-                                email: true,
-                                firstName: true,
-                                lastName: true,
-                                role: true,
-                                restaurantId: true,
-                                isActive: true,
-                                createdAt: true,
-                                updatedAt: true,
-                                orders: {
-                                    select: {
-                                        id: true,
-                                        status: true,
-                                        totalAmount: true,
-                                        createdAt: true,
-                                    },
-                                },
-                                payment_methods: {
-                                    select: {
-                                        id: true,
-                                        type: true,
-                                        provider: true,
-                                        isDefault: true,
-                                    },
+            // Use Redis caching for users queries (admin only)
+            const cacheKey = `users:admin:${pagination.first}:${pagination.skip}`;
+            return await withCache(
+                cacheKey,
+                async () => {
+                    // Get total count
+                    const totalCount = await prisma.users.count({
+                        where: whereClause,
+                    });
+
+                    // Get paginated users
+                    const users = await prisma.users.findMany({
+                        where: whereClause,
+                        select: {
+                            id: true,
+                            email: true,
+                            firstName: true,
+                            lastName: true,
+                            role: true,
+                            restaurantId: true,
+                            isActive: true,
+                            createdAt: true,
+                            updatedAt: true,
+                            restaurant: {
+                                select: {
+                                    id: true,
+                                    name: true,
                                 },
                             },
-                            take: pagination.first,
-                            skip: pagination.skip,
-                            orderBy: {
-                                createdAt: "desc",
-                            },
-                        });
-                    },
-                    CACHE_TTL.USER_DATA,
-                );
+                        },
+                        orderBy: {
+                            createdAt: "desc",
+                        },
+                        take: pagination.first,
+                        skip: pagination.skip,
+                    });
 
-                logger.info("Users queried successfully", {
-                    userId: context.user.id,
-                    resultCount: users.length,
-                });
-
-                return users;
-            } catch (error) {
-                logger.error("Users query failed", {
-                    userId: context.user?.id,
-                    error: error instanceof Error ? error.message : String(error),
-                });
-                throw error;
-            }
+                    return {
+                        users: users ?? [],
+                        totalCount,
+                    };
+                },
+                CACHE_TTL.USER_DATA,
+            );
         },
 
         user: async (_parent: unknown, { id }: { id: string }, context: GraphQLContext) => {
@@ -160,7 +148,7 @@ export const userResolvers = {
             const validatedId = validationSchemas.id.parse(id);
 
             // Use Redis caching for individual users (admin only)
-            const cacheKey = createCacheKey.user(validatedId);
+            const cacheKey = `user:${validatedId}`;
             return await withCache(
                 cacheKey,
                 async () => {
@@ -176,22 +164,10 @@ export const userResolvers = {
                             isActive: true,
                             createdAt: true,
                             updatedAt: true,
-                            orders: {
+                            restaurant: {
                                 select: {
                                     id: true,
-                                    status: true,
-                                    totalAmount: true,
-                                    createdAt: true,
-                                },
-                                orderBy: { createdAt: "desc" },
-                                take: 10, // Limit to recent orders for performance
-                            },
-                            payment_methods: {
-                                select: {
-                                    id: true,
-                                    type: true,
-                                    isDefault: true,
-                                    createdAt: true,
+                                    name: true,
                                 },
                             },
                         },
@@ -391,7 +367,7 @@ export const userResolvers = {
                     },
                 });
 
-                await deleteCacheByPattern("user:*");
+                await deleteCacheByPattern("users:admin:*");
 
                 return updatedUser;
             } catch (error) {
@@ -520,6 +496,7 @@ export const userResolvers = {
                 });
 
                 // Invalidate user caches
+                await deleteCacheByPattern("users:admin:*");
                 await deleteCacheByPattern("user:*");
 
                 return true;
@@ -531,17 +508,6 @@ export const userResolvers = {
                 });
                 throw error;
             }
-        },
-    },
-
-    // User type resolvers to handle field mapping and null safety
-    User: {
-        /**
-         * Ensure paymentMethods always returns an array (never null)
-         * GraphQL schema defines this as [PaymentMethod!]! (non-nullable array)
-         */
-        paymentMethods: (parent: { payment_methods?: payment_methods[] }) => {
-            return parent.payment_methods || [];
         },
     },
 };

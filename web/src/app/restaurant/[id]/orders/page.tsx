@@ -389,7 +389,7 @@ export default function OrdersPage() {
                     value={statusFilter || "all"}
                     onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}
                 >
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="sm:w-[180px]">
                         <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -947,7 +947,7 @@ export default function OrdersPage() {
             {/* Cancel Order Dialog */}
             <Dialog open={!!cancellingOrder} onOpenChange={() => setCancellingOrder(null)}>
                 <DialogContent>
-                    <DialogHeader className="pb-2">
+                    <DialogHeader>
                         <DialogTitle>Cancel Order</DialogTitle>
                         <DialogDescription>
                             Are you sure you want to cancel order #{cancellingOrder?.id.slice(-8)}?

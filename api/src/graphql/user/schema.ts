@@ -15,14 +15,12 @@ export const typeDefs = `#graphql
         lastName: String!
         "User's role determining permissions (ADMIN, MANAGER, MEMBER)"
         role: UserRole!
-    "Restaurant assigned to the user (managers and members only)"
-    restaurantId: ID
+        "Restaurant assigned to the user (managers and members only)"
+        restaurantId: ID
+        "Restaurant details for the user"
+        restaurant: Restaurant
         "Whether the user account is active"
         isActive: Boolean!
-        "List of orders placed by this user"
-        orders: [Order!]!
-        "List of payment methods associated with this user"
-        paymentMethods: [PaymentMethod!]!
         "Timestamp when the user account was created"
         createdAt: DateTime!
         "Timestamp when the user account was last updated"
@@ -49,12 +47,22 @@ export const typeDefs = `#graphql
         isActive: Boolean
     }
 
+    """
+    Connection type for paginated users with total count
+    """
+    type UserConnection {
+        "List of users for the current page"
+        users: [User!]!
+        "Total number of users matching the query"
+        totalCount: Int!
+    }
+
     type Query {
         """
         Get a paginated list of users.
         Only admins can view the user list.
         """
-        users(first: Int, skip: Int): [User!]!
+        users(first: Int, skip: Int): UserConnection!
         """
         Get a specific user by ID.
         Only admins can view individual user details.

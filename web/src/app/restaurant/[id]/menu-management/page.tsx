@@ -514,7 +514,7 @@ export default function MenuManagementPage() {
                     value={categoryFilter || "all"}
                     onValueChange={(value) => setCategoryFilter(value === "all" ? "" : value)}
                 >
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="sm:w-[180px]">
                         <SelectValue placeholder="Filter by category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1112,7 +1112,7 @@ export default function MenuManagementPage() {
             {/* Delete Dialog */}
             <Dialog open={!!deletingMenuItem} onOpenChange={() => setDeletingMenuItem(null)}>
                 <DialogContent>
-                    <DialogHeader className="pb-2">
+                    <DialogHeader>
                         <DialogTitle>Delete Menu Item</DialogTitle>
                         <DialogDescription>
                             This action cannot be undone. To confirm deletion, please enter the menu

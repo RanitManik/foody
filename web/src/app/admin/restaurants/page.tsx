@@ -1050,7 +1050,7 @@ export default function AdminRestaurantsPage() {
             {/* Delete Dialog */}
             <Dialog open={!!deletingRestaurant} onOpenChange={() => setDeletingRestaurant(null)}>
                 <DialogContent>
-                    <DialogHeader className="pb-2">
+                    <DialogHeader>
                         <DialogTitle>Delete Restaurant</DialogTitle>
                         <DialogDescription>
                             This action cannot be undone. To confirm deletion, please enter the
