@@ -185,13 +185,16 @@ foody/
 - **Payments**: Payment transactions and methods
 - **Feedback**: User feedback submissions and reviews
 
-### Access Control Matrix
+### Access Control Matrix (Reversed)
 
-| Role    | View Restaurants    | Create Orders | Checkout/Pay | Cancel Orders | Update Payments | Admin Functions |
-| ------- | ------------------- | ------------- | ------------ | ------------- | --------------- | --------------- |
-| ADMIN   | All                 | ✅            | ✅           | ✅            | ✅              | ✅              |
-| MANAGER | Assigned Country    | ✅            | ✅           | ✅            | ❌              | Restaurant Mgmt |
-| MEMBER  | Assigned Restaurant | ✅            | ❌           | ❌            | ❌              | ❌              |
+| Permission       | ADMIN | MANAGER          | MEMBER              |
+| ---------------- | ----- | ---------------- | ------------------- |
+| View Restaurants | All   | Assigned Country | Assigned Restaurant |
+| Create Orders    | ✅    | ✅               | ✅                  |
+| Checkout/Pay     | ✅    | ✅               | ❌                  |
+| Cancel Orders    | ✅    | ❌               | ❌                  |
+| Update Payments  | ✅    | ❌               | ❌                  |
+| Admin Functions  | ✅    | Restaurant Mgmt  | ❌                  |
 
 ## Getting Started
 
