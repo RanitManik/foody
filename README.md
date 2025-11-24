@@ -362,10 +362,10 @@ CORS_ORIGIN="https://your-frontend-domain.com"
 
 > [!IMPORTANT]
 > Set `CORS_ORIGIN` to your frontend's domain(s). For multiple origins, separate with commas:
-
-```
-CORS_ORIGIN="https://foody.5dev.in,https://another-domain.com"
-```
+>
+> ```
+> CORS_ORIGIN="https://foody.5dev.in,https://another-domain.com"
+> ```
 
 #### Web (.env.local)
 
