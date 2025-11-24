@@ -187,40 +187,61 @@ foody/
 
 ### Access Control Matrix
 
-| Operation              | ADMIN | MANAGER             | MEMBER              |
-| ---------------------- | ----- | ------------------- | ------------------- |
-| **Restaurant Access**  |       |                     |                     |
-| View Restaurants       | All   | Assigned Restaurant | Assigned Restaurant |
-| View Menu Items        | All   | Assigned Restaurant | Assigned Restaurant |
-| Create Restaurants     | ✅    | ❌                  | ❌                  |
-| Update Restaurants     | ✅    | ❌                  | ❌                  |
-| Delete Restaurants     | ✅    | ❌                  | ❌                  |
-| **Menu Management**    |       |                     |                     |
-| Create Menu Items      | ✅    | ✅                  | ❌                  |
-| Update Menu Items      | ✅    | ✅                  | ❌                  |
-| Delete Menu Items      | ✅    | ✅                  | ❌                  |
-| **Order Management**   |       |                     |                     |
-| Create Orders          | ✅    | ✅                  | ✅                  |
-| Checkout/Pay Orders    | ✅    | ✅                  | ❌                  |
-| Cancel Orders          | ✅    | ✅                  | ❌                  |
-| Update Order Status    | ✅    | ✅                  | ❌                  |
-| **Payment Management** |       |                     |                     |
-| View Payment Methods   | ✅    | ✅                  | ✅                  |
-| Create Payment Methods | ✅    | ✅                  | ✅                  |
-| Update Payment Methods | ✅    | ❌                  | ❌                  |
-| Delete Payment Methods | ✅    | ❌                  | ❌                  |
-| Process Payments       | ✅    | ✅                  | ❌                  |
-| **User Management**    |       |                     |                     |
-| View Users             | ✅    | ❌                  | ❌                  |
-| Create Users           | ✅    | ❌                  | ❌                  |
-| Update Users           | ✅    | ❌                  | ❌                  |
-| Delete Users           | ✅    | ❌                  | ❌                  |
-| **Feedback**           |       |                     |                     |
-| Submit Feedback        | ✅    | ✅                  | ✅                  |
-| View Feedback          | ✅    | ❌                  | ❌                  |
-| **Authentication**     |       |                     |                     |
-| Register Users         | ✅    | ❌                  | ❌                  |
-| Login                  | ✅    | ✅                  | ✅                  |
+| Operation | ADMIN | MANAGER | MEMBER |
+| --------- | ----- | ------- | ------ |
+
+#### Data Access Permissions
+
+| View All Restaurants | ✅ | ❌ | ❌ |
+| View Restaurants by Country| ❌ | ✅ | ❌ |
+| View Assigned Restaurant | ❌ | ❌ | ✅ |
+| View All Menu Items | ✅ | ❌ | ❌ |
+| View Menu Items by Country | ❌ | ✅ | ❌ |
+| View Assigned Menu Items | ❌ | ❌ | ✅ |
+| View All Users | ✅ | ❌ | ❌ |
+| View All Feedback | ✅ | ❌ | ❌ |
+
+#### Restaurant Management
+
+| Create Restaurants | ✅ | ❌ | ❌ |
+| Update Restaurants | ✅ | ❌ | ❌ |
+| Delete Restaurants | ✅ | ❌ | ❌ |
+
+#### Menu Management
+
+| Create Menu Items | ✅ | ✅ | ❌ |
+| Update Menu Items | ✅ | ✅ | ❌ |
+| Delete Menu Items | ✅ | ✅ | ❌ |
+
+#### Order Management
+
+| Create Orders | ✅ | ✅ | ✅ |
+| Checkout/Pay Orders | ✅ | ✅ | ❌ |
+| Cancel Orders | ✅ | ✅ | ❌ |
+| Update Order Status | ✅ | ✅ | ❌ |
+
+#### Payment Management
+
+| View Payment Methods | ✅ | ✅ | ✅ |
+| Create Payment Methods | ✅ | ✅ | ✅ |
+| Update Payment Methods | ✅ | ❌ | ❌ |
+| Delete Payment Methods | ✅ | ❌ | ❌ |
+| Process Payments | ✅ | ✅ | ❌ |
+
+#### User Management
+
+| Create Users | ✅ | ❌ | ❌ |
+| Update Users | ✅ | ❌ | ❌ |
+| Delete Users | ✅ | ❌ | ❌ |
+
+#### Feedback Management
+
+| Submit Feedback | ✅ | ✅ | ✅ |
+
+#### Authentication
+
+| Register Users | ✅ | ❌ | ❌ |
+| Login | ✅ | ✅ | ✅ |
 
 ## Getting Started
 
