@@ -18,6 +18,7 @@ import {
     Mail,
     X,
     Plus,
+    User,
 } from "lucide-react";
 import { toast } from "sonner";
 import extractErrorMessage from "@/lib/errors";
@@ -1036,56 +1037,55 @@ export default function UsersPage() {
                         {viewingUser && (
                             <div className="space-y-6">
                                 {/* User Info */}
-                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <h4 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+                                        Basic Information
+                                    </h4>
                                     <div className="space-y-2">
-                                        <h4 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
-                                            Basic Information
-                                        </h4>
-                                        <div className="space-y-2">
+                                        <div className="flex items-center gap-1 text-sm">
+                                            <User className="size-4" />
                                             <div className="font-medium">
                                                 {viewingUser.firstName} {viewingUser.lastName}
                                             </div>
-                                            <div className="text-muted-foreground text-sm">
-                                                <Mail className="mr-1 inline h-3 w-3" />
-                                                {viewingUser.email}
-                                            </div>
-                                            <div className="text-muted-foreground text-sm">
-                                                ID: {viewingUser.id.slice(-8)}
-                                            </div>
+                                        </div>
+                                        <div className="text-muted-foreground flex items-center gap-1 text-sm">
+                                            <Mail className="size-4" />
+                                            {viewingUser.email}
+                                        </div>
+                                        <div className="text-muted-foreground text-sm">
+                                            ID: {viewingUser.id.slice(-8)}
                                         </div>
                                     </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <h4 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+                                        Status & Role
+                                    </h4>
                                     <div className="space-y-2">
-                                        <h4 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
-                                            Status & Role
-                                        </h4>
-                                        <div className="space-y-2">
-                                            <Badge
-                                                variant={
-                                                    roleConfig[
-                                                        viewingUser.role as keyof typeof roleConfig
-                                                    ].color as
-                                                        | "secondary"
-                                                        | "default"
-                                                        | "outline"
-                                                        | "destructive"
-                                                }
-                                                className="mr-2 w-fit"
-                                            >
-                                                {
-                                                    roleConfig[
-                                                        viewingUser.role as keyof typeof roleConfig
-                                                    ].label
-                                                }
-                                            </Badge>
-                                            <Badge
-                                                variant={
-                                                    viewingUser.isActive ? "default" : "secondary"
-                                                }
-                                                className="w-fit"
-                                            >
-                                                {viewingUser.isActive ? "Active" : "Inactive"}
-                                            </Badge>
-                                        </div>
+                                        <Badge
+                                            variant={
+                                                roleConfig[
+                                                    viewingUser.role as keyof typeof roleConfig
+                                                ].color as
+                                                    | "secondary"
+                                                    | "default"
+                                                    | "outline"
+                                                    | "destructive"
+                                            }
+                                            className="mr-2 w-fit"
+                                        >
+                                            {
+                                                roleConfig[
+                                                    viewingUser.role as keyof typeof roleConfig
+                                                ].label
+                                            }
+                                        </Badge>
+                                        <Badge
+                                            variant={viewingUser.isActive ? "default" : "secondary"}
+                                            className="w-fit"
+                                        >
+                                            {viewingUser.isActive ? "Active" : "Inactive"}
+                                        </Badge>
                                     </div>
                                 </div>
 
