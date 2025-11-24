@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
 import {
@@ -13,6 +15,8 @@ import {
     CheckCircle,
     Package,
     CreditCard,
+    Plus,
+    Edit,
 } from "lucide-react";
 import { toast } from "sonner";
 import extractErrorMessage from "@/lib/errors";
@@ -211,6 +215,8 @@ const statusConfig = {
 } as const;
 
 export default function OrdersPage() {
+    const params = useParams();
+    const restaurantId = params.id as string;
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
@@ -346,6 +352,12 @@ export default function OrdersPage() {
         <div className="grid h-full min-h-0 grid-rows-[auto_auto_1fr] gap-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
+                <Button asChild size="sm">
+                    <Link href={`/restaurant/${restaurantId}/orders/create`}>
+                        <Plus className="h-4 w-4" />
+                        Create Order
+                    </Link>
+                </Button>
             </div>
 
             <div className="flex gap-4">
@@ -585,6 +597,16 @@ export default function OrdersPage() {
                                                                   View Details
                                                               </DropdownMenuItem>
                                                               {order.status === "PENDING" && (
+                                                                  <DropdownMenuItem asChild>
+                                                                      <Link
+                                                                          href={`/restaurant/${restaurantId}/orders/create?orderId=${order.id}`}
+                                                                      >
+                                                                          <Edit className="h-4 w-4" />
+                                                                          Update Order
+                                                                      </Link>
+                                                                  </DropdownMenuItem>
+                                                              )}
+                                                              {order.status === "PENDING" && (
                                                                   <DropdownMenuItem
                                                                       onClick={() =>
                                                                           handleConfirmOrder(
@@ -601,7 +623,7 @@ export default function OrdersPage() {
                                                                       onClick={() =>
                                                                           setCancellingOrder(order)
                                                                       }
-                                                                      className="text-destructive"
+                                                                      variant="destructive"
                                                                   >
                                                                       <X className="h-4 w-4" />
                                                                       Cancel Order
@@ -1016,7 +1038,7 @@ export default function OrdersPage() {
                                             value={selectedPaymentMethod}
                                             onValueChange={setSelectedPaymentMethod}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Choose payment method" />
                                             </SelectTrigger>
                                             <SelectContent>

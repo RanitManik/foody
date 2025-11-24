@@ -112,16 +112,6 @@ const CREATE_ORDER = gql`
     }
 `;
 
-const UPDATE_ORDER_STATUS = gql`
-    mutation UpdateOrderStatus($id: ID!, $status: OrderStatus!) {
-        updateOrderStatus(id: $id, status: $status) {
-            id
-            status
-            updatedAt
-        }
-    }
-`;
-
 interface MenuItem {
     id: string;
     name: string;
@@ -186,7 +176,6 @@ export default function CreateOrderPage() {
     });
 
     const [createOrder] = useMutation(CREATE_ORDER);
-    const [updateOrderStatus] = useMutation(UPDATE_ORDER_STATUS);
 
     // Initialize form with existing order data
     useEffect(() => {
@@ -290,34 +279,6 @@ export default function CreateOrderPage() {
             toast.error(extractErrorMessage(error));
         } finally {
             setIsSubmitting(false);
-        }
-    };
-
-    const handleCompleteOrder = async () => {
-        if (!orderId) return;
-
-        try {
-            await updateOrderStatus({
-                variables: { id: orderId, status: "COMPLETED" },
-            });
-            toast.success("Order completed!");
-            router.push(`/restaurant/${restaurantId}/orders`);
-        } catch (error) {
-            toast.error(extractErrorMessage(error));
-        }
-    };
-
-    const handleCancelOrder = async () => {
-        if (!orderId) return;
-
-        try {
-            await updateOrderStatus({
-                variables: { id: orderId, status: "CANCELLED" },
-            });
-            toast.success("Order cancelled!");
-            router.push(`/restaurant/${restaurantId}/orders`);
-        } catch (error) {
-            toast.error(extractErrorMessage(error));
         }
     };
 
@@ -470,7 +431,7 @@ export default function CreateOrderPage() {
 
                                                 <CardContent className="flex flex-1 flex-col p-4">
                                                     <div className="mb-2 flex items-start justify-between gap-2">
-                                                        <h3 className="line-clamp-2 font-semibold">
+                                                        <h3 className="line-clamp-1 font-semibold">
                                                             {item.name}
                                                         </h3>
                                                         <span className="font-semibold">
@@ -518,9 +479,9 @@ export default function CreateOrderPage() {
 
             {/* Right Column: Order Summary */}
             <div className="flex h-full min-h-0 flex-col">
-                <div className="bg-card flex h-full flex-col rounded-xl border shadow-sm">
+                <div className="bg-background flex h-full flex-col rounded-xl border shadow-sm">
                     {/* Cart Header */}
-                    <div className="border-b p-4">
+                    <div className="bg-muted/20 border-b p-4">
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-semibold">Order Summary</h2>
                             <Badge variant="secondary" className="px-3 py-1">
@@ -543,11 +504,11 @@ export default function CreateOrderPage() {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
+                                <div className="space-y-2">
                                     {cart.map((item) => (
                                         <div
                                             key={item.menuItem.id}
-                                            className="group hover:bg-accent/50 flex gap-4 rounded-lg border p-3 transition-colors"
+                                            className="group hover:bg-accent/50 bg-card flex gap-4 rounded-lg border p-3 transition-colors"
                                         >
                                             <div className="relative size-14 shrink-0 overflow-hidden rounded-md border">
                                                 {item.menuItem.imageUrl ? (
@@ -632,19 +593,9 @@ export default function CreateOrderPage() {
                     {/* Footer Section */}
                     <div className="bg-muted/20 space-y-3 border-t p-4">
                         {/* Totals */}
-                        <div className="bg-muted space-y-2 rounded-lg p-4">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Subtotal</span>
-                                <span>${getTotalAmount().toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Taxes (10%)</span>
-                                <span>${(getTotalAmount() * 0.1).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between border-t pt-2 text-lg font-bold">
-                                <span>Total</span>
-                                <span>${(getTotalAmount() * 1.1).toFixed(2)}</span>
-                            </div>
+                        <div className="flex justify-between text-lg font-bold">
+                            <span>Total</span>
+                            <span>${getTotalAmount().toFixed(2)}</span>
                         </div>
 
                         {/* Actions */}
@@ -669,51 +620,25 @@ export default function CreateOrderPage() {
                                     )}
                                 </Button>
                             ) : (
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Button
-                                        onClick={handleSubmit}
-                                        disabled={cart.length === 0 || isSubmitting}
-                                        variant="default"
-                                        className="h-10"
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <Spinner className="h-4 w-4" />
-                                                Saving...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Save className="h-4 w-4" />
-                                                Save
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        onClick={handleCompleteOrder}
-                                        disabled={
-                                            (orderData as { order?: OrderData })?.order?.status ===
-                                            "COMPLETED"
-                                        }
-                                        variant="secondary"
-                                        className="h-10"
-                                    >
-                                        <CheckCircle className="h-4 w-4" />
-                                        Complete
-                                    </Button>
-                                </div>
+                                <Button
+                                    onClick={handleSubmit}
+                                    disabled={cart.length === 0 || isSubmitting}
+                                    variant="default"
+                                    className="h-10 w-full"
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <Spinner className="h-4 w-4" />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="h-4 w-4" />
+                                            Save Order
+                                        </>
+                                    )}
+                                </Button>
                             )}
-
-                            {orderId &&
-                                (orderData as { order?: OrderData })?.order?.status ===
-                                    "PENDING" && (
-                                    <Button
-                                        onClick={handleCancelOrder}
-                                        variant="ghost"
-                                        className="text-destructive hover:text-destructive hover:bg-destructive/10 w-full"
-                                    >
-                                        Cancel Order
-                                    </Button>
-                                )}
                         </div>
                     </div>
                 </div>

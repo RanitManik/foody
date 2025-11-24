@@ -596,6 +596,7 @@ export default function PaymentMethodsPage() {
                                                                               method,
                                                                           )
                                                                       }
+                                                                      variant="destructive"
                                                                   >
                                                                       <Trash2 className="h-4 w-4" />
                                                                       Delete
