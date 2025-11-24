@@ -1,3 +1,29 @@
-export default function LoginPage() {
-    return <div>Hello World</div>;
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function HomePage() {
+    const router = useRouter();
+
+    useEffect(() => {
+        const token = localStorage.getItem("auth_token");
+        if (!token) {
+            router.push("/login");
+            return;
+        }
+
+        const role = localStorage.getItem("user_role");
+        const userData = JSON.parse(localStorage.getItem("user_data") || "{}");
+
+        if (role === "ADMIN") {
+            router.push("/admin/restaurants");
+        } else if (userData.restaurantId) {
+            router.push(`/restaurant/${userData.restaurantId}/orders`);
+        } else {
+            router.push("/");
+        }
+    }, [router]);
+
+    return <div>Redirecting...</div>;
 }
