@@ -63,7 +63,7 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
     }
 
     // Allow ADMIN to access any restaurant
-    // Allow MANAGER to access restaurants in their location (country)
+    // Allow MANAGER to access their assigned restaurant (enforced by API)
     // Allow MEMBER to access only their assigned restaurant
     const hasPermission =
         user.role === "ADMIN" ||

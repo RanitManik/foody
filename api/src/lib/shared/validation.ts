@@ -241,9 +241,18 @@ export const CreateFeedbackInputSchema = z.object({
 /**
  * Payment Input Schemas
  */
+export const PaymentTypeEnum = z.enum([
+    "CREDIT_CARD",
+    "DEBIT_CARD",
+    "PAYPAL",
+    "APPLE_PAY",
+    "GOOGLE_PAY",
+]);
+export const PaymentProviderEnum = z.enum(["STRIPE", "PAYPAL", "SQUARE", "OTHER"]);
+
 export const CreatePaymentMethodInputSchema = z.object({
-    type: z.string().min(1, "Payment type is required").max(50, "Type too long"),
-    provider: z.string().min(1, "Provider is required").max(50, "Provider too long"),
+    type: PaymentTypeEnum,
+    provider: PaymentProviderEnum,
     token: z.string().min(1, "Token is required"),
 });
 

@@ -38,7 +38,7 @@ import {
 } from "../../lib/shared/validation";
 import { GraphQLContext, CreatePaymentMethodInput } from "../../types/graphql";
 import { deleteCacheByPattern } from "../../lib/shared/cache";
-import { UserRole, OrderStatus } from "@prisma/client";
+import { UserRole, OrderStatus, PaymentStatus } from "@prisma/client";
 
 const requireRestaurantId = (user: NonNullable<GraphQLContext["user"]>): string => {
     if (!user.restaurantId) {
@@ -76,7 +76,11 @@ export const paymentResolvers = {
          *   }
          * }
          */
-        paymentMethods: async (_parent: unknown, { restaurantId }: { restaurantId?: string }, context: GraphQLContext) => {
+        paymentMethods: async (
+            _parent: unknown,
+            { restaurantId }: { restaurantId?: string },
+            context: GraphQLContext,
+        ) => {
             if (!context.user) {
                 logger.warn("Payment methods query failed: not authenticated");
                 throw GraphQLErrors.unauthenticated();
@@ -106,7 +110,9 @@ export const paymentResolvers = {
                 // Manager
                 targetRestaurantId = requireRestaurantId(currentUser);
                 if (restaurantId && restaurantId !== targetRestaurantId) {
-                    throw GraphQLErrors.forbidden("Access denied to this restaurant's payment methods");
+                    throw GraphQLErrors.forbidden(
+                        "Access denied to this restaurant's payment methods",
+                    );
                 }
             }
 
@@ -185,7 +191,9 @@ export const paymentResolvers = {
             let targetRestaurantId: string;
             if (isAdmin) {
                 // For admin, we might not need restaurantId for single payment method, but let's require it for consistency
-                throw GraphQLErrors.badInput("restaurantId is required for admins to access payment methods");
+                throw GraphQLErrors.badInput(
+                    "restaurantId is required for admins to access payment methods",
+                );
             } else {
                 // Manager
                 targetRestaurantId = requireRestaurantId(currentUser);
@@ -401,7 +409,10 @@ export const paymentResolvers = {
                 const isAdmin = currentUser.role === UserRole.ADMIN;
                 const isManager = currentUser.role === UserRole.MANAGER;
                 const isOrderOwner = orderOwnerId === currentUser.id;
-                const canAccess = isAdmin || isOrderOwner || (isManager && orderRestaurantId === currentUser.restaurantId);
+                const canAccess =
+                    isAdmin ||
+                    isOrderOwner ||
+                    (isManager && orderRestaurantId === currentUser.restaurantId);
 
                 if (!canAccess) {
                     logger.warn("Payment query failed: access denied", {
@@ -1000,7 +1011,9 @@ export const paymentResolvers = {
                         orderRestaurantId: order.restaurantId,
                         orderId: order.id,
                     });
-                    throw GraphQLErrors.forbidden("Payment method does not belong to the order's restaurant");
+                    throw GraphQLErrors.forbidden(
+                        "Payment method does not belong to the order's restaurant",
+                    );
                 }
 
                 const existingPayment = await prisma.payments.findUnique({
@@ -1036,7 +1049,7 @@ export const paymentResolvers = {
                             orderId: validatedOrderId,
                             paymentMethodId: validatedPaymentMethodId,
                             amount,
-                            status: "COMPLETED",
+                            status: PaymentStatus.COMPLETED,
                             transactionId,
                         },
                         include: {
