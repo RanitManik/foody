@@ -30,6 +30,7 @@ This document provides comprehensive documentation for the Foody GraphQL API, in
     - [MenuItem](#menuitem)
     - [Order](#order)
     - [Payment](#payment)
+    - [Feedback](#feedback)
 - [**Queries**](#queries)
     - [Authentication Queries](#authentication-queries)
         - [Get Current User](#get-current-user)
@@ -44,6 +45,8 @@ This document provides comprehensive documentation for the Foody GraphQL API, in
         - [Get Single Order](#get-single-order)
     - [Payment Queries](#payment-queries)
         - [Get Payment Methods](#get-payment-methods)
+    - [Feedback Queries](#feedback-queries)
+        - [Get Feedback](#get-feedback)
 - [**Mutations**](#mutations)
     - [Authentication Mutations](#authentication-mutations)
         - [Register User](#register-user)
@@ -65,8 +68,8 @@ This document provides comprehensive documentation for the Foody GraphQL API, in
         - [Update Restaurant](#update-restaurant)
     - [User Management Mutations](#user-management-mutations)
         - [Update User](#update-user)
-- [**Subscriptions**](#subscriptions)
-    - [Order Status Updates](#order-status-updates)
+    - [Feedback Mutations](#feedback-mutations)
+        - [Create Feedback](#create-feedback)
 - [**Health Checks**](#health-checks)
 - [**Error Handling**](#error-handling)
     - [Common Error Codes](#common-error-codes)
@@ -236,6 +239,8 @@ The API implements role-based access control (RBAC) with restaurant-based restri
 | Checkout/Pay Orders    | ✅    | ✅      | ❌       |
 | Cancel Orders          | ✅    | ✅      | ❌       |
 | Update Payment Methods | ✅    | ❌      | ❌       |
+| Submit Feedback        | ✅    | ✅      | ✅       |
+| View Feedback          | ✅    | ❌      | ❌       |
 | Manage Restaurants     | ✅    | ❌      | ❌       |
 | Manage Users           | ✅    | ❌      | ❌       |
 
@@ -342,6 +347,20 @@ type Payment {
 }
 ```
 
+### Feedback
+
+Represents user feedback submissions.
+
+```graphql
+type Feedback {
+    id: ID!
+    userId: ID
+    email: String
+    message: String!
+    createdAt: DateTime!
+}
+```
+
 ## Queries
 
 ### Authentication Queries
@@ -414,6 +433,26 @@ query GetRestaurant($id: ID!) {
 ```graphql
 query GetMenuItems($restaurantId: ID, $first: Int, $skip: Int) {
     menuItems(restaurantId: $restaurantId, first: $first, skip: $skip) {
+        id
+        name
+        description
+        price
+        category
+        isAvailable
+        restaurant {
+            id
+            name
+            location
+        }
+    }
+}
+```
+
+#### Get Single Menu Item
+
+```graphql
+query GetMenuItem($id: ID!) {
+    menuItem(id: $id) {
         id
         name
         description
@@ -505,6 +544,22 @@ query GetPaymentMethods {
         provider
         last4
         isDefault
+        createdAt
+    }
+}
+```
+
+### Feedback Queries
+
+#### Get Feedback
+
+```graphql
+query GetFeedback($first: Int, $skip: Int) {
+    feedbacks(first: $first, skip: $skip) {
+        id
+        userId
+        email
+        message
         createdAt
     }
 }
@@ -665,6 +720,14 @@ mutation UpdatePaymentMethod($id: ID!, $input: UpdatePaymentMethodInput!) {
 }
 ```
 
+#### Delete Payment Method
+
+```graphql
+mutation DeletePaymentMethod($id: ID!) {
+    deletePaymentMethod(id: $id)
+}
+```
+
 #### Process Payment
 
 ```graphql
@@ -708,7 +771,30 @@ mutation UpdateRestaurant($id: ID!, $input: UpdateRestaurantInput!) {
 }
 ```
 
+#### Delete Restaurant
+
+```graphql
+mutation DeleteRestaurant($id: ID!) {
+    deleteRestaurant(id: $id)
+}
+```
+
 ### User Management Mutations
+
+#### Create User
+
+```graphql
+mutation CreateUser($input: CreateUserInput!) {
+    createUser(input: $input) {
+        id
+        email
+        firstName
+        lastName
+        role
+        restaurantId
+    }
+}
+```
 
 #### Update User
 
@@ -725,18 +811,26 @@ mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
 }
 ```
 
-## Subscriptions
-
-The API supports real-time subscriptions via WebSocket for order status updates.
-
-### Order Status Updates
+#### Delete User
 
 ```graphql
-subscription OrderStatusUpdated($orderId: ID!) {
-    orderStatusUpdated(orderId: $orderId) {
+mutation DeleteUser($id: ID!) {
+    deleteUser(id: $id)
+}
+```
+
+### Feedback Mutations
+
+#### Create Feedback
+
+```graphql
+mutation CreateFeedback($input: CreateFeedbackInput!) {
+    createFeedback(input: $input) {
         id
-        status
-        updatedAt
+        userId
+        email
+        message
+        createdAt
     }
 }
 ```
