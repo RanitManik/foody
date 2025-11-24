@@ -80,7 +80,7 @@ export const userResolvers = {
          */
         users: async (
             _parent: unknown,
-            { first, skip }: { first?: number; skip?: number },
+            { first, skip, restaurantId }: { first?: number; skip?: number; restaurantId?: string },
             context: GraphQLContext,
         ) => {
             if (!context.user || context.user.role !== UserRole.ADMIN) {
@@ -94,8 +94,12 @@ export const userResolvers = {
             const pagination = parsePagination({ first, skip });
             const whereClause: Prisma.usersWhereInput = {};
 
+            if (restaurantId) {
+                whereClause.restaurantId = restaurantId;
+            }
+
             // Use Redis caching for users queries (admin only)
-            const cacheKey = `users:admin:${pagination.first}:${pagination.skip}`;
+            const cacheKey = `users:admin:${restaurantId || 'all'}:${pagination.first}:${pagination.skip}`;
             return await withCache(
                 cacheKey,
                 async () => {

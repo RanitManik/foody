@@ -82,7 +82,7 @@ export const typeDefs = `#graphql
         Get a paginated list of users.
         Only admins can view the user list.
         """
-        users(first: Int, skip: Int): UserConnection!
+        users(first: Int, skip: Int, restaurantId: ID): UserConnection!
         """
         Get a specific user by ID.
         Only admins can view individual user details.

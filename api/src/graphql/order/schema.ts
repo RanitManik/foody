@@ -102,7 +102,7 @@ export const typeDefs = `#graphql
         Get a paginated list of orders. Non-admin users can only see their own orders.
     Managers can see orders from users in their assigned restaurant.
         """
-        orders(first: Int, skip: Int): OrderConnection!
+        orders(first: Int, skip: Int, restaurantId: ID): OrderConnection!
         """
         Get a specific order by ID. Access control ensures users can only view their own orders
     or orders from their restaurant's members (for managers).

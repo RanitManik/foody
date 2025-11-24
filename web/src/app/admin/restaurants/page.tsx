@@ -605,7 +605,7 @@ export default function AdminRestaurantsPage() {
                         </div>
                     ) : (
                         <Table>
-                            <TableHeader className="bg-card border-border sticky top-0 border-b">
+                            <TableHeader className="bg-foreground border-border sticky top-0 border-b">
                                 <TableRow className="h-8">
                                     <TableHead className="bg-card sticky top-0 z-30 w-12 border-r text-center">
                                         #

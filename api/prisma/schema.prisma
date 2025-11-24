@@ -45,6 +45,7 @@ model order_items {
 model orders {
   id                  String        @id @default(cuid())
   userId              String
+  restaurantId        String
   totalAmount         Float
   status              OrderStatus   @default(PENDING)
   phone               String?
@@ -53,26 +54,28 @@ model orders {
   updatedAt           DateTime      @updatedAt
   order_items         order_items[]
   users               users         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurants         restaurants   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   payments            payments?
 
   @@index([userId])
+  @@index([restaurantId])
   @@index([status])
   @@index([createdAt])
 }
 
 model payment_methods {
-  id          String     @id @default(cuid())
-  userId      String
-  type        String
-  provider    String
-  last4       String?
-  expiryMonth Int?
-  expiryYear  Int?
-  isDefault   Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  users       users      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payments    payments[]
+  id           String      @id @default(cuid())
+  restaurantId String
+  type         String
+  provider     String
+  last4        String?
+  expiryMonth  Int?
+  expiryYear   Int?
+  isDefault    Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  restaurants  restaurants @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  payments     payments[]
 }
 
 model payments {
@@ -90,38 +93,39 @@ model payments {
 }
 
 model restaurants {
-  id          String       @id @default(cuid())
-  name        String
-  description String?
-  address     String
-  city        String
-  location    String
-  phone       String?
-  email       String?
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  menu_items  menu_items[]
-  users       users[]
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  address         String
+  city            String
+  location        String
+  phone           String?
+  email           String?
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  menu_items      menu_items[]
+  users           users[]
+  orders          orders[]
+  payment_methods payment_methods[]
 
   @@index([isActive])
 }
 
 model users {
-  id              String            @id @default(cuid())
-  email           String            @unique
-  password        String
-  firstName       String
-  lastName        String
-  role            UserRole
-  restaurantId    String?
-  restaurant      restaurants?      @relation(fields: [restaurantId], references: [id])
-  isActive        Boolean           @default(true)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  orders          orders[]
-  feedbacks       feedbacks[]
-  payment_methods payment_methods[]
+  id           String       @id @default(cuid())
+  email        String       @unique
+  password     String
+  firstName    String
+  lastName     String
+  role         UserRole
+  restaurantId String?
+  restaurant   restaurants? @relation(fields: [restaurantId], references: [id])
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  orders       orders[]
+  feedbacks    feedbacks[]
 
   @@index([role])
   @@index([restaurantId])

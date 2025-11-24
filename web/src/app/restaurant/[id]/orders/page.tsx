@@ -84,8 +84,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/lib/auth-context";
 
 const GET_ORDERS = gql`
-    query GetOrders($first: Int, $skip: Int) {
-        orders(first: $first, skip: $skip) {
+    query GetOrders($first: Int, $skip: Int, $restaurantId: ID) {
+        orders(first: $first, skip: $skip, restaurantId: $restaurantId) {
             orders {
                 id
                 status
@@ -232,6 +232,7 @@ export default function OrdersPage() {
         variables: {
             first: pageSize,
             skip: (currentPage - 1) * pageSize,
+            restaurantId,
         },
         fetchPolicy: "cache-first", // Use cache when available
     });
@@ -452,7 +453,7 @@ export default function OrdersPage() {
                         </div>
                     ) : (
                         <Table>
-                            <TableHeader className="bg-card border-border sticky top-0 border-b">
+                            <TableHeader className="bg-foreground border-border sticky top-0 border-b">
                                 <TableRow className="h-8">
                                     <TableHead className="bg-card sticky top-0 z-30 w-12 border-r px-1 text-center">
                                         #

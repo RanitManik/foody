@@ -109,7 +109,7 @@ export const orderResolvers = {
          */
         orders: async (
             _parent: unknown,
-            { first, skip }: { first?: number; skip?: number },
+            { first, skip, restaurantId }: { first?: number; skip?: number; restaurantId?: string },
             context: GraphQLContext,
         ) => {
             if (!context.user) {
@@ -126,18 +126,19 @@ export const orderResolvers = {
             if (!isAdmin) {
                 if (isManager) {
                     const assignedRestaurantId = requireAssignedRestaurant(currentUser);
-                    whereClause.users = {
-                        restaurantId: assignedRestaurantId,
-                        role: { in: [UserRole.MANAGER, UserRole.MEMBER] },
-                        isActive: true,
-                    };
+                    if (restaurantId && restaurantId !== assignedRestaurantId) {
+                        throw GraphQLErrors.forbidden("Access denied to this restaurant's orders");
+                    }
+                    whereClause.restaurantId = assignedRestaurantId;
                 } else {
                     whereClause.userId = currentUser.id;
                 }
+            } else if (restaurantId) {
+                whereClause.restaurantId = restaurantId;
             }
 
             const restaurantScope = currentUser.restaurantId ?? (isAdmin ? "all" : "unassigned");
-            const cacheKey = `orders:${currentUser.id}:${restaurantScope}:${pagination.first}:${pagination.skip}`;
+            const cacheKey = `orders:${currentUser.id}:${restaurantScope}:${restaurantId || "all"}:${pagination.first}:${pagination.skip}`;
             return await withCache(
                 cacheKey,
                 async () => {
@@ -282,6 +283,7 @@ export const orderResolvers = {
                         select: {
                             id: true,
                             userId: true,
+                            restaurantId: true,
                             status: true,
                             totalAmount: true,
                             phone: true,
@@ -358,15 +360,7 @@ export const orderResolvers = {
             if (!isAdmin && order.userId !== currentUser.id) {
                 if (isManager) {
                     const assignedRestaurantId = requireAssignedRestaurant(currentUser);
-                    const userRestaurantId = order.users?.restaurantId ?? null;
-                    const hasRestaurantOrderItem = order.order_items.some((orderItem) => {
-                        return orderItem.menu_items?.restaurantId === assignedRestaurantId;
-                    });
-
-                    const hasAccess =
-                        userRestaurantId === assignedRestaurantId || hasRestaurantOrderItem;
-
-                    if (!hasAccess) {
+                    if (order.restaurantId !== assignedRestaurantId) {
                         throw GraphQLErrors.forbidden("Access denied to this order");
                     }
                 } else {
@@ -456,10 +450,19 @@ export const orderResolvers = {
                         );
                     }
 
+                    if (!assignedRestaurantId) {
+                        logger.warn("Order creation failed: payment method requires restaurant context", {
+                            userId: context.user.id,
+                            role,
+                            paymentMethodId,
+                        });
+                        throw GraphQLErrors.badInput("Restaurant context required for payment methods");
+                    }
+
                     const paymentMethod = await prisma.payment_methods.findFirst({
                         where: {
                             id: paymentMethodId,
-                            userId: context.user.id,
+                            restaurantId: assignedRestaurantId,
                         },
                     });
 
@@ -566,6 +569,7 @@ export const orderResolvers = {
                     return await tx.orders.create({
                         data: {
                             userId: context.user.id,
+                            restaurantId: menuItems[0].restaurantId,
                             totalAmount,
                             phone,
                             specialInstructions,
@@ -669,7 +673,11 @@ export const orderResolvers = {
 
             const order = await prisma.orders.findUnique({
                 where: { id: validatedId },
-                include: {
+                select: {
+                    id: true,
+                    userId: true,
+                    restaurantId: true,
+                    status: true,
                     users: {
                         select: {
                             id: true,
@@ -697,18 +705,11 @@ export const orderResolvers = {
             // Managers can only update orders for their assigned restaurant
             if (context.user.role !== UserRole.ADMIN) {
                 const assignedRestaurantId = requireAssignedRestaurant(context.user);
-                const userRestaurantMatches = order.users?.restaurantId === assignedRestaurantId;
-                const hasRestaurantOrderItem = order.order_items.some((orderItem) => {
-                    return orderItem.menu_items?.restaurantId === assignedRestaurantId;
-                });
-
-                // Manager can update if EITHER the user OR the order items belong to their restaurant
-                if (!userRestaurantMatches && !hasRestaurantOrderItem) {
+                if (order.restaurantId !== assignedRestaurantId) {
                     logger.warn("Order status update failed: restaurant access denied", {
                         userId: context.user.id,
                         orderId: order.id,
-                        orderUserId: order.userId,
-                        orderUserRestaurant: order.users?.restaurantId,
+                        orderRestaurant: order.restaurantId,
                         managerRestaurant: assignedRestaurantId,
                     });
                     throw GraphQLErrors.forbidden(
@@ -803,7 +804,10 @@ export const orderResolvers = {
 
             const order = await prisma.orders.findUnique({
                 where: { id: validatedId },
-                include: {
+                select: {
+                    id: true,
+                    userId: true,
+                    restaurantId: true,
                     users: {
                         select: {
                             id: true,
@@ -830,12 +834,7 @@ export const orderResolvers = {
             // Check if manager can access this order
             if (context.user.role !== UserRole.ADMIN) {
                 const assignedRestaurantId = requireAssignedRestaurant(context.user);
-                const userRestaurantMatches = order.users?.restaurantId === assignedRestaurantId;
-                const hasRestaurantOrderItem = order.order_items.some((orderItem) => {
-                    return orderItem.menu_items?.restaurantId === assignedRestaurantId;
-                });
-
-                if (!userRestaurantMatches && !hasRestaurantOrderItem) {
+                if (order.restaurantId !== assignedRestaurantId) {
                     throw GraphQLErrors.forbidden(
                         "Managers can only cancel orders for their assigned restaurant",
                     );

@@ -242,6 +242,7 @@ async function main() {
         const order = await prisma.orders.create({
             data: {
                 userId: user.id,
+                restaurantId: restaurant.id,
                 totalAmount: total,
                 status: "COMPLETED",
                 phone: "+1234567890",
@@ -261,21 +262,20 @@ async function main() {
     console.log("✅ 50 orders created");
 
     // Create payment methods
-    for (let i = 1; i <= 10; i++) {
-        const user = users[Math.floor(Math.random() * users.length)];
-        await prisma.payment_methods.create({
-            data: {
-                userId: user.id,
-                type: "credit_card",
-                provider: "visa",
-                last4: "1234",
-                expiryMonth: 12,
-                expiryYear: 2025,
-                isDefault: i === 1,
-            },
-        });
+    for (const restaurant of restaurants) {
+        for (let i = 1; i <= 3; i++) {
+            await prisma.payment_methods.create({
+                data: {
+                    restaurantId: restaurant.id,
+                    type: "CREDIT_CARD",
+                    provider: "STRIPE",
+                    last4: `12${i}${i}`,
+                    isDefault: i === 1,
+                },
+            });
+        }
     }
-    console.log("✅ 10 payment methods created");
+    console.log("✅ 12 payment methods created (3 per restaurant)");
 
     console.log("✅ Database seeding completed!");
     console.log("\n📋 Test Accounts (All passwords: ChangeMe123!):");
