@@ -29,7 +29,7 @@ export default function LoginPage() {
                     <blockquote className="space-y-2">
                         <p className="text-lg">
                             &ldquo;Foody has revolutionized how we manage our restaurant chains. The
-                            inventory tracking and real-time analytics have cut our food waste by
+                            order management system has cut our food waste by
                             30% and improved staff efficiency significantly.&rdquo;
                         </p>
                         <footer className="text-sm">Ramesh Kumar</footer>

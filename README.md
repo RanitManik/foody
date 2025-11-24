@@ -118,12 +118,16 @@ Key achievements:
 
 ### Frontend
 
+[![Frontend Skills](https://skillicons.dev/icons?i=nextjs,typescript,tailwind,apollo&theme=light)](https://skillicons.dev)
+
 - **Next.js 15**: React framework with App Router
 - **TypeScript**: Type-safe JavaScript
 - **Tailwind CSS**: Utility-first CSS framework
 - **Apollo Client**: GraphQL client for API communication
 
 ### Backend
+
+[![Backend Skills](https://skillicons.dev/icons?i=nodejs,express,apollo,typescript,prisma&theme=light)](https://skillicons.dev)
 
 - **Node.js**: JavaScript runtime
 - **Express**: Web framework
@@ -133,6 +137,8 @@ Key achievements:
 
 ### Database & Infrastructure
 
+[![Database & Infrastructure Skills](https://skillicons.dev/icons?i=postgresql,redis,docker,jest&theme=light)](https://skillicons.dev)
+
 - **PostgreSQL**: Primary database
 - **Redis**: Caching and session storage
 - **Docker**: Containerization
@@ -140,6 +146,8 @@ Key achievements:
 - **Playwright**: End-to-end testing
 
 ### DevOps & Monitoring
+
+[![DevOps & Monitoring](https://skillicons.dev/icons?i=prometheus&theme=light)](https://skillicons.dev)
 
 - **Prometheus**: Metrics collection
 - **Winston**: Structured logging
@@ -354,6 +362,7 @@ CORS_ORIGIN="https://your-frontend-domain.com"
 
 > [!IMPORTANT]
 > Set `CORS_ORIGIN` to your frontend's domain(s). For multiple origins, separate with commas:
+
 ```
 CORS_ORIGIN="https://foody.5dev.in,https://another-domain.com"
 ```
