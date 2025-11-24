@@ -349,6 +349,13 @@ REDIS_URL="redis://localhost:6379"
 NODE_ENV="production"
 HOST="0.0.0.0"
 PORT=4000
+CORS_ORIGIN="https://your-frontend-domain.com"
+```
+
+> [!IMPORTANT]
+> Set `CORS_ORIGIN` to your frontend's domain(s). For multiple origins, separate with commas:
+```
+CORS_ORIGIN="https://foody.5dev.in,https://another-domain.com"
 ```
 
 #### Web (.env.local)
