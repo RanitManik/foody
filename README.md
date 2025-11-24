@@ -69,7 +69,7 @@ Access specifications by role:
 | Cancel order | ✅ | ✅ | ❌ |
 | Update payment method | ✅ | ❌ | ❌ |
 
-**Bonus Objective**: Implement relational access where Managers & Members can only access data and features limited to their country (India/America).
+**Bonus Objective**: Implement relational access where Managers & Members can only access data and features limited to their assigned restaurant.
 
 ## Solution Overview
 
@@ -80,7 +80,7 @@ Key achievements:
 - ✅ Full-stack web application with all required functionality
 - ✅ Role-based access control (ADMIN, MANAGER, MEMBER)
 - ✅ Restaurant-based restrictions for managers and members
-- ✅ Country-level data isolation (India/America)
+- ✅ Restaurant-level data isolation
 - ✅ Secure authentication and authorization
 - ✅ Payment processing integration
 - ✅ Real-time order updates
@@ -100,8 +100,8 @@ Key achievements:
 ### Access Control & Security
 
 - **Role-Based Access Control**: Three-tier permission system (Admin/Manager/Member)
-- **Restaurant-Based Restrictions**: Users scoped to specific restaurants/locations
-- **Country-Level Isolation**: Managers and members limited to their assigned country
+- **Restaurant-Based Restrictions**: Users scoped to specific restaurants
+- **Restaurant-Level Isolation**: Managers and members limited to their assigned restaurant
 - **JWT Authentication**: Secure token-based authentication
 - **Input Validation**: Comprehensive data validation and sanitization
 
@@ -190,7 +190,8 @@ foody/
 - **Restaurants**: Location-based establishments with menu items
 - **Menu Items**: Food items with pricing and availability
 - **Orders**: Customer orders with status tracking
-- **Payments**: Payment transactions and methods
+- **Payments**: Payment transactions for orders
+- **Payment Methods**: Stored payment methods linked to restaurants
 - **Feedback**: User feedback submissions and reviews
 
 ### Access Control Matrix
@@ -199,11 +200,9 @@ foody/
 | --------------------------- | --------------------------- | ----- | ------- | ------ |
 | **Data Access Permissions** |                             |       |         |        |
 |                             | View All Restaurants        | ✅    | ❌      | ❌     |
-|                             | View Restaurants by Country | ❌    | ✅      | ❌     |
-|                             | View Assigned Restaurant    | ❌    | ❌      | ✅     |
+|                             | View Assigned Restaurant    | ❌    | ✅      | ✅     |
 |                             | View All Menu Items         | ✅    | ❌      | ❌     |
-|                             | View Menu Items by Country  | ❌    | ✅      | ❌     |
-|                             | View Assigned Menu Items    | ❌    | ❌      | ✅     |
+|                             | View Assigned Menu Items    | ❌    | ✅      | ✅     |
 |                             | View All Users              | ✅    | ❌      | ❌     |
 |                             | View All Feedback           | ✅    | ❌      | ❌     |
 | **Restaurant Management**   |                             |       |         |        |
@@ -220,8 +219,8 @@ foody/
 |                             | Cancel Orders               | ✅    | ✅      | ❌     |
 |                             | Update Order Status         | ✅    | ✅      | ❌     |
 | **Payment Management**      |                             |       |         |        |
-|                             | View Payment Methods        | ✅    | ✅      | ✅     |
-|                             | Create Payment Methods      | ✅    | ✅      | ✅     |
+|                             | View Payment Methods        | ✅    | ✅      | ❌     |
+|                             | Create Payment Methods      | ✅    | ✅      | ❌     |
 |                             | Update Payment Methods      | ✅    | ❌      | ❌     |
 |                             | Delete Payment Methods      | ✅    | ❌      | ❌     |
 |                             | Process Payments            | ✅    | ✅      | ❌     |

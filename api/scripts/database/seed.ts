@@ -166,15 +166,15 @@ async function main() {
     }
     console.log("✅ 200 staff members created (50 per restaurant)");
 
-    // Additional users (customers)
+    // Additional users (members)
     for (let i = 1; i <= 50; i++) {
         const user = await prisma.users.upsert({
-            where: { email: `customer${i}@foody.com` },
+            where: { email: `member${i}@foody.com` },
             update: {},
             create: {
-                email: `customer${i}@foody.com`,
+                email: `member${i}@foody.com`,
                 password: hashedPassword,
-                firstName: `Customer${i}`,
+                firstName: `Member${i}`,
                 lastName: `Test`,
                 role: UserRole.MEMBER,
                 restaurantId: null,
@@ -183,7 +183,7 @@ async function main() {
         users.push(user);
     }
 
-    console.log(`✅ 50 customers created`);
+    console.log(`✅ 50 members created`);
     console.log(`✅ Total 250 users created`);
 
     // Create menu items

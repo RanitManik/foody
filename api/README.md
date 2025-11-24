@@ -233,8 +233,8 @@ The API implements role-based access control (RBAC) with restaurant-based restri
 
 | Operation              | ADMIN | MANAGER | MEMBER   |
 | ---------------------- | ----- | ------- | -------- |
-| View Restaurants       | All   | Country | Assigned |
-| View Menu Items        | All   | Country | Assigned |
+| View Restaurants       | All   | Assigned| Assigned |
+| View Menu Items        | All   | Assigned| Assigned |
 | Create Orders          | ✅    | ✅      | ✅       |
 | Checkout/Pay Orders    | ✅    | ✅      | ❌       |
 | Cancel Orders          | ✅    | ✅      | ❌       |
@@ -246,7 +246,7 @@ The API implements role-based access control (RBAC) with restaurant-based restri
 
 ### Restaurant-Based Restrictions
 
-- **Managers**: Can only access restaurants and data for their assigned country's locations
+- **Managers**: Can only access restaurants and data for their assigned restaurant
 - **Members**: Can only access their assigned restaurant and related data
 - **Admins**: Have unrestricted access to all data
 
@@ -537,8 +537,8 @@ query GetOrder($id: ID!) {
 #### Get Payment Methods
 
 ```graphql
-query GetPaymentMethods {
-    paymentMethods {
+query GetPaymentMethods($restaurantId: ID) {
+    paymentMethods(restaurantId: $restaurantId) {
         id
         type
         provider
@@ -697,8 +697,8 @@ mutation DeleteMenuItem($id: ID!) {
 #### Create Payment Method
 
 ```graphql
-mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {
-    createPaymentMethod(input: $input) {
+mutation CreatePaymentMethod($input: CreatePaymentMethodInput!, $restaurantId: ID) {
+    createPaymentMethod(input: $input, restaurantId: $restaurantId) {
         id
         type
         provider
