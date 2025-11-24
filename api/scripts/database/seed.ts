@@ -89,8 +89,17 @@ async function main() {
 
     console.log("✅ Restaurants ready");
 
-    // Create admin user
-    await prisma.users.upsert({
+    const restaurants = [
+        restaurantIndia1,
+        restaurantIndia2,
+        restaurantAmerica1,
+        restaurantAmerica2,
+    ];
+
+    // Create users
+    const users = [];
+    // Existing users
+    const admin = await prisma.users.upsert({
         where: { email: "admin@foody.com" },
         update: {},
         create: {
@@ -102,11 +111,12 @@ async function main() {
             restaurantId: null,
         },
     });
+    users.push(admin);
 
     console.log(`✅ Admin user created: admin@foody.com / ${DEFAULT_PASSWORD}`);
 
     // Create managers
-    await prisma.users.upsert({
+    const manager1 = await prisma.users.upsert({
         where: { email: "captain.marvel@foody.com" },
         update: {},
         create: {
@@ -118,8 +128,9 @@ async function main() {
             restaurantId: restaurantIndia1.id,
         },
     });
+    users.push(manager1);
 
-    await prisma.users.upsert({
+    const manager2 = await prisma.users.upsert({
         where: { email: "captain.america@foody.com" },
         update: {},
         create: {
@@ -131,9 +142,10 @@ async function main() {
             restaurantId: restaurantAmerica1.id,
         },
     });
+    users.push(manager2);
 
     // Create team members
-    await prisma.users.upsert({
+    const member1 = await prisma.users.upsert({
         where: { email: "thanos@foody.com" },
         update: {},
         create: {
@@ -145,8 +157,9 @@ async function main() {
             restaurantId: restaurantIndia1.id,
         },
     });
+    users.push(member1);
 
-    await prisma.users.upsert({
+    const member2 = await prisma.users.upsert({
         where: { email: "thor@foody.com" },
         update: {},
         create: {
@@ -158,8 +171,9 @@ async function main() {
             restaurantId: restaurantIndia2.id,
         },
     });
+    users.push(member2);
 
-    await prisma.users.upsert({
+    const member3 = await prisma.users.upsert({
         where: { email: "travis@foody.com" },
         update: {},
         create: {
@@ -171,86 +185,97 @@ async function main() {
             restaurantId: restaurantAmerica1.id,
         },
     });
+    users.push(member3);
 
-    // Create menu items for Indian restaurants
-    await prisma.menu_items.upsert({
-        where: { id: "menu-india-1-1" },
-        update: {},
-        create: {
-            id: "menu-india-1-1",
-            name: "Butter Chicken",
-            description: "Creamy tomato-based curry with tender chicken",
-            price: 15.99,
-            category: "Main Course",
-            restaurantId: restaurantIndia1.id,
-        },
-    });
+    // Additional users
+    for (let i = 7; i <= 50; i++) {
+        const user = await prisma.users.upsert({
+            where: { email: `user${i}@foody.com` },
+            update: {},
+            create: {
+                email: `user${i}@foody.com`,
+                password: hashedPassword,
+                firstName: `User${i}`,
+                lastName: `Test`,
+                role: UserRole.MEMBER,
+                restaurantId: null,
+            },
+        });
+        users.push(user);
+    }
 
-    await prisma.menu_items.upsert({
-        where: { id: "menu-india-1-2" },
-        update: {},
-        create: {
-            id: "menu-india-1-2",
-            name: "Paneer Tikka",
-            description: "Marinated cottage cheese grilled to perfection",
-            price: 12.99,
-            category: "Appetizer",
-            restaurantId: restaurantIndia1.id,
-        },
-    });
+    console.log(`✅ 50 users created`);
 
-    await prisma.menu_items.upsert({
-        where: { id: "menu-india-2-1" },
-        update: {},
-        create: {
-            id: "menu-india-2-1",
-            name: "Chicken Biryani",
-            description: "Fragrant basmati rice with spiced chicken",
-            price: 14.99,
-            category: "Main Course",
-            restaurantId: restaurantIndia2.id,
-        },
-    });
+    // Create menu items
+    const menuItems = [];
+    for (let i = 1; i <= 50; i++) {
+        const restaurant = restaurants[i % 4];
+        const menuItem = await prisma.menu_items.upsert({
+            where: { id: `menu-${i}` },
+            update: {},
+            create: {
+                id: `menu-${i}`,
+                name: `Menu Item ${i}`,
+                description: `Description for menu item ${i}`,
+                price: 10 + (i % 10),
+                category: "Main Course",
+                restaurantId: restaurant.id,
+            },
+        });
+        menuItems.push(menuItem);
+    }
+    console.log("✅ 50 menu items created");
 
-    // Create menu items for American restaurants
-    await prisma.menu_items.upsert({
-        where: { id: "menu-america-1-1" },
-        update: {},
-        create: {
-            id: "menu-america-1-1",
-            name: "Classic Cheeseburger",
-            description: "Juicy beef patty with cheese, lettuce, and tomato",
-            price: 12.99,
-            category: "Main Course",
-            restaurantId: restaurantAmerica1.id,
-        },
-    });
+    // Create orders
+    for (let i = 1; i <= 50; i++) {
+        const user = users[Math.floor(Math.random() * users.length)];
+        const restaurant = restaurants[Math.floor(Math.random() * restaurants.length)];
+        const availableItems = menuItems.filter((m) => m.restaurantId === restaurant.id);
+        const numItems = Math.floor(Math.random() * 3) + 1;
+        const selectedItems = [];
+        let total = 0;
+        for (let j = 0; j < numItems; j++) {
+            const item = availableItems[Math.floor(Math.random() * availableItems.length)];
+            selectedItems.push(item);
+            total += item.price;
+        }
+        const order = await prisma.orders.create({
+            data: {
+                userId: user.id,
+                totalAmount: total,
+                status: "COMPLETED",
+                phone: "+1234567890",
+            },
+        });
+        for (const item of selectedItems) {
+            await prisma.order_items.create({
+                data: {
+                    orderId: order.id,
+                    menuItemId: item.id,
+                    quantity: 1,
+                    price: item.price,
+                },
+            });
+        }
+    }
+    console.log("✅ 50 orders created");
 
-    await prisma.menu_items.upsert({
-        where: { id: "menu-america-1-2" },
-        update: {},
-        create: {
-            id: "menu-america-1-2",
-            name: "French Fries",
-            description: "Crispy golden fries with sea salt",
-            price: 4.99,
-            category: "Side",
-            restaurantId: restaurantAmerica1.id,
-        },
-    });
-
-    await prisma.menu_items.upsert({
-        where: { id: "menu-america-2-1" },
-        update: {},
-        create: {
-            id: "menu-america-2-1",
-            name: "Margherita Pizza",
-            description: "Fresh mozzarella, tomato sauce, and basil",
-            price: 16.99,
-            category: "Main Course",
-            restaurantId: restaurantAmerica2.id,
-        },
-    });
+    // Create payment methods
+    for (let i = 1; i <= 10; i++) {
+        const user = users[Math.floor(Math.random() * users.length)];
+        await prisma.payment_methods.create({
+            data: {
+                userId: user.id,
+                type: "credit_card",
+                provider: "visa",
+                last4: "1234",
+                expiryMonth: 12,
+                expiryYear: 2025,
+                isDefault: i === 1,
+            },
+        });
+    }
+    console.log("✅ 10 payment methods created");
 
     console.log("✅ Database seeding completed!");
     console.log("\n📋 Test Accounts (All passwords: ChangeMe123!):");
