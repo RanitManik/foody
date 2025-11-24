@@ -145,57 +145,36 @@ async function main() {
     users.push(manager2);
 
     // Create team members
-    const member1 = await prisma.users.upsert({
-        where: { email: "thanos@foody.com" },
-        update: {},
-        create: {
-            email: "thanos@foody.com",
-            password: hashedPassword,
-            firstName: "Thanos",
-            lastName: "Titan",
-            role: UserRole.MEMBER,
-            restaurantId: restaurantIndia1.id,
-        },
-    });
-    users.push(member1);
+    const members = [];
+    for (const restaurant of restaurants) {
+        for (let i = 1; i <= 50; i++) {
+            const member = await prisma.users.upsert({
+                where: { email: `member-${restaurant.id}-${i}@foody.com` },
+                update: {},
+                create: {
+                    email: `member-${restaurant.id}-${i}@foody.com`,
+                    password: hashedPassword,
+                    firstName: `Member${i}`,
+                    lastName: `Of${restaurant.name.replace(/\s+/g, "")}`,
+                    role: UserRole.MEMBER,
+                    restaurantId: restaurant.id,
+                },
+            });
+            members.push(member);
+            users.push(member);
+        }
+    }
+    console.log("✅ 200 staff members created (50 per restaurant)");
 
-    const member2 = await prisma.users.upsert({
-        where: { email: "thor@foody.com" },
-        update: {},
-        create: {
-            email: "thor@foody.com",
-            password: hashedPassword,
-            firstName: "Thor",
-            lastName: "Odinson",
-            role: UserRole.MEMBER,
-            restaurantId: restaurantIndia2.id,
-        },
-    });
-    users.push(member2);
-
-    const member3 = await prisma.users.upsert({
-        where: { email: "travis@foody.com" },
-        update: {},
-        create: {
-            email: "travis@foody.com",
-            password: hashedPassword,
-            firstName: "Travis",
-            lastName: "Scott",
-            role: UserRole.MEMBER,
-            restaurantId: restaurantAmerica1.id,
-        },
-    });
-    users.push(member3);
-
-    // Additional users
-    for (let i = 7; i <= 50; i++) {
+    // Additional users (customers)
+    for (let i = 1; i <= 50; i++) {
         const user = await prisma.users.upsert({
-            where: { email: `user${i}@foody.com` },
+            where: { email: `customer${i}@foody.com` },
             update: {},
             create: {
-                email: `user${i}@foody.com`,
+                email: `customer${i}@foody.com`,
                 password: hashedPassword,
-                firstName: `User${i}`,
+                firstName: `Customer${i}`,
                 lastName: `Test`,
                 role: UserRole.MEMBER,
                 restaurantId: null,
@@ -204,78 +183,81 @@ async function main() {
         users.push(user);
     }
 
-    console.log(`✅ 50 users created`);
+    console.log(`✅ 50 customers created`);
+    console.log(`✅ Total 250 users created`);
 
     // Create menu items
     const menuItems = [];
-    for (let i = 1; i <= 50; i++) {
-        const restaurant = restaurants[i % 4];
-        const menuItem = await prisma.menu_items.upsert({
-            where: { id: `menu-${i}` },
-            update: {},
-            create: {
-                id: `menu-${i}`,
-                name: `Menu Item ${i}`,
-                description: `Description for menu item ${i}`,
-                price: 10 + (i % 10),
-                category: "Main Course",
-                restaurantId: restaurant.id,
-            },
-        });
-        menuItems.push(menuItem);
-    }
-    console.log("✅ 50 menu items created");
-
-    // Create orders
-    for (let i = 1; i <= 50; i++) {
-        const user = users[Math.floor(Math.random() * users.length)];
-        const restaurant = restaurants[Math.floor(Math.random() * restaurants.length)];
-        const availableItems = menuItems.filter((m) => m.restaurantId === restaurant.id);
-        const numItems = Math.floor(Math.random() * 3) + 1;
-        const selectedItems = [];
-        let total = 0;
-        for (let j = 0; j < numItems; j++) {
-            const item = availableItems[Math.floor(Math.random() * availableItems.length)];
-            selectedItems.push(item);
-            total += item.price;
-        }
-        const order = await prisma.orders.create({
-            data: {
-                userId: user.id,
-                restaurantId: restaurant.id,
-                totalAmount: total,
-                status: "COMPLETED",
-                phone: "+1234567890",
-            },
-        });
-        for (const item of selectedItems) {
-            await prisma.order_items.create({
-                data: {
-                    orderId: order.id,
-                    menuItemId: item.id,
-                    quantity: 1,
-                    price: item.price,
+    for (const restaurant of restaurants) {
+        for (let i = 1; i <= 50; i++) {
+            const menuItem = await prisma.menu_items.upsert({
+                where: { id: `menu-${restaurant.id}-${i}` },
+                update: {},
+                create: {
+                    id: `menu-${restaurant.id}-${i}`,
+                    name: `Menu Item ${i} at ${restaurant.name}`,
+                    description: `Description for menu item ${i} at ${restaurant.name}`,
+                    price: 10 + (i % 10),
+                    category: "Main Course",
+                    restaurantId: restaurant.id,
                 },
             });
+            menuItems.push(menuItem);
         }
     }
-    console.log("✅ 50 orders created");
+    console.log("✅ 200 menu items created (50 per restaurant)");
+
+    // Create orders
+    for (const restaurant of restaurants) {
+        for (let i = 1; i <= 50; i++) {
+            const user = users[Math.floor(Math.random() * users.length)];
+            const availableItems = menuItems.filter((m) => m.restaurantId === restaurant.id);
+            const numItems = Math.floor(Math.random() * 3) + 1;
+            const selectedItems = [];
+            let total = 0;
+            for (let j = 0; j < numItems; j++) {
+                const item = availableItems[Math.floor(Math.random() * availableItems.length)];
+                selectedItems.push(item);
+                total += item.price;
+            }
+            const order = await prisma.orders.create({
+                data: {
+                    userId: user.id,
+                    restaurantId: restaurant.id,
+                    totalAmount: total,
+                    status: "COMPLETED",
+                    phone: "+1234567890",
+                },
+            });
+            for (const item of selectedItems) {
+                await prisma.order_items.create({
+                    data: {
+                        orderId: order.id,
+                        menuItemId: item.id,
+                        quantity: 1,
+                        price: item.price,
+                    },
+                });
+            }
+        }
+    }
+    console.log("✅ 200 orders created (50 per restaurant)");
 
     // Create payment methods
     for (const restaurant of restaurants) {
-        for (let i = 1; i <= 3; i++) {
+        for (let i = 1; i <= 50; i++) {
             await prisma.payment_methods.create({
                 data: {
                     restaurantId: restaurant.id,
                     type: "CREDIT_CARD",
                     provider: "STRIPE",
-                    last4: `12${i}${i}`,
+                    last4: `${i % 10}${i % 10}${i % 10}${i % 10}`,
                     isDefault: i === 1,
                 },
             });
         }
     }
-    console.log("✅ 12 payment methods created (3 per restaurant)");
+    console.log("✅ 200 payment methods created (50 per restaurant)");
 
     console.log("✅ Database seeding completed!");
     console.log("\n📋 Test Accounts (All passwords: ChangeMe123!):");

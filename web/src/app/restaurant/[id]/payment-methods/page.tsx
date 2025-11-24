@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
 import { Plus, Search, MoreVertical, Trash2, X, Eye, CreditCard } from "lucide-react";
@@ -73,8 +74,8 @@ import { toast } from "sonner";
 import extractErrorMessage from "@/lib/errors";
 
 const GET_PAYMENT_METHODS = gql`
-    query GetPaymentMethods {
-        paymentMethods {
+    query GetPaymentMethods($restaurantId: ID) {
+        paymentMethods(restaurantId: $restaurantId) {
             id
             type
             provider
@@ -85,8 +86,8 @@ const GET_PAYMENT_METHODS = gql`
 `;
 
 const CREATE_PAYMENT_METHOD = gql`
-    mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {
-        createPaymentMethod(input: $input) {
+    mutation CreatePaymentMethod($input: CreatePaymentMethodInput!, $restaurantId: ID) {
+        createPaymentMethod(input: $input, restaurantId: $restaurantId) {
             id
             type
             provider
@@ -136,6 +137,8 @@ const paymentProviderConfig = {
 } as const;
 
 export default function PaymentMethodsPage() {
+    const params = useParams();
+    const restaurantId = params.id as string;
     const [searchTerm, setSearchTerm] = useState("");
     const [providerFilter, setProviderFilter] = useState<string>("");
     const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
@@ -144,7 +147,9 @@ export default function PaymentMethodsPage() {
     const [deleteConfirmPhrase, setDeleteConfirmPhrase] = useState("");
     const [viewingPaymentMethod, setViewingPaymentMethod] = useState<PaymentMethod | null>(null);
 
-    const { data, loading, error, refetch } = useQuery<PaymentMethodsData>(GET_PAYMENT_METHODS);
+    const { data, loading, error, refetch } = useQuery<PaymentMethodsData>(GET_PAYMENT_METHODS, {
+        variables: { restaurantId },
+    });
 
     useEffect(() => {
         if (error) {
@@ -186,6 +191,7 @@ export default function PaymentMethodsPage() {
                         provider: values.provider,
                         token: values.token,
                     },
+                    restaurantId,
                 },
             });
             toast.success("Payment method created successfully");

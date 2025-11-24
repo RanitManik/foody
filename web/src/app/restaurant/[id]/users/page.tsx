@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
 import {
@@ -101,8 +102,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 
 const GET_USERS = gql`
-    query GetUsers($first: Int, $skip: Int) {
-        users(first: $first, skip: $skip) {
+    query GetUsers($restaurantId: ID!, $first: Int, $skip: Int) {
+        users(restaurantId: $restaurantId, first: $first, skip: $skip) {
             users {
                 id
                 email
@@ -228,6 +229,8 @@ type CreateUserFormData = z.infer<typeof createUserSchema>;
 
 export default function UsersPage() {
     const { user } = useAuth();
+    const { id: restaurantId } = useParams();
+    const restaurantIdString = Array.isArray(restaurantId) ? restaurantId[0] : restaurantId || "";
     const [searchTerm, setSearchTerm] = useState("");
     const [roleFilter, setRoleFilter] = useState<string>("");
     const [viewingUser, setViewingUser] = useState<User | null>(null);
@@ -242,6 +245,7 @@ export default function UsersPage() {
 
     const { data, loading, error, refetch } = useQuery<UsersData>(GET_USERS, {
         variables: {
+            restaurantId: restaurantIdString,
             first: pageSize,
             skip: (currentPage - 1) * pageSize,
         },
@@ -274,7 +278,7 @@ export default function UsersPage() {
             email: "",
             password: "",
             role: "MEMBER",
-            restaurantId: "",
+            restaurantId: restaurantIdString,
             isActive: true,
         },
     });
@@ -355,8 +359,7 @@ export default function UsersPage() {
                         email: values.email,
                         password: values.password,
                         role: values.role,
-                        restaurantId:
-                            values.restaurantId === "none" ? null : values.restaurantId || null,
+                        restaurantId: restaurantIdString,
                         isActive: values.isActive,
                     },
                 },
