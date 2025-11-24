@@ -1,5 +1,6 @@
 import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import cliProgress from "cli-progress";
 
 const prisma = new PrismaClient();
 
@@ -22,11 +23,30 @@ const RESTAURANT_IDS = {
 async function main() {
     console.log("🌱 Starting database seeding...");
     console.log(`🔐 Using default password: ${DEFAULT_PASSWORD}`);
-    console.log("📝 Users can change their passwords after first login");
+    console.log("📝 Users can change their passwords after first login\n");
 
     const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 12);
 
-    console.log("🏢 Ensuring restaurant catalog...");
+    // Collect status messages to display after progress bars
+    const statusMessages: string[] = [];
+
+    // Create progress bars
+    const multibar = new cliProgress.MultiBar(
+        {
+            clearOnComplete: false,
+            hideCursor: true,
+            format: "{bar} {percentage}% | {value}/{total} | {task}",
+        },
+        cliProgress.Presets.shades_classic,
+    );
+
+    // Progress bars for each major step
+    const restaurantBar = multibar.create(4, 0, { task: "Restaurants" });
+    const userBar = multibar.create(256, 0, { task: "Users" });
+    const menuBar = multibar.create(200, 0, { task: "Menu Items" });
+    const orderBar = multibar.create(200, 0, { task: "Orders" });
+    const paymentBar = multibar.create(200, 0, { task: "Payment Methods" });
+
     const restaurantIndia1 = await prisma.restaurants.upsert({
         where: { id: RESTAURANT_IDS.SPICE_GARDEN },
         update: {},
@@ -41,6 +61,7 @@ async function main() {
             email: "info@spicegarden.in",
         },
     });
+    restaurantBar.update(1);
 
     const restaurantIndia2 = await prisma.restaurants.upsert({
         where: { id: RESTAURANT_IDS.TANDOOR_EXPRESS },
@@ -56,6 +77,7 @@ async function main() {
             email: "contact@tandoorexpress.in",
         },
     });
+    restaurantBar.update(2);
 
     const restaurantAmerica1 = await prisma.restaurants.upsert({
         where: { id: RESTAURANT_IDS.BURGER_HAVEN },
@@ -71,6 +93,7 @@ async function main() {
             email: "hello@burgerhaven.us",
         },
     });
+    restaurantBar.update(3);
 
     const restaurantAmerica2 = await prisma.restaurants.upsert({
         where: { id: RESTAURANT_IDS.PIZZA_PALACE },
@@ -86,8 +109,10 @@ async function main() {
             email: "orders@pizzapalace.us",
         },
     });
+    restaurantBar.update(4);
+    restaurantBar.stop();
 
-    console.log("✅ Restaurants ready");
+    statusMessages.push("✅ Restaurants ready");
 
     const restaurants = [
         restaurantIndia1,
@@ -98,7 +123,8 @@ async function main() {
 
     // Create users
     const users = [];
-    // Existing users
+
+    // Admin user
     const admin = await prisma.users.upsert({
         where: { email: "admin@foody.com" },
         update: {},
@@ -112,8 +138,9 @@ async function main() {
         },
     });
     users.push(admin);
+    userBar.update(1);
 
-    console.log(`✅ Admin user created: admin@foody.com / ${DEFAULT_PASSWORD}`);
+    statusMessages.push(`✅ Admin user created: admin@foody.com / ${DEFAULT_PASSWORD}`);
 
     // Create managers
     const manager1 = await prisma.users.upsert({
@@ -129,6 +156,7 @@ async function main() {
         },
     });
     users.push(manager1);
+    userBar.update(2);
 
     const manager2 = await prisma.users.upsert({
         where: { email: "captain.america@foody.com" },
@@ -143,9 +171,9 @@ async function main() {
         },
     });
     users.push(manager2);
+    userBar.update(3);
 
-    // Create team members
-    const members = [];
+    // Create team members (50 per restaurant = 200)
     for (const restaurant of restaurants) {
         for (let i = 1; i <= 50; i++) {
             const member = await prisma.users.upsert({
@@ -160,13 +188,13 @@ async function main() {
                     restaurantId: restaurant.id,
                 },
             });
-            members.push(member);
             users.push(member);
+            userBar.update(users.length);
         }
     }
-    console.log("✅ 200 staff members created (50 per restaurant)");
+    statusMessages.push("✅ 200 staff members created (50 per restaurant)");
 
-    // Additional users (members)
+    // Additional users (members) - 50 more
     for (let i = 1; i <= 50; i++) {
         const user = await prisma.users.upsert({
             where: { email: `member${i}@foody.com` },
@@ -181,12 +209,58 @@ async function main() {
             },
         });
         users.push(user);
+        userBar.update(users.length);
     }
 
-    console.log(`✅ 50 members created`);
-    console.log(`✅ Total 250 users created`);
+    statusMessages.push(`✅ 50 additional members created`);
+    statusMessages.push(`✅ Total 256 users created`);
 
-    // Create menu items
+    // Create specific test users for documentation
+    const thanos = await prisma.users.upsert({
+        where: { email: "thanos@foody.com" },
+        update: {},
+        create: {
+            email: "thanos@foody.com",
+            password: hashedPassword,
+            firstName: "Thanos",
+            lastName: "Test",
+            role: UserRole.MEMBER,
+            restaurantId: restaurantIndia1.id,
+        },
+    });
+    users.push(thanos);
+
+    const thor = await prisma.users.upsert({
+        where: { email: "thor@foody.com" },
+        update: {},
+        create: {
+            email: "thor@foody.com",
+            password: hashedPassword,
+            firstName: "Thor",
+            lastName: "Test",
+            role: UserRole.MEMBER,
+            restaurantId: restaurantIndia2.id,
+        },
+    });
+    users.push(thor);
+
+    const travis = await prisma.users.upsert({
+        where: { email: "travis@foody.com" },
+        update: {},
+        create: {
+            email: "travis@foody.com",
+            password: hashedPassword,
+            firstName: "Travis",
+            lastName: "Test",
+            role: UserRole.MEMBER,
+            restaurantId: restaurantAmerica1.id,
+        },
+    });
+    users.push(travis);
+
+    userBar.stop();
+
+    // Create menu items (50 per restaurant = 200)
     const menuItems = [];
     for (const restaurant of restaurants) {
         for (let i = 1; i <= 50; i++) {
@@ -203,11 +277,13 @@ async function main() {
                 },
             });
             menuItems.push(menuItem);
+            menuBar.update(menuItems.length);
         }
     }
-    console.log("✅ 200 menu items created (50 per restaurant)");
+    statusMessages.push("✅ 200 menu items created (50 per restaurant)");
+    menuBar.stop();
 
-    // Create orders
+    // Create orders (50 per restaurant = 200)
     for (const restaurant of restaurants) {
         for (let i = 1; i <= 50; i++) {
             const user = users[Math.floor(Math.random() * users.length)];
@@ -239,11 +315,13 @@ async function main() {
                     },
                 });
             }
+            orderBar.update(restaurants.indexOf(restaurant) * 50 + i);
         }
     }
-    console.log("✅ 200 orders created (50 per restaurant)");
+    statusMessages.push("✅ 200 orders created (50 per restaurant)");
+    orderBar.stop();
 
-    // Create payment methods
+    // Create payment methods (50 per restaurant = 200)
     for (const restaurant of restaurants) {
         for (let i = 1; i <= 50; i++) {
             await prisma.payment_methods.create({
@@ -255,11 +333,18 @@ async function main() {
                     isDefault: i === 1,
                 },
             });
+            paymentBar.update(restaurants.indexOf(restaurant) * 50 + i);
         }
     }
-    console.log("✅ 200 payment methods created (50 per restaurant)");
+    statusMessages.push("✅ 200 payment methods created (50 per restaurant)");
+    paymentBar.stop();
 
-    console.log("✅ Database seeding completed!");
+    multibar.stop();
+
+    // Print all status messages after progress bars are complete
+    console.log("\n" + statusMessages.join("\n"));
+
+    console.log("\n🎉 Database seeding completed successfully!");
     console.log("\n📋 Test Accounts (All passwords: ChangeMe123!):");
     console.log("Admin: admin@foody.com");
     console.log(

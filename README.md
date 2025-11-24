@@ -1,3 +1,5 @@
+ <img width="70" src="logo.png" alt="Foody Logo" />
+
 # Foody - Food Ordering Application
 
 A comprehensive full-stack food ordering application implementing role-based access control (RBAC) with restaurant-based restrictions, designed as a solution for a take-home assignment.
