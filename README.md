@@ -244,6 +244,9 @@ foody/
     npm run dev:web
     ```
 
+    > [!NOTE]
+    > You can also use `npm run dev` to start both servers.
+
 ## Development
 
 ### Available Scripts

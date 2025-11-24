@@ -136,7 +136,7 @@ export function RestaurantHeader({
         : "";
 
     return (
-        <header className="bg-background flex h-12 items-center justify-between gap-4 border-b px-4 lg:h-14">
+        <header className="bg-background flex h-12 items-center justify-start gap-4 border-b px-4 lg:h-14">
             <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -155,7 +155,7 @@ export function RestaurantHeader({
                     <div className="flex items-center gap-3">
                         {user?.role === "ADMIN" ? (
                             <Breadcrumb className="text-sm">
-                                <BreadcrumbList>
+                                <BreadcrumbList className="flex-nowrap">
                                     <BreadcrumbItem>
                                         <BreadcrumbLink asChild>
                                             <Link href="/admin/restaurants">Restaurants</Link>
@@ -165,7 +165,7 @@ export function RestaurantHeader({
                                     <BreadcrumbItem>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-0! hover:bg-transparent focus-visible:outline-none">
-                                                <span className="text-sm font-semibold">
+                                                <span className="w-15 truncate text-sm font-semibold sm:w-auto">
                                                     {restaurant.name}
                                                 </span>
                                                 <ChevronDown className="text-muted-foreground size-4" />
@@ -218,7 +218,7 @@ export function RestaurantHeader({
             </div>
 
             {/* Right Side: Date, Time, Profile */}
-            <div className="flex items-center gap-3">
+            <div className="ml-auto flex items-center gap-3">
                 {/* Date & Time */}
                 <div className="bg-card hidden items-center gap-2 rounded-lg border px-3 py-1.5 shadow-sm lg:flex">
                     <Calendar className="text-muted-foreground h-4 w-4" />
