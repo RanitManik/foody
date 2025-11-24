@@ -715,7 +715,7 @@ export default function MenuManagementPage() {
                                                                   setDeletingMenuItem(item)
                                                               }
                                                           >
-                                                              <Trash2 className="mr-2 h-4 w-4" />
+                                                              <Trash2 className="h-4 w-4" />
                                                               Delete
                                                           </DropdownMenuItem>
                                                       </DropdownMenuContent>

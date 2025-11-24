@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -14,7 +14,18 @@ import {
     DropdownMenuSubContent,
     DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
-import { Menu, Moon, Sun, Monitor, Check } from "lucide-react";
+import {
+    Menu,
+    Moon,
+    Sun,
+    Monitor,
+    Check,
+    ChevronDown,
+    Calendar,
+    User as UserIcon,
+    LogOut,
+    Settings,
+} from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AdminSidebar } from "./sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,8 +39,37 @@ export function AdminHeader({ onOpenFeedback }: { onOpenFeedback?: (open: boolea
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const openFeedback = () => (onOpenFeedback ? onOpenFeedback(true) : setIsFeedbackOpen(true));
 
+    // Date and Time State
+    const [currentDate, setCurrentDate] = useState<Date | null>(null);
+
+    useEffect(() => {
+        setCurrentDate(new Date());
+        const timer = setInterval(() => {
+            setCurrentDate(new Date());
+        }, 60000); // Update every minute
+
+        return () => clearInterval(timer);
+    }, []);
+
+    const formattedDate = currentDate
+        ? new Intl.DateTimeFormat("en-US", {
+              weekday: "long",
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+          }).format(currentDate)
+        : "";
+
+    const formattedTime = currentDate
+        ? new Intl.DateTimeFormat("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+          }).format(currentDate)
+        : "";
+
     return (
-        <header className="bg-background flex h-12 items-center justify-between gap-4 border-b px-4 md:justify-end lg:h-14 lg:px-6">
+        <header className="bg-background flex h-12 items-center justify-between gap-4 border-b px-4 lg:h-14">
             <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -37,20 +77,41 @@ export function AdminHeader({ onOpenFeedback }: { onOpenFeedback?: (open: boolea
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
                 </SheetTrigger>
-                {/* Sheet only used for small screens (mobile). Hide on md+ to avoid duplicate sidebar. */}
                 <SheetContent side="left" className="flex w-72 flex-col p-0 md:hidden">
                     <AdminSidebar onOpenFeedback={openFeedback} />
                 </SheetContent>
             </Sheet>
 
+            {/* Left Side: Empty for admin */}
             <div className="flex items-center gap-4">
+                {/* Admin doesn't need restaurant info like restaurant header */}
+            </div>
+
+            {/* Right Side: Date, Time, Profile */}
+            <div className="flex items-center gap-3">
+                {/* Date & Time */}
+                <div className="bg-card hidden items-center gap-2 rounded-lg border px-3 py-1.5 shadow-sm lg:flex">
+                    <Calendar className="text-muted-foreground h-4 w-4" />
+                    <span className="text-sm font-medium">
+                        {formattedDate} at {formattedTime}
+                    </span>
+                </div>
+
+                {/* Profile Dropdown */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                            <Avatar className="h-8 w-8">
+                        <Button
+                            variant="outline"
+                            className="hover:bg-accent flex h-9 items-center gap-2 rounded-lg px-2 shadow-sm"
+                        >
+                            <Avatar className="h-6 w-6">
                                 <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                                 <AvatarFallback>CN</AvatarFallback>
                             </Avatar>
+                            <span className="hidden text-sm font-medium sm:inline-block">
+                                {user ? `${user.firstName} ${user.lastName}` : "User"}
+                            </span>
+                            <ChevronDown className="text-muted-foreground h-3 w-3" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
@@ -63,9 +124,11 @@ export function AdminHeader({ onOpenFeedback }: { onOpenFeedback?: (open: boolea
                             </p>
                         </div>
                         <DropdownMenuSeparator />
-                        {/* <DropdownMenuItem>Account settings</DropdownMenuItem> */}
                         <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>Theme: {themeLabel}</DropdownMenuSubTrigger>
+                            <DropdownMenuSubTrigger>
+                                <Settings className="h-4 w-4" />
+                                Theme: {themeLabel}
+                            </DropdownMenuSubTrigger>
                             <DropdownMenuPortal>
                                 <DropdownMenuSubContent>
                                     <DropdownMenuItem onClick={() => setTheme("light")}>
@@ -93,12 +156,14 @@ export function AdminHeader({ onOpenFeedback }: { onOpenFeedback?: (open: boolea
                             </DropdownMenuPortal>
                         </DropdownMenuSub>
                         <DropdownMenuItem onClick={openFeedback}>
+                            <UserIcon className="h-4 w-4" />
                             Help &amp; Feedback
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-
-                        <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
-                        {/* Feedback dialog is controlled by local state when header is used without an external handler */}
+                        <DropdownMenuItem onClick={logout}>
+                            <LogOut className="h-4 w-4" />
+                            Logout
+                        </DropdownMenuItem>
                         {!onOpenFeedback ? (
                             <FeedbackModal open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
                         ) : null}

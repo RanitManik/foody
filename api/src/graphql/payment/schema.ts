@@ -118,6 +118,8 @@ export const typeDefs = `#graphql
         PAYPAL
         "Square payment processor"
         SQUARE
+        "Other payment processor"
+        OTHER
     }
 
     type Query {

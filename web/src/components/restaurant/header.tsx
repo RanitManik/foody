@@ -103,7 +103,7 @@ export function RestaurantHeader({
         : "";
 
     return (
-        <header className="bg-background flex h-14 items-center justify-between gap-4 border-b px-4">
+        <header className="bg-background flex h-12 items-center justify-between gap-4 border-b px-4 lg:h-14">
             <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon" className="shrink-0 md:hidden">

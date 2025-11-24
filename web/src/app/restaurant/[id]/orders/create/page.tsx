@@ -11,7 +11,6 @@ import {
     ShoppingCart,
     Save,
     X,
-    Receipt,
     Clock,
     CheckCircle,
     XCircle,
@@ -408,7 +407,7 @@ export default function CreateOrderPage() {
                 {/* Menu Items Grid */}
                 <div className="min-h-0 flex-1">
                     <ScrollArea className="h-[calc(100vh-220px)]">
-                        <div className="pr-4 pb-4">
+                        <div>
                             {menuLoading ? (
                                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                     {Array.from({ length: 8 }).map((_, i) => (
@@ -664,7 +663,7 @@ export default function CreateOrderPage() {
                                         </>
                                     ) : (
                                         <>
-                                            <Receipt className="h-4 w-4" />
+                                            <ShoppingCart className="h-4 w-4" />
                                             Create Order
                                         </>
                                     )}

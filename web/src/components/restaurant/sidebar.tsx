@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { MessageSquare, PanelLeftClose, Utensils, ClipboardList, CreditCard } from "lucide-react";
+import {
+    MessageSquare,
+    PanelLeftClose,
+    Utensils,
+    ClipboardList,
+    CreditCard,
+    Settings,
+} from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 
@@ -14,14 +21,19 @@ const sidebarItems = [
         icon: ClipboardList,
     },
     {
+        title: "Orders",
+        href: "/restaurant/[id]/orders",
+        icon: CreditCard,
+    },
+    {
         title: "Menu Management",
         href: "/restaurant/[id]/menu-management",
         icon: Utensils,
     },
     {
-        title: "Orders",
-        href: "/restaurant/[id]/orders",
-        icon: CreditCard,
+        title: "Payment Methods",
+        href: "/restaurant/[id]/payment-methods",
+        icon: Settings,
     },
 ];
 

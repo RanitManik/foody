@@ -4,7 +4,16 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { gql } from "@apollo/client/core";
-import { Search, MoreVertical, Eye, X, Clock, CheckCircle, Package } from "lucide-react";
+import {
+    Search,
+    MoreVertical,
+    Eye,
+    X,
+    Clock,
+    CheckCircle,
+    Package,
+    CreditCard,
+} from "lucide-react";
 import { toast } from "sonner";
 import extractErrorMessage from "@/lib/errors";
 import { Button } from "@/components/ui/button";
@@ -109,9 +118,9 @@ const GET_ORDERS = gql`
     }
 `;
 
-const UPDATE_ORDER_STATUS = gql`
-    mutation UpdateOrderStatus($id: ID!, $status: OrderStatus!) {
-        updateOrderStatus(id: $id, status: $status) {
+const CANCEL_ORDER = gql`
+    mutation CancelOrder($id: ID!) {
+        cancelOrder(id: $id) {
             id
             status
             updatedAt
@@ -119,12 +128,29 @@ const UPDATE_ORDER_STATUS = gql`
     }
 `;
 
-const CANCEL_ORDER = gql`
-    mutation CancelOrder($id: ID!) {
-        cancelOrder(id: $id) {
+const PROCESS_PAYMENT = gql`
+    mutation ProcessPayment($input: ProcessPaymentInput!) {
+        processPayment(input: $input) {
             id
+            amount
             status
-            updatedAt
+            transactionId
+            order {
+                id
+                status
+            }
+        }
+    }
+`;
+
+const GET_PAYMENT_METHODS = gql`
+    query GetPaymentMethods {
+        paymentMethods {
+            id
+            type
+            provider
+            last4
+            isDefault
         }
     }
 `;
@@ -168,6 +194,16 @@ type OrdersData = {
     };
 };
 
+type PaymentMethodsData = {
+    paymentMethods: Array<{
+        id: string;
+        type: string;
+        provider: string;
+        last4: string;
+        isDefault: boolean;
+    }>;
+};
+
 const statusConfig = {
     PENDING: { label: "Pending", color: "secondary", icon: Clock },
     COMPLETED: { label: "Completed", color: "default", icon: CheckCircle },
@@ -179,6 +215,8 @@ export default function OrdersPage() {
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
     const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
+    const [processingOrder, setProcessingOrder] = useState<Order | null>(null);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 20;
 
@@ -201,8 +239,10 @@ export default function OrdersPage() {
         }
     }, [error]);
 
-    const [updateOrderStatus] = useMutation(UPDATE_ORDER_STATUS);
     const [cancelOrder, { loading: cancelling }] = useMutation(CANCEL_ORDER);
+    const [processPayment, { loading: processing }] = useMutation(PROCESS_PAYMENT);
+
+    const { data: paymentMethodsData } = useQuery<PaymentMethodsData>(GET_PAYMENT_METHODS);
 
     const filteredOrders =
         data?.orders?.orders?.filter((order: Order) => {
@@ -221,21 +261,26 @@ export default function OrdersPage() {
         }) || [];
 
     const handleConfirmOrder = async (orderId: string) => {
-        toast.promise(
-            updateOrderStatus({
-                variables: { id: orderId, status: "COMPLETED" },
-            }).then(() => {
-                refetch();
-            }),
-            {
-                loading: "Completing order...",
-                success: "Order completed successfully",
-                error: (error) => {
-                    const msg = extractErrorMessage(error);
-                    return `Failed to complete order: ${msg}`;
-                },
-            },
-        );
+        const order = filteredOrders.find((o) => o.id === orderId);
+        if (order) {
+            // Check if payment methods are available
+            if (
+                !paymentMethodsData?.paymentMethods ||
+                paymentMethodsData.paymentMethods.length === 0
+            ) {
+                toast.error(
+                    "No payment methods configured. Please contact your administrator to set up payment methods before completing orders.",
+                );
+                return;
+            }
+
+            setProcessingOrder(order);
+            // Set default payment method if available
+            const defaultMethod = paymentMethodsData?.paymentMethods?.find((pm) => pm.isDefault);
+            if (defaultMethod) {
+                setSelectedPaymentMethod(defaultMethod.id);
+            }
+        }
     };
 
     const handleCancelOrder = async () => {
@@ -251,6 +296,29 @@ export default function OrdersPage() {
             const msg = extractErrorMessage(error);
             toast.error(`Failed to cancel order: ${msg}`);
             console.error("Cancel order error:", error);
+        }
+    };
+
+    const handleProcessPayment = async () => {
+        if (!processingOrder || !selectedPaymentMethod) return;
+
+        try {
+            await processPayment({
+                variables: {
+                    input: {
+                        orderId: processingOrder.id,
+                        paymentMethodId: selectedPaymentMethod,
+                        amount: processingOrder.totalAmount,
+                    },
+                },
+            });
+            toast.success("Payment processed and order completed successfully!");
+            setProcessingOrder(null);
+            setSelectedPaymentMethod("");
+            refetch();
+        } catch (error) {
+            const msg = extractErrorMessage(error);
+            toast.error(`Failed to process payment: ${msg}`);
         }
     };
 
@@ -833,11 +901,22 @@ export default function OrdersPage() {
                         </div>
 
                         <SheetFooter className="border-t px-6 pt-4">
-                            <SheetClose asChild>
-                                <Button variant="outline" className="w-full">
-                                    Close
-                                </Button>
-                            </SheetClose>
+                            <div className="flex w-full gap-3">
+                                <SheetClose asChild>
+                                    <Button variant="outline" className="flex-1">
+                                        Close
+                                    </Button>
+                                </SheetClose>
+                                {viewingOrder?.status === "PENDING" && (
+                                    <Button
+                                        onClick={() => handleConfirmOrder(viewingOrder.id)}
+                                        className="flex-1"
+                                    >
+                                        <CheckCircle className="h-4 w-4" />
+                                        Complete Order
+                                    </Button>
+                                )}
+                            </div>
                         </SheetFooter>
                     </div>
                 </SheetContent>
@@ -885,6 +964,112 @@ export default function OrdersPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Process Payment Sheet */}
+            <Sheet open={!!processingOrder} onOpenChange={() => setProcessingOrder(null)}>
+                <SheetContent>
+                    <div className="flex h-full flex-col">
+                        <SheetHeader className="border-b px-6 pb-4">
+                            <SheetTitle className="flex items-center gap-2">
+                                <CreditCard className="h-5 w-5" />
+                                Process Payment
+                            </SheetTitle>
+                            <SheetDescription className="text-base">
+                                Complete payment for order #{processingOrder?.id.slice(-8)}
+                            </SheetDescription>
+                        </SheetHeader>
+
+                        <div className="flex-1 overflow-y-auto px-6 py-6">
+                            {processingOrder && (
+                                <div className="space-y-6">
+                                    {/* Order Summary */}
+                                    <div className="space-y-2">
+                                        <h3 className="font-semibold">Order Summary</h3>
+
+                                        <div className="bg-muted space-y-2 rounded-md p-4">
+                                            {processingOrder.items.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className="flex justify-between text-sm"
+                                                >
+                                                    <span>
+                                                        {item.quantity}x {item.menuItem.name}
+                                                    </span>
+                                                    <span>
+                                                        ${(item.price * item.quantity).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                            <div className="flex justify-between border-t pt-2 font-semibold">
+                                                <span>Total</span>
+                                                <span>
+                                                    ${processingOrder.totalAmount.toFixed(2)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Payment Method Selection */}
+                                    <div className="space-y-2">
+                                        <h3 className="font-semibold">Select Payment Method</h3>
+                                        <Select
+                                            value={selectedPaymentMethod}
+                                            onValueChange={setSelectedPaymentMethod}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Choose payment method" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {paymentMethodsData?.paymentMethods?.map(
+                                                    (method) => (
+                                                        <SelectItem
+                                                            key={method.id}
+                                                            value={method.id}
+                                                        >
+                                                            {method.type} •••• {method.last4} (
+                                                            {method.provider})
+                                                            {method.isDefault && " (Default)"}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <SheetFooter className="border-t px-6 pt-4">
+                            <div className="flex w-full gap-3">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setProcessingOrder(null)}
+                                    className="flex-1"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleProcessPayment}
+                                    disabled={!selectedPaymentMethod || processing}
+                                    className="flex-1"
+                                >
+                                    {processing ? (
+                                        <>
+                                            <Spinner className="h-4 w-4" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CreditCard className="h-4 w-4" />
+                                            Process Payment
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </SheetFooter>
+                    </div>
+                </SheetContent>
+            </Sheet>
         </div>
     );
 }
