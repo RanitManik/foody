@@ -106,24 +106,12 @@ export const menuResolvers = {
             }
 
             let scopedRestaurantId: string | null = null;
-            let scopedLocation: string | null = null;
 
             if (!isAdmin) {
                 if (isManager) {
-                    // For managers, get their restaurant's location to scope to country
-                    const userRestaurant = await prisma.restaurants.findUnique({
-                        where: { id: requireAssignedRestaurant(currentUser) },
-                        select: { location: true },
-                    });
-                    if (userRestaurant) {
-                        scopedLocation = userRestaurant.location;
-                        // Get all restaurants in this location
-                        const restaurantsInLocation = await prisma.restaurants.findMany({
-                            where: { location: scopedLocation },
-                            select: { id: true },
-                        });
-                        whereClause.restaurantId = { in: restaurantsInLocation.map((r) => r.id) };
-                    }
+                    // For managers, only their assigned restaurant
+                    scopedRestaurantId = requireAssignedRestaurant(currentUser);
+                    whereClause.restaurantId = scopedRestaurantId;
                 } else {
                     // For members, only their assigned restaurant
                     scopedRestaurantId = requireAssignedRestaurant(currentUser);
@@ -137,22 +125,14 @@ export const menuResolvers = {
 
                 if (!isAdmin) {
                     if (isManager) {
-                        // For managers, check if the requested restaurant is in their location
-                        const requestedRestaurant = await prisma.restaurants.findUnique({
-                            where: { id: validatedRestaurantId },
-                            select: { location: true },
-                        });
-                        if (
-                            !requestedRestaurant ||
-                            requestedRestaurant.location !== scopedLocation
-                        ) {
+                        // For managers, only their assigned restaurant
+                        if (scopedRestaurantId && validatedRestaurantId !== scopedRestaurantId) {
                             logger.warn(
-                                "Menu items query forbidden for manager: restaurant not in location",
+                                "Menu items query forbidden for manager: mismatched restaurant",
                                 {
                                     userId: currentUser.id,
                                     restaurantId: validatedRestaurantId,
-                                    userLocation: scopedLocation,
-                                    requestedLocation: requestedRestaurant?.location,
+                                    assignedRestaurantId: scopedRestaurantId,
                                 },
                             );
                             throw GraphQLErrors.forbidden(
@@ -308,22 +288,16 @@ export const menuResolvers = {
 
                     if (!isAdmin) {
                         if (isManager) {
-                            // For managers, check if menu item belongs to a restaurant in their location
-                            const userRestaurant = await prisma.restaurants.findUnique({
-                                where: { id: requireAssignedRestaurant(currentUser) },
-                                select: { location: true },
-                            });
-                            if (
-                                !userRestaurant ||
-                                userRestaurant.location !== menuItem.restaurants?.location
-                            ) {
+                            // For managers, only their assigned restaurant
+                            const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                            if (menuItem.restaurantId !== assignedRestaurantId) {
                                 logger.warn(
-                                    "Menu item access denied for manager: not in location",
+                                    "Menu item access denied for manager: wrong restaurant",
                                     {
                                         userId: currentUser.id,
                                         menuItemId: validatedId,
-                                        userLocation: userRestaurant?.location,
-                                        menuItemLocation: menuItem.restaurants?.location,
+                                        assignedRestaurantId,
+                                        menuItemRestaurantId: menuItem.restaurantId,
                                     },
                                 );
                                 throw GraphQLErrors.forbidden("Access denied to this menu item");
@@ -389,24 +363,12 @@ export const menuResolvers = {
             const isManager = currentUser.role === UserRole.MANAGER;
 
             let scopedRestaurantId: string | null = null;
-            let scopedLocation: string | null = null;
 
             if (!isAdmin) {
                 if (isManager) {
-                    // For managers, get their restaurant's location to scope to country
-                    const userRestaurant = await prisma.restaurants.findUnique({
-                        where: { id: requireAssignedRestaurant(currentUser) },
-                        select: { location: true },
-                    });
-                    if (userRestaurant) {
-                        scopedLocation = userRestaurant.location;
-                        // Get all restaurants in this location
-                        const restaurantsInLocation = await prisma.restaurants.findMany({
-                            where: { location: scopedLocation },
-                            select: { id: true },
-                        });
-                        whereClause.restaurantId = { in: restaurantsInLocation.map((r) => r.id) };
-                    }
+                    // For managers, only their assigned restaurant
+                    scopedRestaurantId = requireAssignedRestaurant(currentUser);
+                    whereClause.restaurantId = scopedRestaurantId;
                 } else {
                     // For members, only their assigned restaurant
                     scopedRestaurantId = requireAssignedRestaurant(currentUser);
@@ -419,22 +381,14 @@ export const menuResolvers = {
 
                 if (!isAdmin) {
                     if (isManager) {
-                        // For managers, check if the requested restaurant is in their location
-                        const requestedRestaurant = await prisma.restaurants.findUnique({
-                            where: { id: validatedRestaurantId },
-                            select: { location: true },
-                        });
-                        if (
-                            !requestedRestaurant ||
-                            requestedRestaurant.location !== scopedLocation
-                        ) {
+                        // For managers, only their assigned restaurant
+                        if (scopedRestaurantId && validatedRestaurantId !== scopedRestaurantId) {
                             logger.warn(
-                                "Menu categories query forbidden for manager: restaurant not in location",
+                                "Menu categories query forbidden for manager: mismatched restaurant",
                                 {
                                     userId: currentUser.id,
                                     restaurantId: validatedRestaurantId,
-                                    userLocation: scopedLocation,
-                                    requestedLocation: requestedRestaurant?.location,
+                                    assignedRestaurantId: scopedRestaurantId,
                                 },
                             );
                             throw GraphQLErrors.forbidden("Access denied to this restaurant");

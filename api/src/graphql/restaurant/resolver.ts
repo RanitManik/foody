@@ -110,15 +110,9 @@ export const restaurantResolvers = {
 
             if (!isAdmin) {
                 if (isManager) {
-                    // For managers, get their restaurant's location to scope to country
-                    const userRestaurant = await prisma.restaurants.findUnique({
-                        where: { id: requireAssignedRestaurant(currentUser) },
-                        select: { location: true },
-                    });
-                    if (userRestaurant) {
-                        scopedLocation = userRestaurant.location;
-                        whereClause.location = scopedLocation;
-                    }
+                    // For managers, only their assigned restaurant
+                    scopedRestaurantId = requireAssignedRestaurant(currentUser);
+                    whereClause.id = scopedRestaurantId;
                 } else {
                     // For members, only their assigned restaurant
                     scopedRestaurantId = requireAssignedRestaurant(currentUser);
@@ -238,12 +232,9 @@ export const restaurantResolvers = {
 
             if (!isAdmin) {
                 if (isManager) {
-                    // For managers, check if restaurant is in their location (country)
-                    const userRestaurant = await prisma.restaurants.findUnique({
-                        where: { id: requireAssignedRestaurant(currentUser) },
-                        select: { location: true },
-                    });
-                    if (!userRestaurant || userRestaurant.location !== restaurant.location) {
+                    // For managers, only their assigned restaurant
+                    const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                    if (restaurant.id !== assignedRestaurantId) {
                         throw GraphQLErrors.forbidden("Access denied to this restaurant");
                     }
                 } else {

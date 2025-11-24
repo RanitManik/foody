@@ -8,6 +8,29 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  CREDIT_CARD
+  DEBIT_CARD
+  PAYPAL
+  APPLE_PAY
+  GOOGLE_PAY
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+  SQUARE
+  OTHER
+}
+
 model menu_items {
   id           String        @id @default(cuid())
   name         String
@@ -66,8 +89,8 @@ model orders {
 model payment_methods {
   id           String      @id @default(cuid())
   restaurantId String
-  type         String
-  provider     String
+  type         PaymentType
+  provider     PaymentProvider
   last4        String?
   expiryMonth  Int?
   expiryYear   Int?
@@ -84,7 +107,7 @@ model payments {
   paymentMethodId String
   amount          Float
   currency        String          @default("USD")
-  status          String          @default("PENDING")
+  status          PaymentStatus   @default(PENDING)
   transactionId   String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
