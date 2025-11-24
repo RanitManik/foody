@@ -8,6 +8,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import NextTopLoader from "nextjs-toploader";
 import { useEffect, useState } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
+import { EasterEgg } from "@/components/ui/easter-egg";
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const [isHealthy, setIsHealthy] = useState(false);
@@ -52,6 +53,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         >
             <NextTopLoader color="oklch(0.6587 0.2183 30.19)" height={2} showSpinner={false} />
             <Toaster richColors position="bottom-center" />
+            <EasterEgg />
             <ApolloProvider client={client}>
                 <AuthProvider>{children}</AuthProvider>
             </ApolloProvider>

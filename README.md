@@ -94,6 +94,7 @@ Key achievements:
 - **Menu Browsing**: Browse available menu items with pricing and availability status
 - **Order Management**: Create orders, add items, checkout, and track status
 - **Payment Processing**: Secure payment method management and order payments
+- **Feedback System**: Submit and manage user feedback and reviews
 - **Order Lifecycle**: Complete order workflow from pending to delivered
 
 ### Access Control & Security
@@ -117,7 +118,7 @@ Key achievements:
 
 ### Frontend
 
-- **Next.js 14**: React framework with App Router
+- **Next.js 15**: React framework with App Router
 - **TypeScript**: Type-safe JavaScript
 - **Tailwind CSS**: Utility-first CSS framework
 - **Apollo Client**: GraphQL client for API communication
@@ -150,12 +151,13 @@ Key achievements:
 
 ```
 foody/
-├── api/                          # Backend API (NestJS + GraphQL)
+├── api/                          # Backend API (Express + Apollo Server + GraphQL)
 │   ├── src/
 │   │   ├── graphql/              # GraphQL schema and resolvers
 │   │   │   ├── auth/             # Authentication & user management
+│   │   │   ├── feedback/         # User feedback submissions
 │   │   │   ├── menu/             # Menu item management
-│   │   │   ├── order/            # Order processing
+│   │   │   ├── order/             # Order processing
 │   │   │   ├── payment/          # Payment processing
 │   │   │   ├── restaurant/       # Restaurant management
 │   │   │   └── user/             # User profile management
@@ -181,6 +183,7 @@ foody/
 - **Menu Items**: Food items with pricing and availability
 - **Orders**: Customer orders with status tracking
 - **Payments**: Payment transactions and methods
+- **Feedback**: User feedback submissions and reviews
 
 ### Access Control Matrix
 
@@ -197,7 +200,6 @@ foody/
 - Node.js 18+
 - PostgreSQL 15+
 - Redis (optional, for caching)
-- Docker & Docker Compose (recommended for local development)
 
 ### Installation
 
@@ -221,20 +223,13 @@ foody/
     cp web/.env.example web/.env
     ```
 
-4. **Start infrastructure:**
-
-    ```bash
-    # Using Docker Compose (recommended)
-    docker-compose up -d postgres redis
-    ```
-
-5. **Set up the database:**
+4. **Set up the database:**
 
     ```bash
     npm run db:setup
     ```
 
-6. **Start development servers:**
+5. **Start development servers:**
 
     ```bash
     # API server (http://localhost:4000)
@@ -308,19 +303,6 @@ npm run test:e2e          # End-to-end tests
 ```
 
 ## Deployment
-
-### Docker
-
-Build and run with Docker:
-
-```bash
-# Build images
-docker build -t foody-api ./api
-docker build -t foody-web ./web
-
-# Run with docker-compose
-docker-compose up -d
-```
 
 ### Environment Variables
 
