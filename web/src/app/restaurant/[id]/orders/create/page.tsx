@@ -157,15 +157,84 @@ export default function CreateOrderPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
+    const [allMenuItems, setAllMenuItems] = useState<MenuItem[]>([]);
+    const [loadingMore, setLoadingMore] = useState(false);
 
-    // Fetch menu items
-    const { data: menuData, loading: menuLoading } = useQuery(GET_MENU_ITEMS, {
+    // Fetch menu items with pagination
+    const {
+        data: menuData,
+        loading: menuLoading,
+        fetchMore,
+    } = useQuery(GET_MENU_ITEMS, {
         variables: {
             restaurantId,
-            first: 100, // Get all menu items for POS
+            first: 50, // Start with 50 items
             skip: 0,
         },
     });
+
+    const totalMenuItems =
+        (menuData as { menuItems?: { totalCount: number } })?.menuItems?.totalCount ?? 0;
+    const hasMoreMenuItems = allMenuItems.length < totalMenuItems;
+
+    // Update allMenuItems when data changes
+    useEffect(() => {
+        const data = menuData as { menuItems?: { menuItems: MenuItem[] } };
+        if (data?.menuItems?.menuItems && !menuLoading) {
+            setAllMenuItems(data.menuItems.menuItems);
+        }
+    }, [menuData, menuLoading]);
+
+    // Load more menu items
+    const loadMoreMenuItems = async () => {
+        if (loadingMore || !hasMoreMenuItems) return;
+
+        setLoadingMore(true);
+        try {
+            const result = await fetchMore({
+                variables: {
+                    restaurantId,
+                    first: 50,
+                    skip: allMenuItems.length,
+                },
+                updateQuery: (prev, { fetchMoreResult }) => {
+                    const prevData = prev as {
+                        menuItems?: { menuItems: MenuItem[]; totalCount: number };
+                    };
+                    const fetchData = fetchMoreResult as {
+                        menuItems?: { menuItems: MenuItem[]; totalCount: number };
+                    };
+
+                    if (!fetchData?.menuItems?.menuItems) return prev;
+
+                    // Combine previous and new menu items
+                    const newMenuItems = [
+                        ...(prevData?.menuItems?.menuItems || []),
+                        ...fetchData.menuItems.menuItems,
+                    ];
+
+                    return {
+                        ...prevData,
+                        menuItems: {
+                            ...prevData?.menuItems,
+                            menuItems: newMenuItems,
+                            totalCount: fetchData.menuItems.totalCount,
+                        },
+                    };
+                },
+            });
+
+            // Update local state
+            const resultData = result.data as { menuItems?: { menuItems: MenuItem[] } };
+            if (resultData?.menuItems?.menuItems) {
+                setAllMenuItems((prev) => [...prev, ...resultData.menuItems!.menuItems]);
+            }
+        } catch (error) {
+            console.error("Error loading more menu items:", error);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
     // Fetch menu categories
     const { data: categoriesData } = useQuery(GET_MENU_CATEGORIES, {
@@ -199,16 +268,14 @@ export default function CreateOrderPage() {
         }
     }, [orderData, orderLoading]);
 
-    const menuItems =
-        (menuData as { menuItems?: { menuItems: MenuItem[] } })?.menuItems?.menuItems || [];
     const categories = (categoriesData as { menuCategories?: string[] })?.menuCategories || [];
 
     const filteredMenuItems =
         selectedCategory === "all"
-            ? menuItems.filter((item: MenuItem) =>
+            ? allMenuItems.filter((item: MenuItem) =>
                   item.name.toLowerCase().includes(searchTerm.toLowerCase()),
               )
-            : menuItems.filter(
+            : allMenuItems.filter(
                   (item: MenuItem) =>
                       item.category === selectedCategory &&
                       item.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -570,6 +637,30 @@ export default function CreateOrderPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Load More Button */}
+                        {hasMoreMenuItems && (
+                            <div className="flex justify-center p-4">
+                                <Button
+                                    onClick={loadMoreMenuItems}
+                                    disabled={loadingMore}
+                                    variant="outline"
+                                    size="lg"
+                                >
+                                    {loadingMore ? (
+                                        <>
+                                            <Spinner className="h-4 w-4" />
+                                            Loading...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Load More Items ({totalMenuItems - allMenuItems.length}{" "}
+                                            remaining)
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
