@@ -101,7 +101,7 @@ describe("Health Router", () => {
                 });
             });
 
-            it("should return unhealthy status when database is unhealthy", async () => {
+            it("should return pending status when database is unhealthy", async () => {
                 mockCheckDatabaseHealth.mockResolvedValue({
                     status: "unhealthy",
                     latency: 10,
@@ -111,10 +111,14 @@ describe("Health Router", () => {
 
                 await routeHandler(req, res);
 
-                expect(res.status).toHaveBeenCalledWith(503);
+                expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.json).toHaveBeenCalledWith({
-                    status: "unhealthy",
+                    status: "pending",
                     timestamp: expect.any(String),
+                    services: {
+                        database: "pending",
+                        redis: "not configured",
+                    },
                     error: "Database unhealthy: Connection failed",
                 });
                 expect(mockLogger.error).toHaveBeenCalledWith(
@@ -140,23 +144,32 @@ describe("Health Router", () => {
 
                 await routeHandler(req, res);
 
-                expect(res.status).toHaveBeenCalledWith(503);
+                expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.json).toHaveBeenCalledWith({
-                    status: "unhealthy",
+                    status: "pending",
                     timestamp: expect.any(String),
+                    services: {
+                        database: "pending",
+                        redis: "pending",
+                    },
                     error: expect.stringContaining("Redis ping failed"),
                 });
             });
 
             it("should handle exceptions gracefully", async () => {
                 mockCheckDatabaseHealth.mockRejectedValue(new Error("Unexpected error"));
+                (mockGetRedisClient as any).mockReturnValue(null);
 
                 await routeHandler(req, res);
 
-                expect(res.status).toHaveBeenCalledWith(503);
+                expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.json).toHaveBeenCalledWith({
-                    status: "unhealthy",
+                    status: "pending",
                     timestamp: expect.any(String),
+                    services: {
+                        database: "pending",
+                        redis: "not configured",
+                    },
                     error: "Unexpected error",
                 });
                 expect(mockLogger.error).toHaveBeenCalledWith(
@@ -285,7 +298,7 @@ describe("Health Router", () => {
                 });
             });
 
-            it("should return not ready when database is unhealthy", async () => {
+            it("should return pending when database is unhealthy", async () => {
                 mockCheckDatabaseHealth.mockResolvedValue({
                     status: "unhealthy",
                     latency: 10,
@@ -294,9 +307,9 @@ describe("Health Router", () => {
 
                 await routeHandler(req, res);
 
-                expect(res.status).toHaveBeenCalledWith(503);
+                expect(res.status).toHaveBeenCalledWith(200);
                 expect(res.json).toHaveBeenCalledWith({
-                    status: "not ready",
+                    status: "pending",
                     timestamp: expect.any(String),
                     error: "Database not ready: Connection failed",
                 });

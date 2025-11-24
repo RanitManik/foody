@@ -63,11 +63,9 @@ describe("Auth Utilities", () => {
             const userId = "user-123";
             const token = generateToken(userId);
 
-            expect(mockJwt.sign).toHaveBeenCalledWith(
-                { userId },
-                "your-super-secret-jwt-key-change-this-in-production",
-                { expiresIn: "7d" },
-            );
+            expect(mockJwt.sign).toHaveBeenCalledWith({ userId }, "test-secret", {
+                expiresIn: "7d",
+            });
             expect(token).toBe("mocked-token-user-123");
         });
 
@@ -75,11 +73,9 @@ describe("Auth Utilities", () => {
             const userId = "user-456";
             generateToken(userId);
 
-            expect(mockJwt.sign).toHaveBeenCalledWith(
-                { userId },
-                "your-super-secret-jwt-key-change-this-in-production",
-                { expiresIn: "7d" },
-            );
+            expect(mockJwt.sign).toHaveBeenCalledWith({ userId }, "test-secret", {
+                expiresIn: "7d",
+            });
         });
 
         it("should use custom expiration time", () => {
@@ -87,22 +83,18 @@ describe("Auth Utilities", () => {
             const userId = "user-789";
             generateToken(userId);
 
-            expect(mockJwt.sign).toHaveBeenCalledWith(
-                { userId },
-                "your-super-secret-jwt-key-change-this-in-production",
-                { expiresIn: "1h" },
-            );
+            expect(mockJwt.sign).toHaveBeenCalledWith({ userId }, "test-secret", {
+                expiresIn: "1h",
+            });
         });
 
         it("should use default expiration time", () => {
             const userId = "user-999";
             generateToken(userId);
 
-            expect(mockJwt.sign).toHaveBeenCalledWith(
-                { userId },
-                "your-super-secret-jwt-key-change-this-in-production",
-                { expiresIn: "7d" },
-            );
+            expect(mockJwt.sign).toHaveBeenCalledWith({ userId }, "test-secret", {
+                expiresIn: "7d",
+            });
         });
     });
 
