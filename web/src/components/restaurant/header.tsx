@@ -27,9 +27,18 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { RestaurantSidebar } from "./sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+    Breadcrumb,
+    BreadcrumbList,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { useTheme } from "next-themes";
 import FeedbackModal from "@/components/admin/feedback-modal";
 import { useQuery } from "@apollo/client/react";
+import Link from "next/link";
+import { useRouter } from "nextjs-toploader/app";
 import { gql } from "@apollo/client/core";
 import { cn } from "@/lib/utils";
 
@@ -72,6 +81,30 @@ export function RestaurantHeader({
     });
 
     const restaurant = data?.restaurant;
+
+    const GET_RESTAURANTS = gql`
+        query GetRestaurantsForHeader {
+            restaurants {
+                restaurants {
+                    id
+                    name
+                }
+            }
+        }
+    `;
+
+    type RestaurantsListData = {
+        restaurants: {
+            restaurants: Array<{ id: string; name: string }>;
+        };
+    };
+
+    const { data: allRestaurantsData, loading: restaurantsLoading } = useQuery<RestaurantsListData>(
+        GET_RESTAURANTS,
+        { skip: !restaurantId },
+    );
+
+    const router = useRouter();
 
     // Date and Time State
     const [currentDate, setCurrentDate] = useState<Date | null>(null);
@@ -119,17 +152,68 @@ export function RestaurantHeader({
             {/* Left Side: Restaurant Info */}
             <div className="flex items-center gap-4">
                 {restaurant && (
-                    <>
-                        <div className="bg-card flex items-center gap-3 rounded-lg border px-3 py-1.5 shadow-sm">
-                            <div
-                                className={cn(
-                                    "h-2 w-2 rounded-full",
-                                    restaurant.isActive ? "bg-green-500" : "bg-red-500",
-                                )}
-                            />
-                            <span className="text-sm font-semibold">{restaurant.name}</span>
-                        </div>
-                    </>
+                    <div className="flex items-center gap-3">
+                        {user?.role === "ADMIN" ? (
+                            <Breadcrumb className="text-sm">
+                                <BreadcrumbList>
+                                    <BreadcrumbItem>
+                                        <BreadcrumbLink asChild>
+                                            <Link href="/admin/restaurants">Restaurants</Link>
+                                        </BreadcrumbLink>
+                                    </BreadcrumbItem>
+                                    <BreadcrumbSeparator />
+                                    <BreadcrumbItem>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-0! hover:bg-transparent focus-visible:outline-none">
+                                                <span className="text-sm font-semibold">
+                                                    {restaurant.name}
+                                                </span>
+                                                <ChevronDown className="text-muted-foreground size-4" />
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="start"
+                                                className="min-w-[180px]"
+                                            >
+                                                {restaurantsLoading ? (
+                                                    <DropdownMenuItem disabled>
+                                                        Loading…
+                                                    </DropdownMenuItem>
+                                                ) : (
+                                                    (
+                                                        allRestaurantsData?.restaurants
+                                                            ?.restaurants || []
+                                                    )
+                                                        .filter((r) => r.id !== restaurant?.id)
+                                                        .map((r) => (
+                                                            <DropdownMenuItem
+                                                                key={r.id}
+                                                                onClick={() =>
+                                                                    router.push(
+                                                                        `/restaurant/${r.id}/orders`,
+                                                                    )
+                                                                }
+                                                            >
+                                                                {r.name}
+                                                            </DropdownMenuItem>
+                                                        ))
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </BreadcrumbItem>
+                                </BreadcrumbList>
+                            </Breadcrumb>
+                        ) : (
+                            <div className="bg-card flex items-center gap-3 rounded-lg border px-3 py-1.5 shadow-sm">
+                                <div
+                                    className={cn(
+                                        "h-2 w-2 rounded-full",
+                                        restaurant.isActive ? "bg-green-500" : "bg-red-500",
+                                    )}
+                                />
+                                <span className="text-sm font-semibold">{restaurant.name}</span>
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
 
