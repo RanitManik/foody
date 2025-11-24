@@ -1,5 +1,8 @@
 # Foody API - Postman Collections
 
+> [!IMPORTANT]
+> **Postman collections are no longer maintained.** Please use the GraphQL Playground or other API testing tools for current API testing.
+
 Complete Postman collection for testing all endpoints of the Foody GraphQL API with automated role-based testing.
 
 <details>

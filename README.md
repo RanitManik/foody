@@ -1,8 +1,8 @@
  <img width="70" src="logo.png" alt="Foody Logo" />
 
-# Foody - Food Ordering Application
+# Foody - Restaurant Operations Management Platform
 
-A comprehensive full-stack food ordering application implementing role-based access control (RBAC) with restaurant-based restrictions, designed as a solution for a take-home assignment.
+A comprehensive restaurant operations management platform implementing role-based access control with restaurant-based restrictions, designed as a solution for restaurant owners and managers to efficiently run their business operations.
 
 <details>
 <summary><strong>Table of Contents</strong> (Click to Expand)</summary>
@@ -46,64 +46,70 @@ A comprehensive full-stack food ordering application implementing role-based acc
 
 ## Problem Statement
 
-Nick Fury is a business owner (Admin) with 5 employees:
+Nick Fury is a restaurant business owner (Admin) with multiple restaurant locations and employees:
 
-- Captain Marvel: Manager-India
-- Captain America: Manager-America
-- Thanos: Team Member-India
-- Thor: Team Member-India
-- Travis: Team Member-America
+- Captain Marvel: Manager-India (manages Spice Garden restaurant)
+- Captain America: Manager-America (manages Burger Haven restaurant)
+- Thanos: Team Member-India (works at Spice Garden)
+- Thor: Team Member-India (works at Spice Garden)
+- Travis: Team Member-America (works at Burger Haven)
 
-Nick wants a web-based food ordering application where users can:
+Nick needs a web-based restaurant operations platform where staff can:
 
-- View restaurants and menu items
-- Create an order and add food items
-- Checkout cart and pay using existing payment methods
-- Cancel orders
-- Modify payment methods
+- Create and manage customer orders (POS-style interface)
+- Process payments and update order status
+- Manage menu items and pricing
+- Handle payment methods
+- View restaurant performance data
 
 Access specifications by role:
 | Function | Admin | Manager | Member |
 |----------|-------|---------|--------|
-| View restaurants & menu items | ✅ | ✅ | ✅ |
-| Create order (add food items) | ✅ | ✅ | ✅ |
-| Place order (checkout & pay) | ✅ | ✅ | ❌ |
-| Cancel order | ✅ | ✅ | ❌ |
-| Update payment method | ✅ | ❌ | ❌ |
+| View all restaurants & data | ✅ | ❌ | ❌ |
+| Manage assigned restaurant operations | ❌ | ✅ | ❌ |
+| Create orders (POS functionality) | ✅ | ✅ | ✅ |
+| Process payments & update order status | ✅ | ✅ | ❌ |
+| Manage menu items | ✅ | ✅ | ❌ |
+| Manage payment methods | ✅ | ✅ | ❌ |
+| Manage users & restaurants | ✅ | ❌ | ❌ |
 
-**Bonus Objective**: Implement relational access where Managers & Members can only access data and features limited to their assigned restaurant.
+**Bonus Objective**: Implement relational access where Managers & Members can only access data and features limited to their assigned restaurant location.
 
 ## Solution Overview
 
-Foody is a production-ready food ordering platform built with modern web technologies. It implements comprehensive RBAC with granular permissions and restaurant-based data isolation. The application features a GraphQL API backend with real-time subscriptions, a Next.js frontend, and PostgreSQL database with Prisma ORM.
+Foody is a production-ready restaurant operations management platform built with modern web technologies. It implements comprehensive RBAC with granular permissions and restaurant-based data isolation. The application features a GraphQL API backend with real-time subscriptions, a Next.js frontend with POS-style interfaces, and PostgreSQL database with Prisma ORM.
 
 Key achievements:
 
-- ✅ Full-stack web application with all required functionality
-- ✅ Role-based access control (ADMIN, MANAGER, MEMBER)
+- ✅ Full-stack restaurant operations platform with all required functionality
+- ✅ Role-based access control (ADMIN, MANAGER, MEMBER) with restaurant scoping
 - ✅ Restaurant-based restrictions for managers and members
-- ✅ Restaurant-level data isolation
-- ✅ Secure authentication and authorization
-- ✅ Payment processing integration
-- ✅ Real-time order updates
+- ✅ Restaurant-level data isolation and access control
+- ✅ POS-style order creation and management interface
+- ✅ Payment processing and order lifecycle management
+- ✅ Menu management and inventory control
+- ✅ Multi-location restaurant management
+- ✅ Real-time order status updates
 - ✅ Comprehensive testing and monitoring
 
 ## Features
 
 ### Core Functionality
 
-- **Restaurant Management**: View restaurants by location with menu items and categories
-- **Menu Browsing**: Browse available menu items with pricing and availability status
-- **Order Management**: Create orders, add items, checkout, and track status
-- **Payment Processing**: Secure payment method management and order payments
-- **Feedback System**: Submit and manage user feedback and reviews
-- **Order Lifecycle**: Complete order workflow from pending to delivered
+- **Restaurant Management**: Create and manage multiple restaurant locations with detailed information
+- **Order Management**: POS-style order creation, status tracking, and lifecycle management
+- **Menu Management**: Create, update, and manage menu items with categories and pricing
+- **Payment Processing**: Secure payment method management and order payment processing
+- **User Management**: Role-based user accounts with restaurant assignments
+- **Feedback System**: Collect and manage customer feedback and reviews
+- **Order Lifecycle**: Complete order workflow from creation to completion/cancellation
 
 ### Access Control & Security
 
 - **Role-Based Access Control**: Three-tier permission system (Admin/Manager/Member)
-- **Restaurant-Based Restrictions**: Users scoped to specific restaurants
+- **Restaurant-Based Restrictions**: Users scoped to specific restaurant locations
 - **Restaurant-Level Isolation**: Managers and members limited to their assigned restaurant
+- **POS-Style Interface**: Intuitive order creation and management for restaurant staff
 - **JWT Authentication**: Secure token-based authentication
 - **Input Validation**: Comprehensive data validation and sanitization
 
@@ -198,43 +204,43 @@ foody/
 
 ### Access Control Matrix
 
-| Category                    | Operation                   | ADMIN | MANAGER | MEMBER |
-| --------------------------- | --------------------------- | ----- | ------- | ------ |
-| **Data Access Permissions** |                             |       |         |        |
-|                             | View All Restaurants        | ✅    | ❌      | ❌     |
-|                             | View Assigned Restaurant    | ❌    | ✅      | ✅     |
-|                             | View All Menu Items         | ✅    | ❌      | ❌     |
-|                             | View Assigned Menu Items    | ❌    | ✅      | ✅     |
-|                             | View All Users              | ✅    | ❌      | ❌     |
-|                             | View All Feedback           | ✅    | ❌      | ❌     |
-| **Restaurant Management**   |                             |       |         |        |
-|                             | Create Restaurants          | ✅    | ❌      | ❌     |
-|                             | Update Restaurants          | ✅    | ❌      | ❌     |
-|                             | Delete Restaurants          | ✅    | ❌      | ❌     |
-| **Menu Management**         |                             |       |         |        |
-|                             | Create Menu Items           | ✅    | ✅      | ❌     |
-|                             | Update Menu Items           | ✅    | ✅      | ❌     |
-|                             | Delete Menu Items           | ✅    | ✅      | ❌     |
-| **Order Management**        |                             |       |         |        |
-|                             | Create Orders               | ✅    | ✅      | ✅     |
-|                             | Checkout/Pay Orders         | ✅    | ✅      | ❌     |
-|                             | Cancel Orders               | ✅    | ✅      | ❌     |
-|                             | Update Order Status         | ✅    | ✅      | ❌     |
-| **Payment Management**      |                             |       |         |        |
-|                             | View Payment Methods        | ✅    | ✅      | ❌     |
-|                             | Create Payment Methods      | ✅    | ✅      | ❌     |
-|                             | Update Payment Methods      | ✅    | ❌      | ❌     |
-|                             | Delete Payment Methods      | ✅    | ❌      | ❌     |
-|                             | Process Payments            | ✅    | ✅      | ❌     |
-| **User Management**         |                             |       |         |        |
-|                             | Create Users                | ✅    | ❌      | ❌     |
-|                             | Update Users                | ✅    | ❌      | ❌     |
-|                             | Delete Users                | ✅    | ❌      | ❌     |
-| **Feedback Management**     |                             |       |         |        |
-|                             | Submit Feedback             | ✅    | ✅      | ✅     |
-| **Authentication**          |                             |       |         |        |
-|                             | Register Users              | ✅    | ❌      | ❌     |
-|                             | Login                       | ✅    | ✅      | ✅     |
+| Category                    | Operation                | ADMIN | MANAGER | MEMBER |
+| --------------------------- | ------------------------ | ----- | ------- | ------ |
+| **Data Access Permissions** |                          |       |         |        |
+|                             | View All Restaurants     | ✅    | ❌      | ❌     |
+|                             | View Assigned Restaurant | ❌    | ✅      | ✅     |
+|                             | View All Menu Items      | ✅    | ❌      | ❌     |
+|                             | View Assigned Menu Items | ❌    | ✅      | ✅     |
+|                             | View All Users           | ✅    | ❌      | ❌     |
+|                             | View All Feedback        | ✅    | ❌      | ❌     |
+| **Restaurant Management**   |                          |       |         |        |
+|                             | Create Restaurants       | ✅    | ❌      | ❌     |
+|                             | Update Restaurants       | ✅    | ❌      | ❌     |
+|                             | Delete Restaurants       | ✅    | ❌      | ❌     |
+| **Menu Management**         |                          |       |         |        |
+|                             | Create Menu Items        | ✅    | ✅      | ❌     |
+|                             | Update Menu Items        | ✅    | ✅      | ❌     |
+|                             | Delete Menu Items        | ✅    | ✅      | ❌     |
+| **Order Management**        |                          |       |         |        |
+|                             | Create Orders            | ✅    | ✅      | ✅     |
+|                             | Checkout/Pay Orders      | ✅    | ✅      | ❌     |
+|                             | Cancel Orders            | ✅    | ✅      | ❌     |
+|                             | Update Order Status      | ✅    | ✅      | ❌     |
+| **Payment Management**      |                          |       |         |        |
+|                             | View Payment Methods     | ✅    | ✅      | ❌     |
+|                             | Create Payment Methods   | ✅    | ✅      | ❌     |
+|                             | Update Payment Methods   | ✅    | ❌      | ❌     |
+|                             | Delete Payment Methods   | ✅    | ❌      | ❌     |
+|                             | Process Payments         | ✅    | ✅      | ❌     |
+| **User Management**         |                          |       |         |        |
+|                             | Create Users             | ✅    | ❌      | ❌     |
+|                             | Update Users             | ✅    | ❌      | ❌     |
+|                             | Delete Users             | ✅    | ❌      | ❌     |
+| **Feedback Management**     |                          |       |         |        |
+|                             | Submit Feedback          | ✅    | ✅      | ✅     |
+| **Authentication**          |                          |       |         |        |
+|                             | Register Users           | ✅    | ❌      | ❌     |
+|                             | Login                    | ✅    | ✅      | ✅     |
 
 ## Getting Started
 
