@@ -33,8 +33,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 // Continue checking
             }
 
-            // Retry after 2 seconds
-            setTimeout(checkHealth, 2000);
+            // Retry after 5 seconds
+            setTimeout(checkHealth, 5000);
         };
 
         checkHealth();

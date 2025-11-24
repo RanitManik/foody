@@ -45,7 +45,7 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
     // Check permissions
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center">
+            <div className="flex min-h-svh items-center justify-center">
                 <div className="border-foreground h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
             </div>
         );
@@ -54,7 +54,7 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
     if (!user) {
         if (!hasToken) {
             return (
-                <div className="flex min-h-screen items-center justify-center">
+                <div className="flex min-h-svh items-center justify-center">
                     <div className="border-foreground h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
                 </div>
             );
@@ -77,7 +77,7 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
     return (
         <div
             className={cn(
-                "grid min-h-screen w-full transition-all duration-300 ease-in-out",
+                "grid min-h-svh w-full transition-all duration-300 ease-in-out",
                 isCollapsed
                     ? "md:grid-cols-[70px_1fr]"
                     : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]",
