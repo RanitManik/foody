@@ -405,7 +405,7 @@ export default function CreateOrderPage() {
                     )}
                 </div>
 
-                <div className="mb-6 flex flex-col gap-4 sm:flex-row">
+                <div className="mb-6 flex gap-4 ">
                     <div className="relative flex-1">
                         <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
                         <Input
@@ -431,7 +431,7 @@ export default function CreateOrderPage() {
                         )}
                     </div>
                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Filter by category" />
                         </SelectTrigger>
                         <SelectContent>
