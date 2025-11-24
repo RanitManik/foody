@@ -579,27 +579,27 @@ export default function MenuManagementPage() {
                         </div>
                     ) : (
                         <Table>
-                            <TableHeader className="bg-foreground border-border sticky top-0 border-b">
+                            <TableHeader className=" border-border sticky top-0 border-b">
                                 <TableRow className="h-8">
-                                    <TableHead className="bg-card sticky top-0 z-30 w-12 border-r px-1 text-center">
+                                    <TableHead className="bg-muted sticky top-0 z-30 w-12 border-r px-1 text-center">
                                         #
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Name
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Category
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Price
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
                                         Status
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
                                         Created At
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 w-[50px] px-1 text-center"></TableHead>
+                                    <TableHead className="bg-muted sticky top-0 z-30 w-[50px] px-1 text-center"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

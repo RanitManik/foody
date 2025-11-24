@@ -12,10 +12,10 @@ export const typeDefs = `#graphql
         firstName: String!
         "User's last name"
         lastName: String!
-    "User's role determining permissions"
-    role: UserRole!
-    "Restaurant assigned to the user (for managers and members)"
-    restaurantId: ID
+        "User's role determining permissions"
+        role: UserRole!
+        "Restaurant assigned to the user (for managers and members)"
+        restaurantId: ID
         "Whether the user account is active"
         isActive: Boolean!
         "Timestamp when the user account was created"
@@ -46,10 +46,10 @@ export const typeDefs = `#graphql
         firstName: String!
         "User's last name"
         lastName: String!
-    "Role to assign to the user"
-    role: UserRole!
-    "Restaurant assignment for the user (required for non-admin roles)"
-    restaurantId: ID
+        "Role to assign to the user"
+        role: UserRole!
+        "Restaurant assignment for the user (required for non-admin roles)"
+        restaurantId: ID
     }
 
     """

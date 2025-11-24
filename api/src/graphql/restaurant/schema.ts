@@ -15,8 +15,8 @@ export const typeDefs = `#graphql
         address: String!
         "City where the restaurant is located"
         city: String!
-    "Named location where the restaurant operates (for example: Downtown, Midtown)"
-    location: String!
+        "Named location where the restaurant operates (for example: Downtown, Midtown)"
+        location: String!
         "Contact phone number"
         phone: String
         "Contact email address"

@@ -41,8 +41,8 @@ export const typeDefs = `#graphql
         lastName: String
         "Updated role"
         role: UserRole
-    "Updated restaurant assignment"
-    restaurantId: ID
+        "Updated restaurant assignment"
+        restaurantId: ID
         "Updated active status"
         isActive: Boolean
     }

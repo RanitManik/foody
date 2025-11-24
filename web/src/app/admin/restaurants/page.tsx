@@ -605,31 +605,31 @@ export default function AdminRestaurantsPage() {
                         </div>
                     ) : (
                         <Table>
-                            <TableHeader className="bg-foreground border-border sticky top-0 border-b">
+                            <TableHeader className=" border-border sticky top-0 border-b">
                                 <TableRow className="h-8">
-                                    <TableHead className="bg-card sticky top-0 z-30 w-12 border-r text-center">
+                                    <TableHead className="bg-muted sticky top-0 z-30 w-12 border-r text-center">
                                         #
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Name
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Location
                                     </TableHead>
                                     {/* Address column removed — shown in details and sheets instead */}
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Phone
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 sm:px-3 md:px-4">
                                         Email
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 text-center sm:px-3 md:px-4">
                                         Status
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 border-r px-2 text-center shadow-sm sm:px-3 md:px-4">
+                                    <TableHead className="bg-muted sticky top-0 z-30 border-r px-2 text-center shadow-sm sm:px-3 md:px-4">
                                         Created At
                                     </TableHead>
-                                    <TableHead className="bg-card sticky top-0 z-30 w-[50px] text-center"></TableHead>
+                                    <TableHead className="bg-muted sticky top-0 z-30 w-[50px] text-center"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

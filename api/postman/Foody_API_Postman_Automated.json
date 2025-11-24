@@ -157,11 +157,11 @@
                                 "exec": [
                                     "pm.test(\"Restaurants retrieved\", function () {",
                                     "    const response = pm.response.json();",
-                                    "    pm.expect(response.data.restaurants).to.be.an('array');",
+                                    "    pm.expect(response.data.restaurants.restaurants).to.be.an('array');",
                                     "    pm.expect(response.data.restaurants.length).to.be.greaterThan(0);",
                                     "    ",
                                     "    // Save first restaurant ID",
-                                    "    pm.collectionVariables.set('restaurant_id', response.data.restaurants[0].id);",
+                                    "    pm.collectionVariables.set('restaurant_id', response.data.restaurants.restaurants[0].id);",
                                     "    console.log('✅ Function 1: Admin can view restaurants (global access)');",
                                     "});"
                                 ]
@@ -179,7 +179,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Restaurants {\n  restaurants {\n    id\n    name\n    location\n    city\n  }\n}"
+                                "query": "query Restaurants {\n  restaurants {\n    restaurants {\n      id\n      name\n      location\n      city\n    }\n  }\n}"
                             }
                         },
                         "url": {
@@ -198,10 +198,10 @@
                                 "exec": [
                                     "pm.test(\"Menu items retrieved\", function () {",
                                     "    const response = pm.response.json();",
-                                    "    pm.expect(response.data.menuItems).to.be.an('array');",
+                                    "    pm.expect(response.data.menuItems.menuItems).to.be.an('array');",
                                     "    ",
                                     "    if (response.data.menuItems.length > 0) {",
-                                    "        pm.collectionVariables.set('menu_item_id', response.data.menuItems[0].id);",
+                                    "        pm.collectionVariables.set('menu_item_id', response.data.menuItems.menuItems[0].id);",
                                     "    }",
                                     "    console.log('✅ Function 1: Admin can view menu items (global access)');",
                                     "});"
@@ -220,7 +220,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query MenuItems {\n  menuItems {\n    id\n    name\n    price\n    restaurant {\n      id\n      location\n    }\n  }\n}"
+                                "query": "query MenuItems {\n  menuItems {\n    menuItems {\n      id\n      name\n      price\n      restaurant {\n        id\n        location\n      }\n    }\n  }\n}"
                             }
                         },
                         "url": {
@@ -336,7 +336,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {\n  createPaymentMethod(input: $input) {\n    id\n    type\n    provider\n  }\n}",
+                                "query": "mutation CreatePaymentMethod($input: CreatePaymentMethodInput!) {\n  createPaymentMethod(input: $input, restaurantId: \"{{restaurant_id}}\") {\n    id\n    type\n    provider\n  }\n}",
                                 "variables": "{\n  \"input\": {\n    \"type\": \"CREDIT_CARD\",\n    \"provider\": \"STRIPE\",\n    \"token\": \"tok_automated_test\"\n  }\n}"
                             }
                         },
@@ -378,7 +378,7 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n    totalAmount\n    status\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{menu_item_id}}\",\n        \"quantity\": 2,\n        \"notes\": \"Extra spicy\"\n      }\n    ],\n    \"deliveryAddress\": \"123 Admin Street, New York\",\n    \"phone\": \"+1-555-0100\",\n    \"paymentMethodId\": \"{{payment_method_id}}\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{menu_item_id}}\",\n        \"quantity\": 2,\n        \"notes\": \"Extra spicy\"\n      }\n    ],\n    \"phone\": \"+1-555-0100\",\n    \"specialInstructions\": \"Please handle with care\",\n    \"paymentMethodId\": \"{{payment_method_id}}\"\n  }\n}"
                             }
                         },
                         "url": {
@@ -417,7 +417,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Orders {\n  orders {\n    id\n    status\n    totalAmount\n  }\n}"
+                                "query": "query Orders {\n  orders {\n    orders {\n      id\n      status\n      totalAmount\n    }\n  }\n}"
                             }
                         },
                         "url": {
@@ -678,7 +678,7 @@
                                     "        pm.expect.fail('GraphQL errors found: ' + JSON.stringify(response.errors));",
                                     "    }",
                                     "    ",
-                                    "    pm.expect(response.data).to.have.property('users');",
+                                    "    pm.expect(response.data.users).to.have.property('users');",
                                     "    const users = response.data.users || [];",
                                     "    const targetEmail = pm.collectionVariables.get('management_test_email') || 'test.user.management@foody.com';",
                                     "    const managementUser = users.find(user => user.email === targetEmail);",
@@ -706,7 +706,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query GetAllUsers {\n  users(first: 10, skip: 0) {\n    id\n    email\n    firstName\n    lastName\n    role\n    restaurantId\n    isActive\n    orders {\n      id\n      status\n      totalAmount\n    }\n    paymentMethods {\n      id\n      type\n      provider\n      isDefault\n    }\n  }\n}",
+                                "query": "query GetAllUsers {\n  users(first: 10, skip: 0) {\n    users {\n      id\n      email\n      firstName\n      lastName\n      role\n      restaurantId\n      isActive\n      orders {\n        id\n        status\n        totalAmount\n      }\n      paymentMethods {\n        id\n        type\n        provider\n        isDefault\n      }\n    }\n  }\n}",
                                 "variables": "{}"
                             }
                         },
@@ -912,7 +912,7 @@
                                 "exec": [
                                     "pm.test(\"Only assigned-restaurant restaurants visible\", function () {",
                                     "    const response = pm.response.json();",
-                                    "    const restaurants = response.data.restaurants || [];",
+                                    "    const restaurants = response.data.restaurants.restaurants || [];",
                                     "    pm.expect(restaurants).to.be.an('array');",
                                     "    pm.expect(restaurants.length).to.be.greaterThan(0);",
                                     "    restaurants.forEach(r => {",
@@ -943,7 +943,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Restaurants {\n  restaurants {\n    id\n    name\n    location\n  }\n}"
+                                "query": "query Restaurants {\n  restaurants {\n    restaurants {\n      id\n      name\n      location\n    }\n  }\n}"
                             }
                         },
                         "url": {
@@ -962,7 +962,7 @@
                                 "exec": [
                                     "pm.test(\"Menu items retrieved\", function () {",
                                     "    const response = pm.response.json();",
-                                    "    pm.expect(response.data.menuItems).to.be.an('array');",
+                                    "    pm.expect(response.data.menuItems.menuItems).to.be.an('array');",
                                     "    console.log('✅ Function 1: Manager can view menu items');",
                                     "});"
                                 ]
@@ -980,7 +980,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query MenuItems {\n  menuItems {\n    id\n    name\n    price\n  }\n}"
+                                "query": "query MenuItems {\n  menuItems {\n    menuItems {\n      id\n      name\n      price\n    }\n  }\n}"
                             }
                         },
                         "url": {
@@ -1181,7 +1181,7 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n    totalAmount\n    status\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{manager_menu_item_id}}\",\n        \"quantity\": 1,\n        \"notes\": \"Manager order test\"\n      }\n    ],\n    \"deliveryAddress\": \"Manager Test Address, Mumbai\",\n    \"phone\": \"+91-9876543210\",\n    \"paymentMethodId\": \"{{manager_payment_method_id}}\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{manager_menu_item_id}}\",\n        \"quantity\": 1,\n        \"notes\": \"Manager order test\"\n      }\n    ],\n    \"phone\": \"+91-9876543210\",\n    \"specialInstructions\": \"Extra spicy please\",\n    \"paymentMethodId\": \"{{manager_payment_method_id}}\"\n  }\n}"
                             }
                         },
                         "url": {
@@ -1200,7 +1200,7 @@
                                 "exec": [
                                     "pm.test(\"Orders retrieved for assigned restaurant\", function () {",
                                     "    const response = pm.response.json();",
-                                    "    const orders = response.data.orders;",
+                                    "    const orders = response.data.orders.orders;",
                                     "    pm.expect(orders).to.be.an('array');",
                                     "    ",
                                     "    orders.forEach(order => {",
@@ -1233,7 +1233,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Orders {\n  orders {\n    id\n    status\n    totalAmount\n    user {\n      id\n      restaurantId\n    }\n  }\n}"
+                                "query": "query Orders {\n  orders {\n    orders {\n      id\n      status\n      totalAmount\n      user {\n        id\n        restaurantId\n      }\n    }\n  }\n}"
                             }
                         },
                         "url": {
@@ -1472,8 +1472,8 @@
                                 "exec": [
                                     "pm.test(\"Only assigned-restaurant restaurants visible\", function () {",
                                     "    const response = pm.response.json();",
-                                    "    pm.expect(response.data.restaurants).to.be.an('array');",
-                                    "    response.data.restaurants.forEach(r => {",
+                                    "    pm.expect(response.data.restaurants.restaurants).to.be.an('array');",
+                                    "    response.data.restaurants.restaurants.forEach(r => {",
                                     "        pm.expect(r.id).to.equal('restaurant-india-1');",
                                     "    });",
                                     "    console.log('✅ Function 1: Member can view assigned restaurant only - Restaurant restriction enforced');",
@@ -1493,7 +1493,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query Restaurants {\n  restaurants {\n    id\n    name\n    location\n  }\n}"
+                                "query": "query Restaurants {\n  restaurants {\n    restaurants {\n      id\n      name\n      location\n    }\n  }\n}"
                             }
                         },
                         "url": {
@@ -1512,7 +1512,7 @@
                                 "exec": [
                                     "pm.test(\"Member can view menu items\", function () {",
                                     "    const response = pm.response.json();",
-                                    "    pm.expect(response.data.menuItems).to.be.an('array');",
+                                    "    pm.expect(response.data.menuItems.menuItems).to.be.an('array');",
                                     "    console.log('✅ Function 1: Member can view menu items');",
                                     "});"
                                 ]
@@ -1530,7 +1530,7 @@
                         "body": {
                             "mode": "graphql",
                             "graphql": {
-                                "query": "query MenuItems {\n  menuItems {\n    id\n    name\n    price\n  }\n}"
+                                "query": "query MenuItems {\n  menuItems {\n    menuItems {\n      id\n      name\n      price\n    }\n  }\n}"
                             }
                         },
                         "url": {
@@ -1576,7 +1576,7 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n    totalAmount\n    status\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{manager_menu_item_id}}\",\n        \"quantity\": 1,\n        \"notes\": \"Member order test\"\n      }\n    ],\n    \"deliveryAddress\": \"123 Member Street, Mumbai\",\n    \"phone\": \"+91-9876543210\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{manager_menu_item_id}}\",\n        \"quantity\": 1,\n        \"notes\": \"Member order test\"\n      }\n    ],\n    \"phone\": \"+91-9876543210\"\n  }\n}"
                             }
                         },
                         "url": {
@@ -1615,7 +1615,7 @@
                             "mode": "graphql",
                             "graphql": {
                                 "query": "mutation CreateOrder($input: CreateOrderInput!) {\n  createOrder(input: $input) {\n    id\n  }\n}",
-                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{manager_menu_item_id}}\",\n        \"quantity\": 1\n      }\n    ],\n    \"deliveryAddress\": \"Member Address\",\n    \"phone\": \"+91-0000000000\",\n    \"paymentMethodId\": \"{{manager_payment_method_id}}\"\n  }\n}"
+                                "variables": "{\n  \"input\": {\n    \"items\": [\n      {\n        \"menuItemId\": \"{{manager_menu_item_id}}\",\n        \"quantity\": 1\n      }\n    ],\n    \"phone\": \"+91-0000000000\",\n    \"paymentMethodId\": \"{{manager_payment_method_id}}\"\n  }\n}"
                             }
                         },
                         "url": {
