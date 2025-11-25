@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
     return (
-        <div className="relative grid min-h-svh flex-col lg:max-w-none lg:grid-cols-2 lg:px-0">
+        <div className="relative grid min-h-screen flex-col lg:max-w-none lg:grid-cols-2 lg:px-0">
             <div className="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
                 <div className="absolute inset-0 bg-zinc-900" />
                 <div className="absolute inset-0">

@@ -11,7 +11,7 @@ export function AccessDenied() {
     const { user } = useAuth();
 
     return (
-        <div className="bg-background text-foreground flex min-h-svh flex-col">
+        <div className="bg-background text-foreground flex min-h-screen flex-col">
             {/* Header */}
             <div className="flex w-full items-center justify-between p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center text-lg font-medium">

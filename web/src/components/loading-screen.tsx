@@ -11,7 +11,7 @@ export function LoadingScreen() {
 
     if (!showFull) {
         return (
-            <div className="flex min-h-svh items-center justify-center bg-black">
+            <div className="flex min-h-screen items-center justify-center bg-black">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-white border-t-transparent" />
             </div>
         );
@@ -19,7 +19,7 @@ export function LoadingScreen() {
 
     return (
         <div
-            className="flex min-h-svh items-center justify-center bg-black"
+            className="flex min-h-screen items-center justify-center bg-black"
             style={{
                 backgroundImage: `url("data:image/svg+xml,%3csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3e%3cg fill='none' stroke='%23ffffff' stroke-width='0.5' opacity='0.1'%3e%3cpath d='m0 0h60v60h-60z'/%3e%3cpath d='m0 15h60'/%3e%3cpath d='m0 30h60'/%3e%3cpath d='m0 45h60'/%3e%3cpath d='m15 0v60'/%3e%3cpath d='m30 0v60'/%3e%3cpath d='m45 0v60'/%3e%3c/g%3e%3c/svg%3e")`,
             }}
