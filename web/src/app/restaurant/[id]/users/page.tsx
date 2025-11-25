@@ -406,7 +406,7 @@ export default function UsersPage() {
                         </Button>
                     </SheetTrigger>
                     <SheetContent>
-                        <SheetHeader className="border-border border-b">
+                        <SheetHeader className="border-b px-6 pb-4">
                             <SheetTitle>Create User</SheetTitle>
                             <SheetDescription>Add a new user to the system.</SheetDescription>
                         </SheetHeader>
@@ -414,7 +414,7 @@ export default function UsersPage() {
                             <form
                                 id="create-user-form"
                                 onSubmit={createForm.handleSubmit(handleCreateUser)}
-                                className="space-y-4 p-4"
+                                className="space-y-4 px-6 py-4"
                             >
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <FormField
@@ -611,7 +611,7 @@ export default function UsersPage() {
                                 />
                             </form>
                         </Form>
-                        <SheetFooter className="border-border border-t">
+                        <SheetFooter className="border-t px-6 pt-4">
                             <Button type="submit" form="create-user-form" disabled={creating}>
                                 {creating ? (
                                     <span className="flex items-center">
@@ -1029,14 +1029,14 @@ export default function UsersPage() {
             {/* User Details Sheet */}
             <Sheet open={!!viewingUser} onOpenChange={() => setViewingUser(null)}>
                 <SheetContent>
-                    <SheetHeader className="border-border border-b">
+                    <SheetHeader className="border-b px-6 pb-4">
                         <SheetTitle>User Details</SheetTitle>
                         <SheetDescription>
                             {viewingUser?.firstName} {viewingUser?.lastName} • {viewingUser?.email}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <div className="p-4">
+                    <div className="px-6 py-4">
                         {viewingUser && (
                             <div className="space-y-6">
                                 {/* User Info */}
@@ -1107,7 +1107,7 @@ export default function UsersPage() {
                         )}
                     </div>
 
-                    <SheetFooter className="border-border border-t">
+                    <SheetFooter className="border-t px-6 pt-4">
                         <SheetClose asChild>
                             <Button variant="outline">Close</Button>
                         </SheetClose>
@@ -1118,14 +1118,14 @@ export default function UsersPage() {
             {/* Edit User Sheet */}
             <Sheet open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
                 <SheetContent>
-                    <SheetHeader className="border-border border-b">
+                    <SheetHeader className="border-b px-6 pb-4">
                         <SheetTitle>Edit User</SheetTitle>
                         <SheetDescription>
                             Update user information and permissions.
                         </SheetDescription>
                     </SheetHeader>
 
-                    <div className="p-4">
+                    <div className="px-6 py-4">
                         {editingUser &&
                             (() => {
                                 const user = editingUser;
@@ -1140,7 +1140,7 @@ export default function UsersPage() {
                             })()}
                     </div>
 
-                    <SheetFooter className="border-border border-t">
+                    <SheetFooter className="border-t px-6 pt-4">
                         <Button type="submit" form="edit-user-form" disabled={updating}>
                             {updating ? (
                                 <span className="flex items-center">
