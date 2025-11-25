@@ -1029,14 +1029,14 @@ export default function UsersPage() {
             {/* User Details Sheet */}
             <Sheet open={!!viewingUser} onOpenChange={() => setViewingUser(null)}>
                 <SheetContent>
-                    <SheetHeader className="border-b px-6 pb-4">
+                    <SheetHeader className="border-border border-b">
                         <SheetTitle>User Details</SheetTitle>
                         <SheetDescription>
                             {viewingUser?.firstName} {viewingUser?.lastName} • {viewingUser?.email}
                         </SheetDescription>
                     </SheetHeader>
 
-                    <div className="px-6 py-4">
+                    <div className="p-4">
                         {viewingUser && (
                             <div className="space-y-6">
                                 {/* User Info */}
@@ -1107,7 +1107,7 @@ export default function UsersPage() {
                         )}
                     </div>
 
-                    <SheetFooter className="border-t px-6 pt-4">
+                    <SheetFooter className="border-border border-t">
                         <SheetClose asChild>
                             <Button variant="outline">Close</Button>
                         </SheetClose>
