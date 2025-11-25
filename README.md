@@ -219,7 +219,7 @@ foody/
 |                             | Update Menu Items        | ✅    | ✅      | ❌     |
 |                             | Delete Menu Items        | ✅    | ✅      | ❌     |
 | **Order Management**        |                          |       |         |        |
-|                             | View All Orders          | ✅    | ✅      | ❌     |
+|                             | View Orders              | ✅    | ✅      | ✅     |
 |                             | Create Orders            | ✅    | ✅      | ✅     |
 |                             | Checkout/Pay Orders      | ✅    | ✅      | ❌     |
 |                             | Cancel Orders            | ✅    | ✅      | ❌     |
