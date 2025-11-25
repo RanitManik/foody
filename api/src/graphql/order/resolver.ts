@@ -763,9 +763,10 @@ export const orderResolvers = {
          * 1. **Blocks members from cancelling orders**
          * 2. Validates order ID format
          * 3. Fetches order with user information
-         * 4. For managers, verifies order aligns with their assigned restaurant
-         * 5. Sets order status to CANCELLED
-         * 6. Invalidates relevant caches
+         * 4. Verifies order is in PENDING status (only pending orders can be cancelled)
+         * 5. For managers, verifies order aligns with their assigned restaurant
+         * 6. Sets order status to CANCELLED
+         * 7. Invalidates relevant caches
          *
          * @permissions
          * - **Admin**: Can cancel any order
@@ -773,7 +774,7 @@ export const orderResolvers = {
          * - **Members**: **CANNOT CANCEL ORDERS** (forbidden)
          *
          * @businessLogic
-         * **Note**: In production, consider:
+         * Only PENDING orders can be cancelled. In production, consider:
          * - Refund processing if payment was completed
          * - Notification to customer about cancellation
          * - Restaurant notification
@@ -805,6 +806,7 @@ export const orderResolvers = {
                     id: true,
                     userId: true,
                     restaurantId: true,
+                    status: true,
                     users: {
                         select: {
                             id: true,
@@ -826,6 +828,11 @@ export const orderResolvers = {
 
             if (!order) {
                 throw GraphQLErrors.notFound("Order not found");
+            }
+
+            // Only allow cancelling pending orders
+            if (order.status !== OrderStatus.PENDING) {
+                throw GraphQLErrors.badInput("Only pending orders can be cancelled");
             }
 
             // Check if manager can access this order

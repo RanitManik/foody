@@ -149,8 +149,8 @@ const PROCESS_PAYMENT = gql`
 `;
 
 const GET_PAYMENT_METHODS = gql`
-    query GetPaymentMethods {
-        paymentMethods {
+    query GetPaymentMethods($restaurantId: ID) {
+        paymentMethods(restaurantId: $restaurantId) {
             id
             type
             provider
@@ -251,7 +251,9 @@ export default function OrdersPage() {
     const [cancelOrder, { loading: cancelling }] = useMutation(CANCEL_ORDER);
     const [processPayment, { loading: processing }] = useMutation(PROCESS_PAYMENT);
 
-    const { data: paymentMethodsData } = useQuery<PaymentMethodsData>(GET_PAYMENT_METHODS);
+    const { data: paymentMethodsData } = useQuery<PaymentMethodsData>(GET_PAYMENT_METHODS, {
+        variables: { restaurantId },
+    });
 
     const filteredOrders =
         data?.orders?.orders?.filter((order: Order) => {
@@ -622,7 +624,7 @@ export default function OrdersPage() {
                                                                           Complete Order
                                                                       </DropdownMenuItem>
                                                                   )}
-                                                              {order.status !== "CANCELLED" &&
+                                                              {order.status === "PENDING" &&
                                                                   user?.role !== "MEMBER" && (
                                                                       <DropdownMenuItem
                                                                           onClick={() =>
