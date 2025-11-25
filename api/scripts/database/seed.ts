@@ -138,7 +138,7 @@ async function main() {
         },
     });
     users.push(admin);
-    userBar.update(1);
+    userBar.update(users.length);
 
     statusMessages.push(`✅ Admin user created: admin@foody.com / ${DEFAULT_PASSWORD}`);
 
@@ -156,7 +156,7 @@ async function main() {
         },
     });
     users.push(manager1);
-    userBar.update(2);
+    userBar.update(users.length);
 
     const manager2 = await prisma.users.upsert({
         where: { email: "captain.america@foody.com" },
@@ -171,7 +171,7 @@ async function main() {
         },
     });
     users.push(manager2);
-    userBar.update(3);
+    userBar.update(users.length);
 
     // Create team members (50 per restaurant = 200)
     for (const restaurant of restaurants) {
@@ -229,6 +229,7 @@ async function main() {
         },
     });
     users.push(thanos);
+    userBar.update(users.length);
 
     const thor = await prisma.users.upsert({
         where: { email: "thor@foody.com" },
@@ -243,6 +244,7 @@ async function main() {
         },
     });
     users.push(thor);
+    userBar.update(users.length);
 
     const travis = await prisma.users.upsert({
         where: { email: "travis@foody.com" },
@@ -257,6 +259,7 @@ async function main() {
         },
     });
     users.push(travis);
+    userBar.update(users.length);
 
     userBar.stop();
 
