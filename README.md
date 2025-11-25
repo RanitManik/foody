@@ -68,7 +68,7 @@ Access specifications by role:
 | Create orders (POS functionality) | ✅ | ✅ | ✅ |
 | Process payments & update order status | ✅ | ✅ | ❌ |
 | Manage menu items | ✅ | ✅ | ❌ |
-| Manage payment methods | ✅ | ✅ | ❌ |
+| Manage payment methods | ✅ | ❌ | ❌ |
 | Manage users & restaurants | ✅ | ❌ | ❌ |
 
 **Bonus Objective**: Implement relational access where Managers & Members can only access data and features limited to their assigned restaurant location.
