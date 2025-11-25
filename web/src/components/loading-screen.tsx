@@ -4,7 +4,7 @@ import { InteractiveGridPattern } from "./interactive-grid-pattern";
 
 export function LoadingScreen() {
     const [showFull, setShowFull] = useState(false);
-    const [countdown, setCountdown] = useState(90);
+    const [countdown, setCountdown] = useState(60);
 
     useEffect(() => {
         const timer = setTimeout(() => setShowFull(true), 5000);
@@ -35,7 +35,7 @@ export function LoadingScreen() {
         );
     }
 
-    const progress = ((90 - countdown) / 90) * 100;
+    const progress = ((60 - countdown) / 60) * 100;
     const circumference = 2 * Math.PI * 40; // radius 40
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
@@ -48,7 +48,7 @@ export function LoadingScreen() {
                 squares={[40, 40]}
                 squaresClassName="text-white/[0.02]"
             />
-            <div className="relative z-10 mx-4 w-full max-w-md overflow-hidden rounded-xl border border-white/10 bg-black/90 p-8 shadow-2xl backdrop-blur-xl">
+            <div className="relative z-10 mx-4 w-full max-w-md overflow-hidden rounded-xl border border-white/10 bg-black/60 p-8 shadow-2xl backdrop-blur-xl">
                 {/* Background Glow */}
                 <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
                 <div className="absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-purple-500/20 blur-3xl" />
@@ -56,7 +56,7 @@ export function LoadingScreen() {
                 <div className="relative flex flex-col items-center text-center">
                     {/* Progress Ring */}
                     <div className="relative flex h-32 w-32 items-center justify-center">
-                        <svg className="h-full w-full -rotate-90 transform">
+                        <svg className="h-full w-full -rotate-60 transform">
                             <circle
                                 cx="64"
                                 cy="64"
@@ -89,19 +89,19 @@ export function LoadingScreen() {
                     <div className="space-y-4">
                         <div className="flex items-center justify-center gap-2">
                             <ServiceStatusIndicator status="checking" />
-                            <span className="text-sm font-medium text-white/90">Server Status</span>
+                            <span className="text-sm font-medium text-white/60">Server Status</span>
                         </div>
 
                         <h2 className="text-3xl font-bold tracking-tight">
-                            <span className="bg-linear-to-r from-white to-white/90 bg-clip-text text-transparent">
+                            <span className="bg-linear-to-r from-white to-white/60 bg-clip-text text-transparent">
                                 Starting Foody
                             </span>
                         </h2>
 
-                        <p className="text-base leading-relaxed text-white/90">
+                        <p className="text-base leading-relaxed text-white/60">
                             We are firing up the server on Render&apos;s free tier.
                             <br />
-                            This usually takes about <span className="text-white">90 seconds</span>.
+                            This usually takes about <span className="text-white">60 seconds</span>.
                         </p>
 
                         {countdown === 0 && (
