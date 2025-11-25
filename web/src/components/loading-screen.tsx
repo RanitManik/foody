@@ -1,13 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { ServiceStatusIndicator } from "./service-status-indicator";
+import { InteractiveGridPattern } from "./interactive-grid-pattern";
 
 export function LoadingScreen() {
     const [showFull, setShowFull] = useState(false);
+    const [countdown, setCountdown] = useState(30);
 
     useEffect(() => {
         const timer = setTimeout(() => setShowFull(true), 5000);
         return () => clearTimeout(timer);
     }, []);
+
+    useEffect(() => {
+        if (!showFull) return;
+
+        const timer = setInterval(() => {
+            setCountdown((prev) => {
+                if (prev <= 0) {
+                    clearInterval(timer);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [showFull]);
 
     if (!showFull) {
         return (
@@ -17,29 +35,81 @@ export function LoadingScreen() {
         );
     }
 
+    const progress = ((30 - countdown) / 30) * 100;
+    const circumference = 2 * Math.PI * 40; // radius 40
+    const strokeDashoffset = circumference - (progress / 100) * circumference;
+
     return (
-        <div
-            className="flex min-h-screen items-center justify-center bg-black"
-            style={{
-                backgroundImage: `url("data:image/svg+xml,%3csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3e%3cg fill='none' stroke='%23ffffff' stroke-width='0.5' opacity='0.1'%3e%3cpath d='m0 0h60v60h-60z'/%3e%3cpath d='m0 15h60'/%3e%3cpath d='m0 30h60'/%3e%3cpath d='m0 45h60'/%3e%3cpath d='m15 0v60'/%3e%3cpath d='m30 0v60'/%3e%3cpath d='m45 0v60'/%3e%3c/g%3e%3c/svg%3e")`,
-            }}
-        >
-            <div className="mx-4 w-full max-w-md rounded-2xl border border-gray-800 bg-black/80 p-8 shadow-2xl shadow-white/10 backdrop-blur-md">
-                <div className="space-y-6 text-center">
-                    <div className="flex justify-center">
-                        <ServiceStatusIndicator status="checking" variant="large" />
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
+            <InteractiveGridPattern
+                className="opacity-50"
+                width={40}
+                height={40}
+                squares={[40, 40]}
+                squaresClassName="text-white/[0.02]"
+            />
+            <div className="relative z-10 mx-4 w-full max-w-md overflow-hidden rounded-xl border border-white/10 bg-black/60 p-8 shadow-2xl backdrop-blur-xl">
+                {/* Background Glow */}
+                <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
+                <div className="absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-purple-500/20 blur-3xl" />
+
+                <div className="relative flex flex-col items-center text-center">
+                    {/* Progress Ring */}
+                    <div className="relative flex h-32 w-32 items-center justify-center">
+                        <svg className="h-full w-full -rotate-90 transform">
+                            <circle
+                                cx="64"
+                                cy="64"
+                                r="40"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                fill="transparent"
+                                className="text-white/10"
+                            />
+                            <circle
+                                cx="64"
+                                cy="64"
+                                r="40"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                fill="transparent"
+                                strokeDasharray={circumference}
+                                strokeDashoffset={strokeDashoffset}
+                                className="text-white transition-all duration-1000 ease-linear"
+                                strokeLinecap="round"
+                            />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-3xl font-bold tracking-tighter tabular-nums">
+                                {countdown}
+                            </span>
+                        </div>
                     </div>
-                    <div className="space-y-3">
-                        <h2 className="bg-linear-to-r from-white to-gray-300 bg-clip-text text-2xl font-bold text-transparent">
-                            Starting Foody
+
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-center gap-2">
+                            <ServiceStatusIndicator status="checking" />
+                            <span className="text-sm font-medium text-white/60">Server Status</span>
+                        </div>
+
+                        <h2 className="text-3xl font-bold tracking-tight">
+                            <span className="bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+                                Starting Foody
+                            </span>
                         </h2>
-                        <p className="leading-relaxed text-gray-300">
-                            We are firing up the server on Render&#39;s free tier. This usually
-                            takes 10-30 seconds on first load.
+
+                        <p className="text-base leading-relaxed text-white/60">
+                            We are firing up the server on Render's free tier.
+                            <br />
+                            This usually takes about <span className="text-white">30 seconds</span>.
                         </p>
-                        <p className="animate-pulse text-sm text-gray-400">
-                            Checking server health...
-                        </p>
+
+                        {countdown === 0 && (
+                            <div className="animate-in fade-in slide-in-from-bottom-2 mt-4 rounded-lg bg-white/5 p-3 text-sm text-white/80">
+                                Still loading? The server might be taking a bit longer than usual.
+                                Thanks for your patience!
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
