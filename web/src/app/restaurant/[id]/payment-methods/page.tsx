@@ -235,7 +235,9 @@ export default function PaymentMethodsPage() {
         return (
             <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold tracking-tight">Payment Methods</h1>
+                    <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+                        Payment Methods
+                    </h1>
                 </div>
                 <div className="py-8 text-center">
                     <p className="text-destructive">Failed to load payment methods</p>
@@ -250,7 +252,9 @@ export default function PaymentMethodsPage() {
     return (
         <div className="grid h-full min-h-0 grid-rows-[auto_auto_1fr] gap-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold tracking-tight">Payment Methods</h1>
+                <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+                    Payment Methods
+                </h1>
                 <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
                     <SheetTrigger asChild>
                         <Button size="sm">
@@ -258,7 +262,7 @@ export default function PaymentMethodsPage() {
                             New Payment Method
                         </Button>
                     </SheetTrigger>
-                    <SheetContent className="sm:max-w-[425px]">
+                    <SheetContent>
                         <SheetHeader className="border-border border-b">
                             <SheetTitle>Create Payment Method</SheetTitle>
                             <SheetDescription>
@@ -482,7 +486,7 @@ export default function PaymentMethodsPage() {
                         </div>
                     ) : (
                         <Table>
-                            <TableHeader className=" border-border sticky top-0 border-b">
+                            <TableHeader className="border-border sticky top-0 border-b">
                                 <TableRow className="h-8">
                                     <TableHead className="bg-muted sticky top-0 z-30 w-12 border-r px-1 text-center">
                                         #

@@ -288,7 +288,7 @@ export default function UsersPage() {
         return (
             <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
+                    <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Users</h1>
                 </div>
                 <div className="py-8 text-center">
                     <p className="text-destructive">Access denied. Admin privileges required.</p>
@@ -382,7 +382,7 @@ export default function UsersPage() {
         return (
             <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
+                    <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Users</h1>
                 </div>
                 <div className="py-8 text-center">
                     <p className="text-destructive">Failed to load users</p>
@@ -397,7 +397,7 @@ export default function UsersPage() {
     return (
         <div className="grid h-full min-h-0 grid-rows-[auto_auto_1fr] gap-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
+                <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Users</h1>
                 <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
                     <SheetTrigger asChild>
                         <Button size="sm">
@@ -720,7 +720,7 @@ export default function UsersPage() {
                         </div>
                     ) : (
                         <Table>
-                            <TableHeader className=" border-border sticky top-0 border-b">
+                            <TableHeader className="border-border sticky top-0 border-b">
                                 <TableRow className="h-8">
                                     <TableHead className="bg-muted sticky top-0 z-30 w-12 border-r px-1 text-center">
                                         #

@@ -83,7 +83,7 @@ export function AdminSidebar({ isCollapsed, toggleCollapse, onOpenFeedback }: Ad
                     <Button
                         variant="ghost"
                         className={cn(
-                            "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer justify-start gap-3 px-2!",
+                            "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hidden cursor-pointer justify-start gap-3 px-2! md:flex",
                         )}
                         onClick={toggleCollapse}
                         title={isCollapsed ? "Expand menu" : "Collapse menu"}

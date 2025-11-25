@@ -341,7 +341,9 @@ export default function AdminRestaurantsPage() {
         return (
             <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold tracking-tight">Restaurants</h1>
+                    <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+                        Restaurants
+                    </h1>
                 </div>
                 <div className="py-8 text-center">
                     <p className="text-destructive">Failed to load restaurants</p>
@@ -356,7 +358,7 @@ export default function AdminRestaurantsPage() {
     return (
         <div className="grid h-full min-h-0 grid-rows-[auto_auto_1fr] gap-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold tracking-tight">Restaurants</h1>
+                <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Restaurants</h1>
                 <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
                     <SheetTrigger asChild>
                         <Button size="sm">
@@ -364,7 +366,7 @@ export default function AdminRestaurantsPage() {
                             New Restaurant
                         </Button>
                     </SheetTrigger>
-                    <SheetContent className="sm:max-w-[425px]">
+                    <SheetContent>
                         <SheetHeader className="border-border border-b">
                             <SheetTitle>Create Restaurant</SheetTitle>
                             <SheetDescription>Add a new restaurant to the system.</SheetDescription>
@@ -605,7 +607,7 @@ export default function AdminRestaurantsPage() {
                         </div>
                     ) : (
                         <Table>
-                            <TableHeader className=" border-border sticky top-0 border-b">
+                            <TableHeader className="border-border sticky top-0 border-b">
                                 <TableRow className="h-8">
                                     <TableHead className="bg-muted sticky top-0 z-30 w-12 border-r text-center">
                                         #

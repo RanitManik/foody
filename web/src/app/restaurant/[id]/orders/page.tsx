@@ -339,7 +339,7 @@ export default function OrdersPage() {
         return (
             <div className="flex flex-col gap-6">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
+                    <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Orders</h1>
                 </div>
                 <div className="py-8 text-center">
                     <p className="text-destructive">Failed to load orders</p>
@@ -354,7 +354,7 @@ export default function OrdersPage() {
     return (
         <div className="grid h-full min-h-0 grid-rows-[auto_auto_1fr] gap-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold tracking-tight">Orders</h1>
+                <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Orders</h1>
                 <Button asChild size="sm">
                     <Link href={`/restaurant/${restaurantId}/orders/create`}>
                         <Plus className="h-4 w-4" />
@@ -453,7 +453,7 @@ export default function OrdersPage() {
                         </div>
                     ) : (
                         <Table>
-                            <TableHeader className=" border-border sticky top-0 border-b">
+                            <TableHeader className="border-border sticky top-0 border-b">
                                 <TableRow className="h-8">
                                     <TableHead className="bg-muted sticky top-0 z-30 w-12 border-r px-1 text-center">
                                         #
