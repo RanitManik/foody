@@ -93,13 +93,13 @@ export function LoadingScreen() {
                         </div>
 
                         <h2 className="text-3xl font-bold tracking-tight">
-                            <span className="bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+                            <span className="bg-linear-to-r from-white to-white/60 bg-clip-text text-transparent">
                                 Starting Foody
                             </span>
                         </h2>
 
                         <p className="text-base leading-relaxed text-white/60">
-                            We are firing up the server on Render's free tier.
+                            We are firing up the server on Render&apos;s free tier.
                             <br />
                             This usually takes about <span className="text-white">30 seconds</span>.
                         </p>

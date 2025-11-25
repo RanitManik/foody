@@ -96,9 +96,6 @@ export function InteractiveGridPattern({
                         stroke={hoveredCell.color}
                         strokeWidth="1"
                         className="transition-all duration-75 ease-out"
-                        style={{
-                            filter: `drop-shadow(0 0 8px ${hoveredCell.color})`,
-                        }}
                     />
                 )}
             </svg>
