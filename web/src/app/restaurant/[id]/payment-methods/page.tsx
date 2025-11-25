@@ -73,6 +73,15 @@ import {
 import { toast } from "sonner";
 import extractErrorMessage from "@/lib/errors";
 
+const GET_CURRENT_USER = gql`
+    query GetCurrentUser {
+        me {
+            id
+            role
+        }
+    }
+`;
+
 const GET_PAYMENT_METHODS = gql`
     query GetPaymentMethods($restaurantId: ID) {
         paymentMethods(restaurantId: $restaurantId) {
@@ -117,6 +126,13 @@ type PaymentMethod = {
     createdAt: string;
 };
 
+type UserData = {
+    me: {
+        id: string;
+        role: string;
+    };
+};
+
 type PaymentMethodsData = {
     paymentMethods: PaymentMethod[];
 };
@@ -146,6 +162,9 @@ export default function PaymentMethodsPage() {
     const [deleteConfirmName, setDeleteConfirmName] = useState("");
     const [deleteConfirmPhrase, setDeleteConfirmPhrase] = useState("");
     const [viewingPaymentMethod, setViewingPaymentMethod] = useState<PaymentMethod | null>(null);
+
+    const { data: userData } = useQuery<UserData>(GET_CURRENT_USER);
+    const isAdmin = userData?.me?.role === "ADMIN";
 
     const { data, loading, error, refetch } = useQuery<PaymentMethodsData>(GET_PAYMENT_METHODS, {
         variables: { restaurantId },
@@ -255,141 +274,143 @@ export default function PaymentMethodsPage() {
                 <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
                     Payment Methods
                 </h1>
-                <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
-                    <SheetTrigger asChild>
-                        <Button size="sm">
-                            <Plus className="h-4 w-4" />
-                            New Payment Method
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent>
-                        <SheetHeader className="border-border border-b">
-                            <SheetTitle>Create Payment Method</SheetTitle>
-                            <SheetDescription>
-                                Add a new payment method for processing payments.
-                            </SheetDescription>
-                        </SheetHeader>
-                        <Form {...createForm}>
-                            <form
-                                id="create-form"
-                                onSubmit={createForm.handleSubmit(handleCreate)}
-                                className="space-y-4 p-4"
-                            >
-                                <FormField
-                                    control={createForm.control}
-                                    name="type"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Payment Type{" "}
-                                                <span className="text-destructive">*</span>
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Select
-                                                    onValueChange={field.onChange}
-                                                    value={field.value}
-                                                >
-                                                    <SelectTrigger className="w-full">
-                                                        <SelectValue placeholder="Select payment type" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {Object.entries(paymentTypeConfig).map(
-                                                            ([value, config]) => (
-                                                                <SelectItem
-                                                                    key={value}
-                                                                    value={value}
-                                                                >
-                                                                    {config.label}
-                                                                </SelectItem>
-                                                            ),
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={createForm.control}
-                                    name="provider"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Payment Provider{" "}
-                                                <span className="text-destructive">*</span>
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Select
-                                                    onValueChange={field.onChange}
-                                                    value={field.value}
-                                                >
-                                                    <SelectTrigger className="w-full">
-                                                        <SelectValue placeholder="Select payment provider" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {Object.entries(paymentProviderConfig).map(
-                                                            ([value, config]) => (
-                                                                <SelectItem
-                                                                    key={value}
-                                                                    value={value}
-                                                                >
-                                                                    {config.label}
-                                                                </SelectItem>
-                                                            ),
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={createForm.control}
-                                    name="token"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Payment Token{" "}
-                                                <span className="text-destructive">*</span>
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    type="password"
-                                                    placeholder="Enter payment token"
-                                                />
-                                            </FormControl>
-                                            <FormDescription>
-                                                This is a secure token provided by your payment
-                                                processor.
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </form>
-                        </Form>
-                        <SheetFooter className="border-border border-t">
-                            <Button type="submit" form="create-form" disabled={creating}>
-                                {creating ? (
-                                    <span className="flex items-center">
-                                        <Spinner className="mr-2" /> Creating
-                                    </span>
-                                ) : (
-                                    "Create Payment Method"
-                                )}
+                {isAdmin && (
+                    <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
+                        <SheetTrigger asChild>
+                            <Button size="sm">
+                                <Plus className="h-4 w-4" />
+                                New Payment Method
                             </Button>
-                            <SheetClose asChild>
-                                <Button variant="outline" disabled={creating}>
-                                    Close
+                        </SheetTrigger>
+                        <SheetContent>
+                            <SheetHeader className="border-border border-b">
+                                <SheetTitle>Create Payment Method</SheetTitle>
+                                <SheetDescription>
+                                    Add a new payment method for processing payments.
+                                </SheetDescription>
+                            </SheetHeader>
+                            <Form {...createForm}>
+                                <form
+                                    id="create-form"
+                                    onSubmit={createForm.handleSubmit(handleCreate)}
+                                    className="space-y-4 p-4"
+                                >
+                                    <FormField
+                                        control={createForm.control}
+                                        name="type"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Payment Type{" "}
+                                                    <span className="text-destructive">*</span>
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                    >
+                                                        <SelectTrigger className="w-full">
+                                                            <SelectValue placeholder="Select payment type" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {Object.entries(paymentTypeConfig).map(
+                                                                ([value, config]) => (
+                                                                    <SelectItem
+                                                                        key={value}
+                                                                        value={value}
+                                                                    >
+                                                                        {config.label}
+                                                                    </SelectItem>
+                                                                ),
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={createForm.control}
+                                        name="provider"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Payment Provider{" "}
+                                                    <span className="text-destructive">*</span>
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                    >
+                                                        <SelectTrigger className="w-full">
+                                                            <SelectValue placeholder="Select payment provider" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {Object.entries(
+                                                                paymentProviderConfig,
+                                                            ).map(([value, config]) => (
+                                                                <SelectItem
+                                                                    key={value}
+                                                                    value={value}
+                                                                >
+                                                                    {config.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={createForm.control}
+                                        name="token"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Payment Token{" "}
+                                                    <span className="text-destructive">*</span>
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        type="password"
+                                                        placeholder="Enter payment token"
+                                                    />
+                                                </FormControl>
+                                                <FormDescription>
+                                                    This is a secure token provided by your payment
+                                                    processor.
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </form>
+                            </Form>
+                            <SheetFooter className="border-border border-t">
+                                <Button type="submit" form="create-form" disabled={creating}>
+                                    {creating ? (
+                                        <span className="flex items-center">
+                                            <Spinner className="mr-2" /> Creating
+                                        </span>
+                                    ) : (
+                                        "Create Payment Method"
+                                    )}
                                 </Button>
-                            </SheetClose>
-                        </SheetFooter>
-                    </SheetContent>
-                </Sheet>
+                                <SheetClose asChild>
+                                    <Button variant="outline" disabled={creating}>
+                                        Close
+                                    </Button>
+                                </SheetClose>
+                            </SheetFooter>
+                        </SheetContent>
+                    </Sheet>
+                )}
             </div>
 
             <div className="flex gap-4">
@@ -452,9 +473,11 @@ export default function PaymentMethodsPage() {
                                 </EmptyHeader>
                                 <EmptyContent>
                                     <div className="flex gap-2">
-                                        <Button onClick={() => setIsCreateSheetOpen(true)}>
-                                            Create Payment Method
-                                        </Button>
+                                        {isAdmin && (
+                                            <Button onClick={() => setIsCreateSheetOpen(true)}>
+                                                Create Payment Method
+                                            </Button>
+                                        )}
                                     </div>
                                 </EmptyContent>
                             </Empty>
@@ -600,17 +623,19 @@ export default function PaymentMethodsPage() {
                                                                       <Eye className="h-4 w-4" />
                                                                       View Details
                                                                   </DropdownMenuItem>
-                                                                  <DropdownMenuItem
-                                                                      onClick={() =>
-                                                                          setDeletingPaymentMethod(
-                                                                              method,
-                                                                          )
-                                                                      }
-                                                                      variant="destructive"
-                                                                  >
-                                                                      <Trash2 className="h-4 w-4" />
-                                                                      Delete
-                                                                  </DropdownMenuItem>
+                                                                  {isAdmin && (
+                                                                      <DropdownMenuItem
+                                                                          onClick={() =>
+                                                                              setDeletingPaymentMethod(
+                                                                                  method,
+                                                                              )
+                                                                          }
+                                                                          variant="destructive"
+                                                                      >
+                                                                          <Trash2 className="h-4 w-4" />
+                                                                          Delete
+                                                                      </DropdownMenuItem>
+                                                                  )}
                                                               </DropdownMenuContent>
                                                           </DropdownMenu>
                                                       </TableCell>

@@ -226,7 +226,7 @@ foody/
 |                             | Update Order Status      | ✅    | ✅      | ❌     |
 | **Payment Management**      |                          |       |         |        |
 |                             | View Payment Methods     | ✅    | ✅      | ❌     |
-|                             | Create Payment Methods   | ✅    | ✅      | ❌     |
+|                             | Create Payment Methods   | ✅    | ❌      | ❌     |
 |                             | Update Payment Methods   | ✅    | ❌      | ❌     |
 |                             | Delete Payment Methods   | ✅    | ❌      | ❌     |
 |                             | Process Payments         | ✅    | ✅      | ❌     |

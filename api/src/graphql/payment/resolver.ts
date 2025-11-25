@@ -493,32 +493,19 @@ export const paymentResolvers = {
 
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
-            const isManager = currentUser.role === UserRole.MANAGER;
 
-            if (!isAdmin && !isManager) {
+            if (!isAdmin) {
                 logger.warn("Payment method creation failed: insufficient permissions", {
                     userId: currentUser.id,
                     role: currentUser.role,
                 });
-
-                throw GraphQLErrors.forbidden(
-                    "Only admins and managers can manage payment methods",
-                );
+                throw GraphQLErrors.forbidden("Only admins can manage payment methods");
             }
 
-            let targetRestaurantId: string;
-            if (isAdmin) {
-                if (!restaurantId) {
-                    throw GraphQLErrors.badInput("restaurantId is required for admins");
-                }
-                targetRestaurantId = restaurantId;
-            } else {
-                // Manager
-                targetRestaurantId = requireRestaurantId(currentUser);
-                if (restaurantId && restaurantId !== targetRestaurantId) {
-                    throw GraphQLErrors.forbidden("Access denied to this restaurant");
-                }
+            if (!restaurantId) {
+                throw GraphQLErrors.badInput("restaurantId is required");
             }
+            const targetRestaurantId = restaurantId;
 
             try {
                 // Validate input

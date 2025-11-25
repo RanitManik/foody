@@ -106,7 +106,7 @@ export const restaurantResolvers = {
             const isManager = currentUser.role === UserRole.MANAGER;
 
             let scopedRestaurantId: string | null = null;
-            let scopedLocation: string | null = null;
+            const scopedLocation: string | null = null;
 
             if (!isAdmin) {
                 if (isManager) {
