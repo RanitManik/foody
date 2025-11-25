@@ -87,14 +87,15 @@ export const orderResolvers = {
          * @description
          * Fetches orders with intelligent filtering based on user role:
          * - **Regular Users**: Only their own orders
-         * - **Managers**: Orders scoped to their assigned restaurant (team + their own)
+         * - **Managers**: Orders scoped to their assigned restaurant (all orders for the restaurant)
+         * - **Members**: Orders scoped to their assigned restaurant (all orders for the restaurant)
          * - **Admin**: All orders in the system
          *
          * Results include full order items, user info, and payment details.
          * Orders are cached per user for performance.
          *
          * @caching
-         * - Cache key: orders:{userId}:{first}:{skip}
+         * - Cache key: orders:{userId}:{restaurantScope}:{restaurantId}:{first}:{skip}
          * - TTL: CACHE_TTL.ORDERS
          * - Invalidated on: order create/update/cancel operations
          *
@@ -121,18 +122,13 @@ export const orderResolvers = {
 
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
-            const isManager = currentUser.role === UserRole.MANAGER;
 
             if (!isAdmin) {
-                if (isManager) {
-                    const assignedRestaurantId = requireAssignedRestaurant(currentUser);
-                    if (restaurantId && restaurantId !== assignedRestaurantId) {
-                        throw GraphQLErrors.forbidden("Access denied to this restaurant's orders");
-                    }
-                    whereClause.restaurantId = assignedRestaurantId;
-                } else {
-                    whereClause.userId = currentUser.id;
+                const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                if (restaurantId && restaurantId !== assignedRestaurantId) {
+                    throw GraphQLErrors.forbidden("Access denied to this restaurant's orders");
                 }
+                whereClause.restaurantId = assignedRestaurantId;
             } else if (restaurantId) {
                 whereClause.restaurantId = restaurantId;
             }
@@ -248,6 +244,7 @@ export const orderResolvers = {
          * Access rules:
          * - **Owner**: Can view their own orders
          * - **Managers**: Can view orders scoped to their assigned restaurant
+         * - **Members**: Can view orders scoped to their assigned restaurant
          * - **Admin**: Can view all orders
          *
          * @caching
@@ -355,15 +352,10 @@ export const orderResolvers = {
 
             const currentUser = context.user;
             const isAdmin = currentUser.role === UserRole.ADMIN;
-            const isManager = currentUser.role === UserRole.MANAGER;
 
-            if (!isAdmin && order.userId !== currentUser.id) {
-                if (isManager) {
-                    const assignedRestaurantId = requireAssignedRestaurant(currentUser);
-                    if (order.restaurantId !== assignedRestaurantId) {
-                        throw GraphQLErrors.forbidden("Access denied to this order");
-                    }
-                } else {
+            if (!isAdmin) {
+                const assignedRestaurantId = requireAssignedRestaurant(currentUser);
+                if (order.restaurantId !== assignedRestaurantId) {
                     throw GraphQLErrors.forbidden("Access denied to this order");
                 }
             }
@@ -451,12 +443,17 @@ export const orderResolvers = {
                     }
 
                     if (!assignedRestaurantId) {
-                        logger.warn("Order creation failed: payment method requires restaurant context", {
-                            userId: context.user.id,
-                            role,
-                            paymentMethodId,
-                        });
-                        throw GraphQLErrors.badInput("Restaurant context required for payment methods");
+                        logger.warn(
+                            "Order creation failed: payment method requires restaurant context",
+                            {
+                                userId: context.user.id,
+                                role,
+                                paymentMethodId,
+                            },
+                        );
+                        throw GraphQLErrors.badInput(
+                            "Restaurant context required for payment methods",
+                        );
                     }
 
                     const paymentMethod = await prisma.payment_methods.findFirst({

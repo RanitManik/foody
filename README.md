@@ -210,7 +210,6 @@ foody/
 |                             | View All Menu Items      | ✅    | ❌      | ❌     |
 |                             | View Assigned Menu Items | ❌    | ✅      | ✅     |
 |                             | View All Users           | ✅    | ❌      | ❌     |
-|                             | View All Feedback        | ✅    | ❌      | ❌     |
 | **Restaurant Management**   |                          |       |         |        |
 |                             | Create Restaurants       | ✅    | ❌      | ❌     |
 |                             | Update Restaurants       | ✅    | ❌      | ❌     |
@@ -220,6 +219,7 @@ foody/
 |                             | Update Menu Items        | ✅    | ✅      | ❌     |
 |                             | Delete Menu Items        | ✅    | ✅      | ❌     |
 | **Order Management**        |                          |       |         |        |
+|                             | View All Orders          | ✅    | ✅      | ❌     |
 |                             | Create Orders            | ✅    | ✅      | ✅     |
 |                             | Checkout/Pay Orders      | ✅    | ✅      | ❌     |
 |                             | Cancel Orders            | ✅    | ✅      | ❌     |
