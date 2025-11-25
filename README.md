@@ -65,8 +65,6 @@ Nick needs a web-based restaurant operations platform where staff can:
 Access specifications by role:
 | Function | Admin | Manager | Member |
 |----------|-------|---------|--------|
-| View all restaurants & data | ✅ | ❌ | ❌ |
-| Manage assigned restaurant operations | ❌ | ✅ | ❌ |
 | Create orders (POS functionality) | ✅ | ✅ | ✅ |
 | Process payments & update order status | ✅ | ✅ | ❌ |
 | Manage menu items | ✅ | ✅ | ❌ |
