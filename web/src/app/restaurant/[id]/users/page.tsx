@@ -1036,7 +1036,7 @@ export default function UsersPage() {
                         </SheetDescription>
                     </SheetHeader>
 
-                    <div className="px-4 py-6">
+                    <div className="px-6 py-4">
                         {viewingUser && (
                             <div className="space-y-6">
                                 {/* User Info */}
