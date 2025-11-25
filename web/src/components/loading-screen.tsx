@@ -4,7 +4,7 @@ import { InteractiveGridPattern } from "./interactive-grid-pattern";
 
 export function LoadingScreen() {
     const [showFull, setShowFull] = useState(false);
-    const [countdown, setCountdown] = useState(30);
+    const [countdown, setCountdown] = useState(60);
 
     useEffect(() => {
         const timer = setTimeout(() => setShowFull(true), 5000);
@@ -35,7 +35,7 @@ export function LoadingScreen() {
         );
     }
 
-    const progress = ((30 - countdown) / 30) * 100;
+    const progress = ((60 - countdown) / 60) * 100;
     const circumference = 2 * Math.PI * 40; // radius 40
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
@@ -101,7 +101,7 @@ export function LoadingScreen() {
                         <p className="text-base leading-relaxed text-white/60">
                             We are firing up the server on Render&apos;s free tier.
                             <br />
-                            This usually takes about <span className="text-white">30 seconds</span>.
+                            This usually takes about <span className="text-white">60 seconds</span>.
                         </p>
 
                         {countdown === 0 && (
