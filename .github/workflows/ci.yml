@@ -86,7 +86,7 @@ jobs:
 
             - name: Upload API coverage to Codecov
               if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
-              uses: codecov/codecov-action@v4
+              uses: codecov/codecov-action@v5
               with:
                   file: ./api/test-output/jest/coverage/lcov.info
                   flags: api
@@ -95,7 +95,7 @@ jobs:
 
             - name: Upload Web coverage to Codecov
               if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
-              uses: codecov/codecov-action@v4
+              uses: codecov/codecov-action@v5
               with:
                   file: ./web/test-output/jest/coverage/lcov.info
                   flags: web
