@@ -136,13 +136,15 @@ jobs:
 
             - name: Fail if no release published
               if: steps.semantic.outputs.new-release-published != 'true'
-              run: echo "No new release" && exit 0
+              run: echo "No new release" && exit 1
 
             - name: Extract Version
               id: version
+              if: steps.semantic.outputs.new-release-published == 'true'
               run: echo "version=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
 
             - name: Commit Release Files
+              if: steps.semantic.outputs.new-release-published == 'true'
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -153,6 +155,7 @@ jobs:
                   git push -f origin HEAD
 
             - name: Create Release PR
+              if: steps.semantic.outputs.new-release-published == 'true'
               run: |
                   gh pr create \
                     --base main \
