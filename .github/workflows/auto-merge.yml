@@ -23,24 +23,31 @@ jobs:
                   cache: "npm"
 
             - name: Install dependencies
+              id: install
               run: npm ci
 
             - name: Generate Prisma client
+              id: db-gen
               run: npm run db:generate
 
             - name: Run linting
+              id: lint
               run: npm run lint
 
             - name: Run type checking
+              id: typecheck
               run: npm run typecheck
 
             - name: Run tests
+              id: test
               run: npm run test
 
             - name: Build
+              id: build
               run: npm run build
 
             - name: Auto-merge for Dependabot
+              if: ${{ github.actor == 'dependabot[bot]' && steps.lint.outcome == 'success' && steps.typecheck.outcome == 'success' && steps.test.outcome == 'success' && steps.build.outcome == 'success' }}
               run: gh pr merge --auto --merge "$PR_URL"
               env:
                   PR_URL: ${{ github.event.pull_request.html_url }}
