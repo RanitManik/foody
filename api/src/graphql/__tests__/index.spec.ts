@@ -35,8 +35,8 @@ describe("GraphQL Index", () => {
 
     beforeAll(() => {
         // Set mock return values
-        mockMergeTypeDefs.mockReturnValue({} as unknown);
-        mockMergeResolvers.mockReturnValue({} as unknown);
+        mockMergeTypeDefs.mockReturnValue({} as any);
+        mockMergeResolvers.mockReturnValue({} as any);
         // Import the module to trigger initialization
         graphqlModule = require("../index");
     });
