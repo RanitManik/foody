@@ -86,7 +86,7 @@ jobs:
 
             - name: Upload Web coverage
               if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
-              uses: codecov/codecov-action@v4
+              uses: codecov/codecov-action@v5
               with:
                   files: ./web/test-output/jest/coverage/lcov.info
                   flags: web
