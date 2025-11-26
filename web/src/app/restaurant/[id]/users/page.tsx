@@ -87,7 +87,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/lib/auth-context";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -1288,7 +1288,11 @@ function EditUserForm({
         },
     });
 
-    const watchedRole = form.watch("role");
+    const watchedRole = useWatch({ control: form.control, name: "role" }) as
+        | "ADMIN"
+        | "MANAGER"
+        | "MEMBER"
+        | undefined;
 
     const handleSubmit = (values: UserFormData) => {
         // Validate restaurant requirement based on role

@@ -40,10 +40,9 @@ export function AdminHeader({ onOpenFeedback }: { onOpenFeedback?: (open: boolea
     const openFeedback = () => (onOpenFeedback ? onOpenFeedback(true) : setIsFeedbackOpen(true));
 
     // Date and Time State
-    const [currentDate, setCurrentDate] = useState<Date | null>(null);
+    const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
 
     useEffect(() => {
-        setCurrentDate(new Date());
         const timer = setInterval(() => {
             setCurrentDate(new Date());
         }, 60000); // Update every minute

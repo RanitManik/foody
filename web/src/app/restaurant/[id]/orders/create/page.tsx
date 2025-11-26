@@ -226,8 +226,9 @@ export default function CreateOrderPage() {
 
             // Update local state
             const resultData = result.data as { menuItems?: { menuItems: MenuItem[] } };
-            if (resultData?.menuItems?.menuItems) {
-                setAllMenuItems((prev) => [...prev, ...resultData.menuItems!.menuItems]);
+            const items = resultData?.menuItems?.menuItems;
+            if (items && items.length > 0) {
+                setAllMenuItems((prev) => [...prev, ...items]);
             }
         } catch (error) {
             console.error("Error loading more menu items:", error);

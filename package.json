@@ -37,6 +37,7 @@
         "test": "nx run-many --target=test --all",
         "test:api": "nx test @foody/api",
         "test:web": "nx test @foody/web",
+        "validate": "npm run format:check && npm run lint && npm run typecheck && npm run test -- --watchAll=false --passWithNoTests",
         "typecheck": "nx run-many --target=typecheck --all",
         "typecheck:api": "nx typecheck @foody/api",
         "typecheck:api-e2e": "nx typecheck @foody/api-e2e",

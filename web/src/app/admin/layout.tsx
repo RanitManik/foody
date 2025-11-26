@@ -13,17 +13,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const router = useRouter();
     const { user, loading, hasToken } = useAuth();
 
-    const [isCollapsed, setIsCollapsed] = useState<boolean | null>(null);
-
-    useEffect(() => {
+    const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+        if (typeof window === "undefined") return false;
         const saved = localStorage.getItem("admin-sidebar-collapsed");
-        if (saved) {
-            setIsCollapsed(JSON.parse(saved));
-        } else {
-            // If not saved, default to expanded (false)
-            setIsCollapsed(false);
-        }
-    }, []);
+        return saved ? JSON.parse(saved) : false;
+    });
 
     const toggleCollapse = () => {
         const newCollapsed = !isCollapsed;
@@ -72,25 +66,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]",
             )}
         >
-            {isCollapsed === null ? (
-                // While we read user's sidebar preference, render a slim skeleton to avoid layout flash
-                // Hide the static sidebar on small screens; mobile uses the header sheet instead
-                <aside
-                    className={cn(
-                        "bg-sidebar text-sidebar-foreground hidden border-r p-4 md:block",
-                    )}
-                >
-                    <div className="bg-muted/50 h-full w-10 animate-pulse rounded-md" />
-                </aside>
-            ) : (
-                <div className="hidden md:block">
-                    <AdminSidebar
-                        isCollapsed={isCollapsed}
-                        toggleCollapse={toggleCollapse}
-                        onOpenFeedback={setIsFeedbackOpen}
-                    />
-                </div>
-            )}
+            <div className="hidden md:block">
+                <AdminSidebar
+                    isCollapsed={isCollapsed}
+                    toggleCollapse={toggleCollapse}
+                    onOpenFeedback={setIsFeedbackOpen}
+                />
+            </div>
             <div className="flex min-h-0 min-w-0 flex-col">
                 <AdminHeader onOpenFeedback={setIsFeedbackOpen} />
                 <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden p-4 lg:gap-4 lg:p-4">

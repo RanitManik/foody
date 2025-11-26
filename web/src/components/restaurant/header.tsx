@@ -107,10 +107,9 @@ export function RestaurantHeader({
     const router = useRouter();
 
     // Date and Time State
-    const [currentDate, setCurrentDate] = useState<Date | null>(null);
+    const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
 
     useEffect(() => {
-        setCurrentDate(new Date());
         const timer = setInterval(() => {
             setCurrentDate(new Date());
         }, 60000); // Update every minute
