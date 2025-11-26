@@ -82,37 +82,55 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     useEffect(() => {
+        let t: ReturnType<typeof setTimeout> | undefined;
         if (!hasToken) {
-            setUser(null);
-            if (typeof window !== "undefined") {
-                localStorage.removeItem("user_data");
-            }
+            t = setTimeout(() => {
+                setUser(null);
+                if (typeof window !== "undefined") {
+                    localStorage.removeItem("user_data");
+                }
+            }, 0);
         }
+        return () => {
+            if (t !== undefined) clearTimeout(t);
+        };
     }, [hasToken]);
 
     useEffect(() => {
+        let t: ReturnType<typeof setTimeout> | undefined;
         if (data?.me) {
-            setUser(data.me);
-            if (typeof window !== "undefined") {
-                localStorage.setItem("user_data", JSON.stringify(data.me));
-                localStorage.setItem("user_role", data.me.role);
-            }
+            t = setTimeout(() => {
+                setUser(data.me);
+                if (typeof window !== "undefined") {
+                    localStorage.setItem("user_data", JSON.stringify(data.me));
+                    localStorage.setItem("user_role", data.me.role);
+                }
+            }, 0);
         }
+        return () => {
+            if (t !== undefined) clearTimeout(t);
+        };
     }, [data]);
 
     useEffect(() => {
+        let t: ReturnType<typeof setTimeout> | undefined;
         if (error) {
-            // Token might be invalid, clear it and return to login
-            if (typeof window !== "undefined") {
-                document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                localStorage.removeItem("auth_token");
-                localStorage.removeItem("user_role");
-                localStorage.removeItem("user_data");
-            }
-            setUser(null);
-            setToken(null);
-            router.push("/login");
+            t = setTimeout(() => {
+                // Token might be invalid, clear it and return to login
+                if (typeof window !== "undefined") {
+                    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    localStorage.removeItem("auth_token");
+                    localStorage.removeItem("user_role");
+                    localStorage.removeItem("user_data");
+                }
+                setUser(null);
+                setToken(null);
+                router.push("/login");
+            }, 0);
         }
+        return () => {
+            if (t !== undefined) clearTimeout(t);
+        };
     }, [error, router]);
 
     useEffect(() => {
@@ -148,13 +166,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }, [refetch]);
 
     useEffect(() => {
+        let t: ReturnType<typeof setTimeout> | undefined;
         if (typeof window !== "undefined") {
             // Sync initial token state if cookies change after hydration
             const nextToken = getCookie("auth_token");
             if (nextToken !== token) {
-                setToken(nextToken);
+                // Defer to avoid sync updates during effect
+                t = setTimeout(() => setToken(nextToken), 0);
             }
         }
+        return () => {
+            if (t !== undefined) clearTimeout(t);
+        };
     }, [token]);
 
     const logout = () => {
