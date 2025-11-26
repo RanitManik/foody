@@ -136,7 +136,7 @@ jobs:
                   export GH_NO_PUSH=true
                   npx semantic-release
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GH_BOT_PAT }}
 
             - name: Check if Release Published
               id: check_release
@@ -156,13 +156,15 @@ jobs:
             - name: Commit Release Files
               if: steps.check_release.outputs.released == 'true'
               run: |
-                  git config --global user.name "github-actions[bot]"
-                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  git config --global user.name "foody-bot"
+                  git config --global user.email "foody-bot@users.noreply.github.com"
 
                   git checkout -b release/v${{ steps.version.outputs.version }}
                   git add CHANGELOG.md package.json package-lock.json
-                  git commit -m "chore(release): v${{ steps.version.outputs.version }} [skip ci]"
+                  git commit -m "chore(release): v${{ steps.version.outputs.version }}"
                   git push -f origin HEAD
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GH_BOT_PAT }}
 
             - name: Create Release PR
               if: steps.check_release.outputs.released == 'true'
@@ -170,7 +172,7 @@ jobs:
                   gh pr create \
                     --base main \
                     --head release/v${{ steps.version.outputs.version }} \
-                    --title "chore(release): v${{ steps.version.outputs.version }} [skip ci]" \
+                    --title "chore(release): v${{ steps.version.outputs.version }}" \
                     --body "Automated release PR. Version: v${{ steps.version.outputs.version }}"
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GH_BOT_PAT }}
