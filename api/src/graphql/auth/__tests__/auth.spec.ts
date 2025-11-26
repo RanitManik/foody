@@ -1,4 +1,4 @@
-import { authResolvers } from "../auth/resolver";
+import { authResolvers } from "../resolver";
 import { UserRole } from "@prisma/client";
 
 // Mock dependencies
@@ -8,7 +8,7 @@ jest.mock("bcryptjs", () => ({
 }));
 
 // Mock dependencies
-jest.mock("../../lib/database", () => ({
+jest.mock("../../../lib/database", () => ({
     prisma: {
         users: {
             findUnique: jest.fn(),
@@ -20,11 +20,11 @@ jest.mock("../../lib/database", () => ({
     },
 }));
 
-jest.mock("../../lib/auth", () => ({
+jest.mock("../../../lib/auth", () => ({
     generateToken: jest.fn(),
 }));
 
-jest.mock("../../lib/shared/logger", () => ({
+jest.mock("../../../lib/shared/logger", () => ({
     logger: {
         info: jest.fn(),
         warn: jest.fn(),
@@ -32,7 +32,7 @@ jest.mock("../../lib/shared/logger", () => ({
     },
 }));
 
-jest.mock("../../lib/shared/errors", () => ({
+jest.mock("../../../lib/shared/errors", () => ({
     GraphQLErrors: {
         unauthenticated: jest.fn(),
         badInput: jest.fn(),
@@ -41,7 +41,7 @@ jest.mock("../../lib/shared/errors", () => ({
     },
 }));
 
-jest.mock("../../lib/shared/validation", () => ({
+jest.mock("../../../lib/shared/validation", () => ({
     validateInput: jest.fn(),
     RegisterInputSchema: {},
     LoginInputSchema: {},
@@ -52,13 +52,13 @@ jest.mock("../../lib/shared/validation", () => ({
     },
 }));
 
-import { prisma } from "../../lib/database";
-import { generateToken } from "../../lib/auth";
-import { logger } from "../../lib/shared/logger";
-import { GraphQLErrors } from "../../lib/shared/errors";
-import { validateInput, validateEmail } from "../../lib/shared/validation";
+import { prisma } from "../../../lib/database";
+import { generateToken } from "../../../lib/auth";
+import { logger } from "../../../lib/shared/logger";
+import { GraphQLErrors } from "../../../lib/shared/errors";
+import { validateInput, validateEmail } from "../../../lib/shared/validation";
 import bcrypt from "bcryptjs";
-import type { GraphQLContext } from "../../types/graphql";
+import type { GraphQLContext } from "../../../types/graphql";
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 const mockGenerateToken = generateToken as jest.Mock;
