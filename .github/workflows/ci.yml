@@ -73,7 +73,8 @@ jobs:
                     npx nx affected --targets=lint,typecheck,test,build --parallel=3
                   else
                     # On Merge: Run everything to be safe
-                    npx nx run-many --targets=lint,typecheck,test,build --parallel=3 --codeCoverage
+                    npx nx run-many --targets=lint,typecheck,build --parallel=3
+                    npx nx run-many --targets=test --parallel=3 --codeCoverage
                   fi
 
             - name: Upload API coverage
