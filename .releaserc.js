@@ -2,7 +2,7 @@
  * @type {import('semantic-release').GlobalConfig}
  */
 module.exports = {
-    branches: ["main"],
+    branches: ["release"],
     plugins: [
         "@semantic-release/release-notes-generator",
         [
@@ -15,6 +15,13 @@ module.exports = {
             "@semantic-release/npm",
             {
                 npmPublish: false,
+            },
+        ],
+        [
+            "@semantic-release/git",
+            {
+                assets: ["CHANGELOG.md", "package.json"],
+                message: "chore(release): ${nextRelease.version} [skip ci]",
             },
         ],
         [
