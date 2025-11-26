@@ -1,0 +1,62 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:recommended"],
+    "schedule": ["before 4am on Monday"],
+    "timezone": "UTC",
+    "labels": ["dependencies"],
+    "assignees": ["RanitManik"],
+    "reviewers": ["RanitManik"],
+    "packageRules": [
+        {
+            "matchPackagePatterns": ["^@nx/"],
+            "groupName": "Nx packages"
+        },
+        {
+            "matchPackagePatterns": ["^@types/"],
+            "groupName": "@types packages"
+        },
+        {
+            "matchPackagePatterns": ["^@semantic-release/"],
+            "groupName": "Semantic Release packages"
+        },
+        {
+            "matchPackagePatterns": ["^eslint"],
+            "groupName": "ESLint packages"
+        },
+        {
+            "matchPackagePatterns": ["^prettier"],
+            "groupName": "Prettier packages"
+        },
+        {
+            "matchPackagePatterns": ["^jest"],
+            "groupName": "Jest packages"
+        },
+        {
+            "matchPackagePatterns": ["^@swc/"],
+            "groupName": "SWC packages"
+        },
+        {
+            "matchPackagePatterns": ["^@playwright/"],
+            "groupName": "Playwright packages"
+        },
+        {
+            "matchPackageNames": ["typescript"],
+            "groupName": "TypeScript"
+        },
+        {
+            "matchPackageNames": ["next"],
+            "groupName": "Next.js"
+        },
+        {
+            "matchPackageNames": ["prisma"],
+            "groupName": "Prisma"
+        }
+    ],
+    "vulnerabilityAlerts": {
+        "enabled": true
+    },
+    "lockFileMaintenance": {
+        "enabled": true,
+        "schedule": ["before 4am on Monday"]
+    }
+}

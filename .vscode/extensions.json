@@ -4,6 +4,14 @@
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
         "ms-playwright.playwright",
-        "firsttris.vscode-jest-runner"
+        "firsttris.vscode-jest-runner",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next",
+        "ms-vscode.vscode-json",
+        "christian-kohler.path-intellisense",
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode.vscode-jest",
+        "graphql.vscode-graphql",
+        "prisma.prisma"
     ]
 }

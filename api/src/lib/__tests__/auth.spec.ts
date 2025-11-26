@@ -1,4 +1,3 @@
-import { generateToken, getUserFromToken, extractToken } from "../auth";
 import jwt from "jsonwebtoken";
 import { UserRole } from "@prisma/client";
 
@@ -24,6 +23,7 @@ jest.mock("../shared/logger", () => ({
     },
 }));
 
+import { generateToken, getUserFromToken, extractToken } from "../auth";
 import { prisma } from "../database";
 import { logger } from "../shared/logger";
 
@@ -32,11 +32,11 @@ const mockLogger = logger as jest.Mocked<typeof logger>;
 const mockJwt = jwt as jest.Mocked<typeof jwt>;
 
 describe("Auth Utilities", () => {
-    const originalEnv = process.env;
-
     beforeEach(() => {
         jest.clearAllMocks();
-        process.env = { ...originalEnv, JWT_SECRET: "test-secret" };
+        // Set environment variables for each test
+        process.env.JWT_SECRET = "test-secret";
+        process.env.JWT_EXPIRES_IN = "7d";
         // Reset JWT mocks with default behavior
         (mockJwt.sign as jest.Mock).mockImplementation((payload: { userId: string }) => {
             return `mocked-token-${payload.userId}`;
@@ -55,7 +55,9 @@ describe("Auth Utilities", () => {
     });
 
     afterEach(() => {
-        process.env = originalEnv;
+        // Clean up environment variables
+        delete process.env.JWT_SECRET;
+        delete process.env.JWT_EXPIRES_IN;
     });
 
     describe("generateToken", () => {

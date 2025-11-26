@@ -11,7 +11,10 @@ const config = {
         "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "@nx/react/plugins/jest",
     },
     moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
-    coverageDirectory: "../../coverage/web",
+    // Use NX convention for per-project coverage artifacts under project root
+    coverageDirectory: "test-output/jest/coverage",
+    collectCoverageFrom: ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts", "!src/**/index.ts"],
+    coverageReporters: ["text", "lcov", "html"],
     testEnvironment: "jsdom",
 };
 
