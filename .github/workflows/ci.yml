@@ -91,7 +91,26 @@ jobs:
             - name: Build
               run: npm run build
 
-            - name: Release
+            - name: Semantic Release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: npx semantic-release
+
+            - name: Set Tag
+              id: tag
+              run: echo "tag=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
+
+            - name: Create Pull Request
+              uses: peter-evans/create-pull-request@v6
+              with:
+                  title: "chore(release): ${{ steps.tag.outputs.tag }} [skip ci]"
+                  body: |
+                      ### ${{ steps.tag.outputs.tag }}
+
+                      Automated PR created by the Release GitHub Action.
+
+                      Make sure to trigger any production deployments **after** merging this PR.
+                  commit-message: "chore(release): ${{ steps.tag.outputs.tag }} [skip ci]"
+                  base: main
+                  branch: release
+                  delete-branch: true

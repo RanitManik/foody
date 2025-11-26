@@ -1,4 +1,4 @@
-name: Auto-merge Dependabot PRs
+name: Auto-merge Dependabot and Release PRs
 
 on:
     pull_request_target:
@@ -11,7 +11,7 @@ permissions:
 jobs:
     auto-merge:
         runs-on: ubuntu-latest
-        if: github.actor == 'dependabot[bot]'
+        if: github.actor == 'dependabot[bot]' || startsWith(github.event.pull_request.title, 'chore(release):')
         steps:
             - name: Checkout
               uses: actions/checkout@v6
@@ -19,7 +19,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v6
               with:
-                  node-version: "20"
+                  node-version: "22"
                   cache: "npm"
 
             - name: Install dependencies
@@ -46,8 +46,8 @@ jobs:
               id: build
               run: npm run build
 
-            - name: Auto-merge for Dependabot
-              if: ${{ github.actor == 'dependabot[bot]' && steps.lint.outcome == 'success' && steps.typecheck.outcome == 'success' && steps.test.outcome == 'success' && steps.build.outcome == 'success' }}
+            - name: Auto-merge for Dependabot or Release
+              if: ${{ (github.actor == 'dependabot[bot]' || startsWith(github.event.pull_request.title, 'chore(release):')) && steps.lint.outcome == 'success' && steps.typecheck.outcome == 'success' && steps.test.outcome == 'success' && steps.build.outcome == 'success' }}
               run: gh pr merge --auto --merge "$PR_URL"
               env:
                   PR_URL: ${{ github.event.pull_request.html_url }}
