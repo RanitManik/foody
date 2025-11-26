@@ -137,6 +137,7 @@ jobs:
 
             - name: Create Release Branch
               run: |
+                  git branch -D release || true
                   git checkout -b release
                   git push origin release
 
