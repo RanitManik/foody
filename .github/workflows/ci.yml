@@ -77,7 +77,7 @@ jobs:
                   fi
 
             - name: Upload API coverage
-              if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+              if: contains('refs/heads/main refs/heads/dev', github.ref)
               uses: codecov/codecov-action@v5
               with:
                   files: ./api/test-output/jest/coverage/lcov.info
@@ -85,7 +85,7 @@ jobs:
                   token: ${{ secrets.CODECOV_TOKEN }}
 
             - name: Upload Web coverage
-              if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+              if: contains('refs/heads/main refs/heads/dev', github.ref)
               uses: codecov/codecov-action@v5
               with:
                   files: ./web/test-output/jest/coverage/lcov.info
