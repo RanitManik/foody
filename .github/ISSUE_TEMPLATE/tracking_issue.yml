@@ -1,0 +1,55 @@
+name: "📋 Tracking Issue"
+description: For tracking a large body of work in Foody
+title: "[Tracking]: "
+labels: ["tracking", "epic"]
+assignees: []
+body:
+    - type: markdown
+      attributes:
+          value: |
+              ## 📋 Tracking Issue
+
+              Use this issue to coordinate a large project, epic, or multi-step initiative in Foody.
+
+              Guidelines:
+              - Break work into clear, shippable milestones
+              - Assign owners for each milestone
+              - Link related issues and PRs
+
+    - type: textarea
+      id: problem_statement
+      attributes:
+          label: "🎯 Problem Statement"
+          description: "A brief description of the problem or goal"
+      validations:
+          required: true
+
+    - type: textarea
+      id: milestones
+      attributes:
+          label: "🏁 Milestones"
+          description: "List milestones, owners, dates, and tasks."
+          placeholder: |
+              ### M1: First milestone
+              **Owner:** `@username`
+              **Complete by:** `YYYY-MM-DD`
+              - [ ] Task 1
+              - [ ] Task 2
+
+    - type: textarea
+      id: success_criteria
+      attributes:
+          label: "✅ Success Criteria"
+          description: "How will we know this work is complete?"
+
+    - type: textarea
+      id: related_issues
+      attributes:
+          label: "🔗 Related Issues and PRs"
+          description: "Link related issues, pull requests, or discussions"
+
+    - type: textarea
+      id: additional_context
+      attributes:
+          label: "ℹ️ Additional Context"
+          description: "Any other constraints, notes, or links"

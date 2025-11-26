@@ -12,6 +12,8 @@ const config = {
     },
     moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
     coverageDirectory: "../../coverage/web",
+    collectCoverageFrom: ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts", "!src/**/index.ts"],
+    coverageReporters: ["text", "lcov", "html"],
     testEnvironment: "jsdom",
 };
 

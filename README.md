@@ -2,6 +2,11 @@
 
 # Foody - Restaurant Operations Management Platform
 
+[![CI](https://github.com/RanitManik/foody/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml)
+[![codecov](https://codecov.io/gh/RanitManik/foody/branch/main/graph/badge.svg)](https://codecov.io/gh/RanitManik/foody)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A comprehensive restaurant operations management platform implementing role-based access control with restaurant-based restrictions, designed as a solution for restaurant owners and managers to efficiently run their business operations.
 
 <details>
@@ -253,30 +258,37 @@ foody/
 1. **Clone the repository:**
 
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/RanitManik/foody.git
     cd foody
     ```
 
-2. **Install dependencies:**
+2. **Set up Node.js version:**
+
+    ```bash
+    nvm use  # Uses .nvmrc file
+    # or manually: nvm use 20
+    ```
+
+3. **Install dependencies:**
 
     ```bash
     npm install
     ```
 
-3. **Set up environment variables:**
+4. **Set up environment variables:**
 
     ```bash
     cp api/.env.example api/.env
     cp web/.env.example web/.env
     ```
 
-4. **Set up the database:**
+5. **Set up the database:**
 
     ```bash
     npm run db:setup
     ```
 
-5. **Start development servers:**
+6. **Start development servers:**
 
     ```bash
     # API server (http://localhost:4000)
@@ -331,6 +343,16 @@ npm run build:web         # Build web application
 - **Type Checking**: TypeScript strict mode enabled
 - **Testing**: Jest for unit tests, Playwright for e2e tests
 - **Pre-commit Hooks**: Automated code quality checks
+- **Code Coverage**: Test coverage reporting with Codecov
+- **Formatting**: Prettier with Tailwind CSS plugin
+
+### Development Tools
+
+- **VS Code**: Recommended IDE with workspace settings and extensions
+- **EditorConfig**: Consistent coding styles across editors
+- **Husky**: Git hooks for pre-commit quality checks
+- **lint-staged**: Run linters on staged files only
+- **Commitlint**: Conventional commit message validation
 
 ## Testing
 
@@ -400,6 +422,8 @@ Structured logging with Winston for request/response tracking, error monitoring,
 
 ## Security
 
+If you discover a security vulnerability, please see our [Security Policy](SECURITY.md) for reporting instructions.
+
 - **Authentication**: JWT-based secure authentication
 - **Authorization**: Granular role-based permissions
 - **Input Validation**: Zod schema validation
@@ -419,14 +443,13 @@ Structured logging with Winston for request/response tracking, error monitoring,
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for new features
-5. Ensure all tests pass (`npm run test`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for detailed information on how to get started, development setup, and contribution guidelines.
+
+For questions or discussions, check out our [GitHub Discussions](https://github.com/RanitManik/foody/discussions).
+
+## Code of Conduct
+
+This project follows a [Code of Conduct](CODE_OF_CONDUCT.md) to ensure a welcoming environment for all contributors.
 
 ## License
 

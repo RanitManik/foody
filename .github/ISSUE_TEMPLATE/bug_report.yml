@@ -1,0 +1,105 @@
+name: "🐛 Bug Report"
+description: Report a bug or unexpected behavior in Foody
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees: []
+body:
+    - type: markdown
+      attributes:
+          value: |
+              ## 🐞 Bug Report
+
+              Thank you for reporting a bug in **Foody**. Clear, reproducible reports help us fix issues faster.
+
+              Before you proceed:
+
+              - 💡 Check existing discussions and issues to avoid duplicates.
+              - ❓ If you need help rather than reporting a bug, consider opening a discussion.
+              - 📌 Be as specific as possible and include reproduction steps and environment details.
+
+    - type: input
+      id: platform
+      attributes:
+          label: "📌 Environment Information"
+          description: "Provide details about your environment:"
+          placeholder: |
+    - Foody version (commit/tag):
+          - Node.js version:
+          - PostgreSQL version:
+          - Redis version (if applicable):
+          - OS and version:
+          - Browser and version (for web issues):
+      validations:
+          required: true
+
+    - type: input
+      id: link
+      attributes:
+          label: "🔗 Reproduction Link (Optional)"
+          description: "Provide a link to a minimal, reproducible example if possible (e.g., CodeSandbox, deployed instance, or detailed steps)."
+          placeholder: "https://your-instance.com or detailed reproduction steps"
+
+    - type: textarea
+      id: description
+      attributes:
+          label: "🐛 Describe the Bug"
+          description: "What issue are you experiencing? Provide as much detail as possible."
+          placeholder: "A clear and concise description of what the bug is."
+      validations:
+          required: true
+
+    - type: textarea
+      id: steps
+      attributes:
+          label: "🚶 Steps to Reproduce"
+          description: "Provide a step-by-step guide to replicate the issue."
+          placeholder: |
+              1. Go to '...'
+              2. Click on '...'
+              3. Enter data '...'
+              4. See error
+      validations:
+          required: true
+
+    - type: textarea
+      id: expected
+      attributes:
+          label: "✅ Expected Behavior"
+          description: "What did you expect to happen instead of the bug?"
+          placeholder: "As a user, I expected ___, but instead I saw ___"
+      validations:
+          required: true
+
+    - type: textarea
+      id: actual
+      attributes:
+          label: "❌ Actual Behavior"
+          description: "Describe what actually happened when you encountered the bug."
+          placeholder: "Instead of the expected behavior, I saw ___"
+      validations:
+          required: true
+
+    - type: textarea
+      id: logs
+      attributes:
+          label: "📜 Relevant Logs or Console Output (Optional)"
+          description:
+              "Paste any error messages or logs related to the issue. Format logs using code blocks
+              (` ``` `)."
+          render: shell
+
+    - type: textarea
+      id: screenshots_or_videos
+      attributes:
+          label: "📸 Screenshots or Videos (Optional)"
+          description: |
+              If applicable, attach screenshots or a video showing the issue.
+              **Supported file types**: [GitHub file upload guidelines](https://docs.github.com/en/github/writing-on-github/working-with-advanced-formatting/attaching-files)
+          placeholder: "Drag your video or image files here"
+
+    - type: textarea
+      id: additional
+      attributes:
+          label: "ℹ️ Additional Context"
+          description: "Anything else that might help us understand the issue?"
+          placeholder: "Any extra details, workarounds, or notes..."

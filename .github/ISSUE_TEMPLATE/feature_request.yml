@@ -1,0 +1,41 @@
+name: "🚀 Feature Request"
+description: Suggest a new feature or improvement for Foody
+title: "[Feature]: "
+labels: ["enhancement", "good first issue"]
+assignees: []
+body:
+    - type: markdown
+      attributes:
+          value: |
+              ## 🚀 Feature Request
+
+              Thank you for proposing a feature for **Foody**. Please provide a clear description and rationale so maintainers can evaluate the request.
+
+    - type: input
+      id: summary
+      attributes:
+          label: "Summary"
+          description: "One-line summary of the requested feature"
+          placeholder: "Short summary of the feature"
+      validations:
+          required: true
+
+    - type: textarea
+      id: motivation
+      attributes:
+          label: "Motivation and description"
+          description: "Why is this feature needed? Describe the problem it solves and the expected user impact."
+      validations:
+          required: true
+
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: "Alternatives considered"
+          description: "Describe other approaches considered and why they weren't chosen (if any)."
+
+    - type: textarea
+      id: additional
+      attributes:
+          label: "Additional context"
+          description: "Any other context, mockups, or links to related issues or discussions."
