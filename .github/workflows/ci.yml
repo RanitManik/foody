@@ -92,9 +92,9 @@ jobs:
               run: npm run build
 
             - name: Semantic Release
+              run: npx semantic-release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: npx semantic-release
 
             - name: Set Tag
               id: tag
@@ -103,6 +103,7 @@ jobs:
             - name: Create Pull Request
               uses: peter-evans/create-pull-request@v6
               with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
                   title: "chore(release): ${{ steps.tag.outputs.tag }} [skip ci]"
                   body: |
                       ### ${{ steps.tag.outputs.tag }}
