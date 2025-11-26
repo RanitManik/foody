@@ -6,7 +6,7 @@
         "clear-cache": "tsx scripts/redis/clear-cache.ts"
     },
     "dependencies": {
-        "@apollo/server": "^5.1.0",
+        "@apollo/server": "^5.2.0",
         "@as-integrations/express4": "^1.1.2",
         "@graphql-tools/schema": "^10.0.29",
         "@prisma/client": "^6.19.0",
