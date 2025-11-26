@@ -48,10 +48,10 @@ jobs:
 
             - name: Auto-merge for Dependabot or Release
               if: ${{ (github.actor == 'dependabot[bot]' || startsWith(github.event.pull_request.title, 'chore(release):')) && steps.lint.outcome == 'success' && steps.typecheck.outcome == 'success' && steps.test.outcome == 'success' && steps.build.outcome == 'success' }}
-              run: gh pr merge --auto --merge --delete-branch "$PR_URL"
+              run: gh pr merge "$PR_URL" --auto --merge --delete-branch
               env:
                   PR_URL: ${{ github.event.pull_request.html_url }}
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GH_BOT_PAT }}
 
             - name: Delete Release Branch
               if: startsWith(github.event.pull_request.title, 'chore(release):')
@@ -61,4 +61,4 @@ jobs:
                       gh api -X DELETE repos/${{ github.repository }}/branches/$BRANCH_NAME
                   fi
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GH_BOT_PAT }}
