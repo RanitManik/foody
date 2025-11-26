@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/RanitManik/foody/compare/v1.0.1...v1.0.2) (2025-11-26)
+
+
+### Bug Fixes
+
+* remove branch deletion step from auto-merge workflow ([2bf0037](https://github.com/RanitManik/foody/commit/2bf0037da5345061e76c692059cf01038b864955))
+
 ## [1.0.1](https://github.com/RanitManik/foody/compare/v1.0.0...v1.0.1) (2025-11-26)
 
 
