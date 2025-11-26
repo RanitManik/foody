@@ -48,7 +48,7 @@ jobs:
 
             - name: Auto-merge for Dependabot or Release
               if: ${{ (github.actor == 'dependabot[bot]' || startsWith(github.event.pull_request.title, 'chore(release):')) && steps.lint.outcome == 'success' && steps.typecheck.outcome == 'success' && steps.test.outcome == 'success' && steps.build.outcome == 'success' }}
-              run: gh pr merge --auto --merge "$PR_URL"
+              run: gh pr merge --auto --merge --delete-branch "$PR_URL"
               env:
                   PR_URL: ${{ github.event.pull_request.html_url }}
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

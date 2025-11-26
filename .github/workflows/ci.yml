@@ -145,21 +145,18 @@ jobs:
 
             - name: Semantic Release
               id: semantic-release
-              run: npx semantic-release
+              run: npx semantic-release --branches release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GITHUB_REF: refs/heads/release
 
             - name: Create Pull Request
               if: steps.semantic-release.outputs.new-release-published == 'true'
-              uses: peter-evans/create-pull-request@v6
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  title: "chore(release): v${{ steps.semantic-release.outputs.new-release-version }} [skip ci]"
-                  body: |
-                      Automated release PR created by semantic-release.
-
-                      Version: v${{ steps.semantic-release.outputs.new-release-version }}
-                  branch: release
-                  base: main
-                  delete-branch: true
+              run: |
+                  gh pr create \
+                    --base main \
+                    --head release \
+                    --title "chore(release): v${{ steps.semantic-release.outputs.new-release-version }} [skip ci]" \
+                    --body "Automated release PR created by semantic-release.\n\nVersion: v${{ steps.semantic-release.outputs.new-release-version }}"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
