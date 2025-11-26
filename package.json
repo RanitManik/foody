@@ -40,7 +40,17 @@
         "typecheck:api": "nx typecheck @foody/api",
         "typecheck:api-e2e": "nx typecheck @foody/api-e2e",
         "typecheck:web": "nx typecheck @foody/web",
-        "typecheck:web-e2e": "nx typecheck @foody/web-e2e"
+        "typecheck:web-e2e": "nx typecheck @foody/web-e2e",
+        "prepare": "husky"
+    },
+    "lint-staged": {
+        "*.{js,ts,tsx,jsx}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{json,md}": [
+            "prettier --write"
+        ]
     },
     "dependencies": {
         "@tailwindcss/postcss": "^4.1.17",
@@ -51,6 +61,8 @@
         "react-dom": "^19.0.0"
     },
     "devDependencies": {
+        "@commitlint/cli": "^20.1.0",
+        "@commitlint/config-conventional": "^20.0.0",
         "@eslint/compat": "^1.1.1",
         "@eslint/eslintrc": "^2.1.1",
         "@eslint/js": "^9.8.0",
@@ -90,10 +102,12 @@
         "eslint-plugin-playwright": "^1.6.2",
         "eslint-plugin-react": "7.35.0",
         "eslint-plugin-react-hooks": "5.0.0",
+        "husky": "^9.1.7",
         "jest": "^30.0.2",
         "jest-environment-jsdom": "^30.0.2",
         "jest-environment-node": "^30.0.2",
         "jest-util": "^30.0.2",
+        "lint-staged": "^16.2.7",
         "nx": "22.0.3",
         "prettier": "^3.6.2",
         "prettier-plugin-tailwindcss": "^0.7.1",

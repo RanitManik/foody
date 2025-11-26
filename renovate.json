@@ -1,0 +1,17 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:recommended"],
+    "schedule": ["before 4am on Monday"],
+    "timezone": "UTC",
+    "labels": ["dependencies"],
+    "packageRules": [
+        {
+            "matchPackagePatterns": ["^@nx/"],
+            "groupName": "Nx packages"
+        },
+        {
+            "matchPackagePatterns": ["^@types/"],
+            "groupName": "@types packages"
+        }
+    ]
+}
