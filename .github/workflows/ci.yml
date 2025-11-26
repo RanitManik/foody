@@ -137,26 +137,29 @@ jobs:
 
             - name: Create Release Branch
               run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
                   git branch -D release || true
                   git checkout -b release
-                  git push origin release
+                  git push -f origin release
 
             - name: Semantic Release
+              id: semantic-release
               run: npx semantic-release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GITHUB_REF: refs/heads/release
 
-            - name: Set Tag
-              id: tag
-              run: echo "tag=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
-
             - name: Create Pull Request
+              if: steps.semantic-release.outputs.new-release-published == 'true'
               uses: peter-evans/create-pull-request@v6
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  title: "chore(release): ${{ steps.tag.outputs.tag }} [skip ci]"
-                  body: "Automated PR created by Release Action."
+                  title: "chore(release): v${{ steps.semantic-release.outputs.new-release-version }} [skip ci]"
+                  body: |
+                      Automated release PR created by semantic-release.
+
+                      Version: v${{ steps.semantic-release.outputs.new-release-version }}
                   branch: release
                   base: main
                   delete-branch: true
