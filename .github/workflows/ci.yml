@@ -9,6 +9,8 @@ on:
 jobs:
     test:
         runs-on: ubuntu-latest
+        env:
+            NX_CLOUD_ACCESS_TOKEN: ""
 
         services:
             postgres:
@@ -23,6 +25,8 @@ jobs:
 
         steps:
             - uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
 
             - name: Setup Node.js
               uses: actions/setup-node@v6
@@ -30,22 +34,57 @@ jobs:
                   node-version: "22"
                   cache: "npm"
 
+            - name: Cache Nx
+              uses: actions/cache@v4
+              with:
+                  path: .nx/cache
+                  key: nx-${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      nx-${{ runner.os }}-node-
+
             - name: Install dependencies
               run: npm ci
 
             - name: Generate Prisma client
               run: npm run db:generate
 
+            - name: Determine target projects
+              id: targets
+              run: |
+                  if [ "${{ github.event_name }}" = "pull_request" ]; then
+                    echo "projects=$(npx nx show projects --affected --base=origin/main --json | jq -r 'join(" ")')" >> $GITHUB_OUTPUT
+                    echo "affected=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "projects=api api-e2e web web-e2e" >> $GITHUB_OUTPUT
+                    echo "affected=false" >> $GITHUB_OUTPUT
+                  fi
+
             - name: Run linting
-              run: npm run lint
+              run: |
+                  if [ "${{ steps.targets.outputs.affected }}" = "true" ] && [ -n "${{ steps.targets.outputs.projects }}" ]; then
+                    npx nx run-many --target=lint --projects=${{ steps.targets.outputs.projects }}
+                  else
+                    npm run lint
+                  fi
 
             - name: Run type checking
-              run: npm run typecheck
+              run: |
+                  if [ "${{ steps.targets.outputs.affected }}" = "true" ] && [ -n "${{ steps.targets.outputs.projects }}" ]; then
+                    npx nx run-many --target=typecheck --projects=${{ steps.targets.outputs.projects }}
+                  else
+                    npm run typecheck
+                  fi
 
             - name: Run tests
-              run: npm run test -- --coverage --watchAll=false --passWithNoTests
+              run: |
+                  if [ "${{ steps.targets.outputs.affected }}" = "true" ] && [ -n "${{ steps.targets.outputs.projects }}" ]; then
+                    npx nx run-many --target=test --projects=${{ steps.targets.outputs.projects }} -- --coverage --watchAll=false --passWithNoTests
+                  else
+                    npm run test -- --coverage --watchAll=false --passWithNoTests
+                  fi
 
             - name: Upload API coverage to Codecov
+              if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
               uses: codecov/codecov-action@v4
               with:
                   file: ./api/test-output/jest/coverage/lcov.info
@@ -54,6 +93,7 @@ jobs:
                   fail_ci_if_error: false
 
             - name: Upload Web coverage to Codecov
+              if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
               uses: codecov/codecov-action@v4
               with:
                   file: ./web/test-output/jest/coverage/lcov.info
@@ -62,12 +102,25 @@ jobs:
                   fail_ci_if_error: false
 
             - name: Build
-              run: npm run build
+              run: |
+                  if [ "${{ steps.targets.outputs.affected }}" = "true" ] && [ -n "${{ steps.targets.outputs.projects }}" ]; then
+                    npx nx run-many --target=build --projects=${{ steps.targets.outputs.projects }}
+                  else
+                    npm run build
+                  fi
+
+            - name: Save Nx Cache
+              uses: actions/cache@v4
+              with:
+                  path: .nx/cache
+                  key: nx-${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
 
     release:
         needs: test
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+            NX_CLOUD_ACCESS_TOKEN: ""
         permissions:
             contents: write
             pull-requests: write
@@ -82,6 +135,14 @@ jobs:
               with:
                   node-version: "22"
                   cache: "npm"
+
+            - name: Cache Nx
+              uses: actions/cache@v4
+              with:
+                  path: .nx/cache
+                  key: nx-${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      nx-${{ runner.os }}-node-
 
             - name: Install dependencies
               run: npm ci
