@@ -14,8 +14,8 @@ jobs:
     test-and-build:
         runs-on: ubuntu-latest
         env:
-            NX_CLOUD: false # Explicitly disable Nx Cloud
-            NX_CACHE_DIRECTORY: .nx/cache # Force cache location for consistency
+            NX_CLOUD: false
+            NX_CACHE_DIRECTORY: .nx/cache
 
         services:
             postgres:
@@ -23,7 +23,7 @@ jobs:
                 env:
                     POSTGRES_PASSWORD: postgres
                 ports:
-                    - 5432:5432 # Expose port to host
+                    - 5432:5432
                 options: >-
                     --health-cmd pg_isready
                     --health-interval 10s
@@ -34,7 +34,7 @@ jobs:
             - name: Checkout Repo
               uses: actions/checkout@v4
               with:
-                  fetch-depth: 0 # Required for 'nx affected' to see history
+                  fetch-depth: 0
 
             - name: Setup Node.js
               uses: actions/setup-node@v4
@@ -42,15 +42,11 @@ jobs:
                   node-version: "22"
                   cache: "npm"
 
-            # CRITICAL STEP: Restore Nx Cache
-            # This acts as your "free" remote cache by restoring previous build artifacts
             - name: Restore Nx Cache
               uses: actions/cache@v4
               with:
                   path: .nx/cache
-                  # Key includes run_id so we always save a NEW cache at the end
                   key: nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
-                  # Restore uses the latest available cache that matches the prefix
                   restore-keys: |
                       nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
                       nx-${{ runner.os }}-
@@ -61,18 +57,14 @@ jobs:
             - name: Generate Prisma client
               run: npm run db:generate
 
-            # Calculates BASE and HEAD SHAs for 'nx affected' without Nx Cloud
             - name: Set SHAs for Nx
               uses: nrwl/nx-set-shas@v4
 
-            # Run Checks & Build in Parallel
             - name: Run Quality Checks & Build
               run: |
                   if [ "${{ github.event_name }}" = "pull_request" ]; then
-                    # On PRs: Only run what changed
                     npx nx affected --targets=lint,typecheck,test,build --parallel=3
                   else
-                    # On Merge: Run everything to be safe
                     npx nx run-many --targets=lint,typecheck,build --parallel=3
                     npx nx run-many --targets=test --parallel=3 --coverage
                   fi
@@ -93,16 +85,14 @@ jobs:
                   flags: web
                   token: ${{ secrets.CODECOV_TOKEN }}
 
-            # Save build output for the Release job
             - name: Prepare Build Artifacts
               if: github.ref == 'refs/heads/main' && github.event_name == 'push'
               run: |
                   if [ -d "dist" ]; then
-                    echo "Dist directory exists, uploading artifacts"
+                    echo "Dist directory exists"
                   else
-                    echo "Dist directory not found, creating empty marker"
                     mkdir -p dist
-                    echo "No build artifacts to upload" > dist/README.md
+                    echo "No build artifacts" > dist/README.md
                   fi
 
             - name: Upload Build Artifacts
@@ -136,31 +126,38 @@ jobs:
             - name: Install dependencies
               run: npm ci --ignore-scripts
 
-            - name: Semantic Release
-              id: semantic-release
-              run: npx semantic-release
+            - name: Semantic Release (No Push)
+              id: semantic
+              run: |
+                  export GH_NO_PUSH=true
+                  npx semantic-release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Set Tag
-              id: tag
-              run: echo "tag=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
+            - name: Fail if no release published
+              if: steps.semantic.outputs.new-release-published != 'true'
+              run: echo "No new release" && exit 0
 
-            - name: Create Release PR
-              if: steps.semantic-release.outputs.new-release-published == 'true'
+            - name: Extract Version
+              id: version
+              run: echo "version=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
+
+            - name: Commit Release Files
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-                  git checkout -b release
-                  git add .
-                  git commit -m "chore(release): ${{ steps.tag.outputs.tag }} [skip ci]"
-                  git push -f origin release
+                  git checkout -b release/v${{ steps.version.outputs.version }}
+                  git add CHANGELOG.md package.json package-lock.json
+                  git commit -m "chore(release): v${{ steps.version.outputs.version }} [skip ci]"
+                  git push -f origin HEAD
 
+            - name: Create Release PR
+              run: |
                   gh pr create \
                     --base main \
-                    --head release \
-                    --title "chore(release): ${{ steps.tag.outputs.tag }} [skip ci]" \
-                    --body "Automated release PR created by semantic-release.\n\nVersion: ${{ steps.tag.outputs.tag }}"
+                    --head release/v${{ steps.version.outputs.version }} \
+                    --title "chore(release): v${{ steps.version.outputs.version }} [skip ci]" \
+                    --body "Automated release PR. Version: v${{ steps.version.outputs.version }}"
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
