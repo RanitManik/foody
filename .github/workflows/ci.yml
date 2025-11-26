@@ -6,18 +6,24 @@ on:
     pull_request:
         branches: [main, dev]
 
+permissions:
+    contents: write
+    pull-requests: write
+
 jobs:
-    test:
+    test-and-build:
         runs-on: ubuntu-latest
         env:
-            NX_CLOUD_ACCESS_TOKEN: ""
-            NX_CLOUD: false
+            NX_CLOUD: false # Explicitly disable Nx Cloud
+            NX_CACHE_DIRECTORY: .nx/cache # Force cache location for consistency
 
         services:
             postgres:
                 image: postgres:15
                 env:
                     POSTGRES_PASSWORD: postgres
+                ports:
+                    - 5432:5432 # Expose port to host
                 options: >-
                     --health-cmd pg_isready
                     --health-interval 10s
@@ -25,23 +31,29 @@ jobs:
                     --health-retries 5
 
         steps:
-            - uses: actions/checkout@v6
+            - name: Checkout Repo
+              uses: actions/checkout@v4
               with:
-                  fetch-depth: 0
+                  fetch-depth: 0 # Required for 'nx affected' to see history
 
             - name: Setup Node.js
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v4
               with:
                   node-version: "22"
                   cache: "npm"
 
-            - name: Cache Nx
+            # CRITICAL STEP: Restore Nx Cache
+            # This acts as your "free" remote cache by restoring previous build artifacts
+            - name: Restore Nx Cache
               uses: actions/cache@v4
               with:
                   path: .nx/cache
-                  key: nx-${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  # Key includes run_id so we always save a NEW cache at the end
+                  key: nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
+                  # Restore uses the latest available cache that matches the prefix
                   restore-keys: |
-                      nx-${{ runner.os }}-node-
+                      nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+                      nx-${{ runner.os }}-
 
             - name: Install dependencies
               run: npm ci
@@ -49,111 +61,75 @@ jobs:
             - name: Generate Prisma client
               run: npm run db:generate
 
-            - name: Determine target projects
-              id: targets
+            # Calculates BASE and HEAD SHAs for 'nx affected' without Nx Cloud
+            - name: Set SHAs for Nx
+              uses: nrwl/nx-set-shas@v4
+
+            # Run Checks & Build in Parallel
+            - name: Run Quality Checks & Build
               run: |
                   if [ "${{ github.event_name }}" = "pull_request" ]; then
-                    echo "projects=$(npx nx show projects --affected --base=origin/main --json | jq -r 'join(" ")')" >> $GITHUB_OUTPUT
-                    echo "affected=true" >> $GITHUB_OUTPUT
+                    # On PRs: Only run what changed
+                    npx nx affected --targets=lint,typecheck,test,build --parallel=3 --configuration=ci
                   else
-                    echo "projects=api api-e2e web web-e2e" >> $GITHUB_OUTPUT
-                    echo "affected=false" >> $GITHUB_OUTPUT
+                    # On Merge: Run everything to be safe
+                    npx nx run-many --targets=lint,typecheck,test,build --parallel=3 --configuration=ci
                   fi
 
-            - name: Run linting
-              run: |
-                  if [ "${{ steps.targets.outputs.affected }}" = "true" ] && [ -n "${{ steps.targets.outputs.projects }}" ]; then
-                    npx nx run-many --target=lint --projects=${{ steps.targets.outputs.projects }}
-                  else
-                    npm run lint
-                  fi
-
-            - name: Run type checking
-              run: |
-                  if [ "${{ steps.targets.outputs.affected }}" = "true" ] && [ -n "${{ steps.targets.outputs.projects }}" ]; then
-                    npx nx run-many --target=typecheck --projects=${{ steps.targets.outputs.projects }}
-                  else
-                    npm run typecheck
-                  fi
-
-            - name: Run tests
-              run: |
-                  if [ "${{ steps.targets.outputs.affected }}" = "true" ] && [ -n "${{ steps.targets.outputs.projects }}" ]; then
-                    npx nx run-many --target=test --projects=${{ steps.targets.outputs.projects }} -- --coverage --watchAll=false --passWithNoTests
-                  else
-                    npm run test -- --coverage --watchAll=false --passWithNoTests
-                  fi
-
-            - name: Upload API coverage to Codecov
+            - name: Upload API coverage
               if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
               uses: codecov/codecov-action@v4
               with:
                   file: ./api/test-output/jest/coverage/lcov.info
                   flags: api
-                  name: codecov-api
-                  fail_ci_if_error: false
+                  token: ${{ secrets.CODECOV_TOKEN }}
 
-            - name: Upload Web coverage to Codecov
+            - name: Upload Web coverage
               if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
               uses: codecov/codecov-action@v4
               with:
                   file: ./web/test-output/jest/coverage/lcov.info
                   flags: web
-                  name: codecov-web
-                  fail_ci_if_error: false
+                  token: ${{ secrets.CODECOV_TOKEN }}
 
-            - name: Build
-              run: |
-                  if [ "${{ steps.targets.outputs.affected }}" = "true" ] && [ -n "${{ steps.targets.outputs.projects }}" ]; then
-                    npx nx run-many --target=build --projects=${{ steps.targets.outputs.projects }}
-                  else
-                    npm run build
-                  fi
-
-            - name: Save Nx Cache
-              uses: actions/cache@v4
+            # Save build output for the Release job
+            - name: Upload Build Artifacts
+              if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+              uses: actions/upload-artifact@v4
               with:
-                  path: .nx/cache
-                  key: nx-${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+                  name: dist-artifacts
+                  path: dist/
+                  retention-days: 1
 
     release:
-        needs: test
+        needs: test-and-build
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        env:
-            NX_CLOUD_ACCESS_TOKEN: ""
-            NX_CLOUD: false
         permissions:
             contents: write
             pull-requests: write
+            issues: write
+
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-                  persist-credentials: false
 
             - name: Setup Node.js
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v4
               with:
                   node-version: "22"
                   cache: "npm"
 
-            - name: Cache Nx
-              uses: actions/cache@v4
-              with:
-                  path: .nx/cache
-                  key: nx-${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-                  restore-keys: |
-                      nx-${{ runner.os }}-node-
-
             - name: Install dependencies
-              run: npm ci
+              run: npm ci --ignore-scripts
 
-            - name: Generate Prisma client
-              run: npm run db:generate
-
-            - name: Build
-              run: npm run build
+            # Retrieve the build from the previous job
+            - name: Download Build Artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: dist-artifacts
+                  path: dist
 
             - name: Semantic Release
               run: npx semantic-release
@@ -169,13 +145,6 @@ jobs:
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   title: "chore(release): ${{ steps.tag.outputs.tag }} [skip ci]"
-                  body: |
-                      ### ${{ steps.tag.outputs.tag }}
-
-                      Automated PR created by the Release GitHub Action.
-
-                      Make sure to trigger any production deployments **after** merging this PR.
-                  commit-message: "chore(release): ${{ steps.tag.outputs.tag }} [skip ci]"
-                  base: main
+                  body: "Automated PR created by Release Action."
                   branch: release
                   delete-branch: true
