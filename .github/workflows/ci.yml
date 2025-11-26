@@ -45,12 +45,20 @@ jobs:
             - name: Run tests
               run: npm run test -- --coverage --watchAll=false --passWithNoTests
 
-            - name: Upload coverage to Codecov
+            - name: Upload API coverage to Codecov
               uses: codecov/codecov-action@v4
               with:
-                  file: ./coverage/lcov.info
-                  flags: unittests
-                  name: codecov-umbrella
+                  file: ./api/test-output/jest/coverage/lcov.info
+                  flags: api
+                  name: codecov-api
+                  fail_ci_if_error: false
+
+            - name: Upload Web coverage to Codecov
+              uses: codecov/codecov-action@v4
+              with:
+                  file: ./coverage/web/lcov.info
+                  flags: web
+                  name: codecov-web
                   fail_ci_if_error: false
 
             - name: Build

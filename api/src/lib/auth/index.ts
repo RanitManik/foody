@@ -3,10 +3,12 @@ import { prisma } from "../database";
 import { logger } from "../shared/logger";
 import type { users as User } from "@prisma/client";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-    throw new Error("JWT_SECRET environment variable is required");
+function getJWTSecret(): string {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        throw new Error("JWT_SECRET environment variable is required");
+    }
+    return secret;
 }
 
 /**
@@ -20,7 +22,7 @@ export async function getUserFromToken(token?: string | null): Promise<User | nu
     }
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET as string) as unknown as { userId: string };
+        const decoded = jwt.verify(token, getJWTSecret()) as unknown as { userId: string };
         const user = await prisma.users.findUnique({
             where: { id: decoded.userId },
         });
@@ -78,5 +80,5 @@ export function generateToken(userId: string): string {
     const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const options: SignOptions = { expiresIn: expiresIn as any };
-    return jwt.sign({ userId }, JWT_SECRET as string, options);
+    return jwt.sign({ userId }, getJWTSecret(), options);
 }
