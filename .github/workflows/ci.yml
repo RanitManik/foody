@@ -11,6 +11,7 @@ jobs:
         runs-on: ubuntu-latest
         env:
             NX_CLOUD_ACCESS_TOKEN: ""
+            NX_CLOUD: false
 
         services:
             postgres:
@@ -121,6 +122,7 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         env:
             NX_CLOUD_ACCESS_TOKEN: ""
+            NX_CLOUD: false
         permissions:
             contents: write
             pull-requests: write
