@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/RanitManik/foody/compare/v1.0.0...v1.0.1) (2025-11-26)
+
+
+### Bug Fixes
+
+* simplify branch deletion logic in auto-merge workflow ([eeb50a7](https://github.com/RanitManik/foody/commit/eeb50a75efb02f40140c5e9a3bbb816091d58181))
+
 # 1.0.0 (2025-11-26)
 
 
