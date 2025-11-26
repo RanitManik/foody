@@ -80,7 +80,7 @@ jobs:
               if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
               uses: codecov/codecov-action@v5
               with:
-                  file: ./api/test-output/jest/coverage/lcov.info
+                  files: ./api/test-output/jest/coverage/lcov.info
                   flags: api
                   token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -88,7 +88,7 @@ jobs:
               if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
               uses: codecov/codecov-action@v5
               with:
-                  file: ./web/test-output/jest/coverage/lcov.info
+                  files: ./web/test-output/jest/coverage/lcov.info
                   flags: web
                   token: ${{ secrets.CODECOV_TOKEN }}
 
