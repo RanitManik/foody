@@ -14,13 +14,13 @@
         "build:api": "nx build @foody/api",
         "build:web": "nx build @foody/web",
         "cache:clear": "cd api && npm run clear-cache",
+        "db:format": "cd api && npx prisma format",
         "db:generate": "cd api && npx prisma generate",
         "db:migrate": "cd api && npx prisma migrate dev",
         "db:reset": "cd api && npx prisma migrate reset --force",
         "db:seed": "cd api && npx prisma db seed",
         "db:setup": "npm run db:reset && npm run db:migrate && npm run db:seed",
         "db:studio": "cd api && npx prisma studio",
-        "db:format": "cd api && npx prisma format",
         "dev": "nx run-many --target=dev --parallel",
         "dev:api": "nx dev @foody/api",
         "dev:web": "nx dev @foody/web",
@@ -33,6 +33,7 @@
         "lint:api": "nx lint @foody/api",
         "lint:web": "nx lint @foody/web",
         "nx": "nx",
+        "prepare": "husky",
         "test": "nx run-many --target=test --all",
         "test:api": "nx test @foody/api",
         "test:web": "nx test @foody/web",
@@ -40,8 +41,7 @@
         "typecheck:api": "nx typecheck @foody/api",
         "typecheck:api-e2e": "nx typecheck @foody/api-e2e",
         "typecheck:web": "nx typecheck @foody/web",
-        "typecheck:web-e2e": "nx typecheck @foody/web-e2e",
-        "prepare": "husky"
+        "typecheck:web-e2e": "nx typecheck @foody/web-e2e"
     },
     "lint-staged": {
         "*.{js,ts,tsx,jsx}": [
