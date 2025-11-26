@@ -134,10 +134,6 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Fail if no release published
-              if: steps.semantic.outputs.new-release-published != 'true'
-              run: echo "No new release" && exit 1
-
             - name: Extract Version
               id: version
               if: steps.semantic.outputs.new-release-published == 'true'
