@@ -52,3 +52,13 @@ jobs:
               env:
                   PR_URL: ${{ github.event.pull_request.html_url }}
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Delete Release Branch
+              if: startsWith(github.event.pull_request.title, 'chore(release):')
+              run: |
+                  BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+                  if gh api repos/${{ github.repository }}/branches/$BRANCH_NAME --silent 2>/dev/null; then
+                      gh api -X DELETE repos/${{ github.repository }}/branches/$BRANCH_NAME
+                  fi
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
