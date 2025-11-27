@@ -35,6 +35,7 @@ A comprehensive restaurant operations management platform implementing role-base
 - [**Architecture**](#architecture)
     - [Data Model](#data-model)
     - [Access Control Matrix](#access-control-matrix)
+- [**Documentation**](#documentation)
 - [**Getting Started**](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
@@ -254,11 +255,21 @@ foody/
 |                             | Register Users           | ✅    | ❌      | ❌     |
 |                             | Login                    | ✅    | ✅      | ✅     |
 
+## Documentation
+
+For detailed documentation, guides, and technical references, see the [`docs/`](./docs/) folder:
+
+- **[API Documentation](./docs/api/)** - GraphQL API reference, authentication, and endpoint details
+- **[Architecture Guide](./docs/architecture/)** - System design, data models, and technical decisions
+- **[Deployment Guide](./docs/deployment/)** - Production deployment, Docker setup, and scaling
+- **[Development Guide](./docs/development/)** - Development workflow, coding standards, and setup instructions
+- **[User Guides](./docs/guides/)** - POS system manual and user tutorials
+
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - PostgreSQL 15+
 - Redis (optional, for caching)
 
