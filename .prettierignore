@@ -11,3 +11,7 @@ tmp/
 out
 
 test-output
+
+# Documentation
+CHANGELOG.md
+README.md

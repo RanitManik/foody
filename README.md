@@ -4,10 +4,15 @@
 
 # **Foody** — Restaurant Management Platform
 
+[![GitHub License](https://img.shields.io/github/license/RanitManik/foody)](https://github.com/RanitManik/foody/blob/main/LICENSE)
+[![GitHub Created At](https://img.shields.io/github/created-at/RanitManik/foody)](https://github.com/RanitManik/foody)
+[![GitHub repo size](https://img.shields.io/github/repo-size/RanitManik/foody)](https://github.com/RanitManik/foody)
+[![GitHub stars](https://img.shields.io/github/stars/RanitManik/foody?style=default)](https://github.com/RanitManik/foody/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/RanitManik/foody?style=default)](https://github.com/RanitManik/foody/network/members)
+[![GitHub Discussions](https://img.shields.io/github/discussions/RanitManik/foody)](https://github.com/RanitManik/foody/discussions)  
 [![CI](https://github.com/RanitManik/foody/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/RanitManik/foody/branch/main/graph/badge.svg)](https://codecov.io/gh/RanitManik/foody)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
 
@@ -30,6 +35,7 @@ A comprehensive restaurant operations management platform implementing role-base
 - [**Architecture**](#architecture)
     - [Data Model](#data-model)
     - [Access Control Matrix](#access-control-matrix)
+- [**Documentation**](#documentation)
 - [**Getting Started**](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
@@ -249,11 +255,21 @@ foody/
 |                             | Register Users           | ✅    | ❌      | ❌     |
 |                             | Login                    | ✅    | ✅      | ✅     |
 
+## Documentation
+
+For detailed documentation, guides, and technical references, see the [`docs/`](./docs/) folder:
+
+- **[API Documentation](./docs/api/)** - GraphQL API reference, authentication, and endpoint details
+- **[Architecture Guide](./docs/architecture/)** - System design, data models, and technical decisions
+- **[Deployment Guide](./docs/deployment/)** - Production deployment, Docker setup, and scaling
+- **[Development Guide](./docs/development/)** - Development workflow, coding standards, and setup instructions
+- **[User Guides](./docs/guides/)** - POS system manual and user tutorials
+
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - PostgreSQL 15+
 - Redis (optional, for caching)
 

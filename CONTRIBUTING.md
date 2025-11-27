@@ -21,7 +21,7 @@ This project follows a [Code of Conduct](CODE_OF_CONDUCT.md) to ensure a welcomi
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - PostgreSQL 15+
 - Redis (optional, for caching)
 - Git
