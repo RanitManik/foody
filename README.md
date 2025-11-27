@@ -4,10 +4,15 @@
 
 # **Foody** — Restaurant Management Platform
 
+[![GitHub License](https://img.shields.io/github/license/RanitManik/foody)](https://github.com/RanitManik/foody/blob/main/LICENSE)
+[![GitHub Created At](https://img.shields.io/github/created-at/RanitManik/foody)](https://github.com/RanitManik/foody)
+[![GitHub repo size](https://img.shields.io/github/repo-size/RanitManik/foody)](https://github.com/RanitManik/foody)
+[![GitHub stars](https://img.shields.io/github/stars/RanitManik/foody?style=default)](https://github.com/RanitManik/foody/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/RanitManik/foody?style=default)](https://github.com/RanitManik/foody/network/members)
+[![GitHub Discussions](https://img.shields.io/github/discussions/RanitManik/foody)](https://github.com/RanitManik/foody/discussions)  
 [![CI](https://github.com/RanitManik/foody/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/RanitManik/foody/branch/main/graph/badge.svg)](https://codecov.io/gh/RanitManik/foody)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
 
