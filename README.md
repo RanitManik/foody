@@ -9,7 +9,7 @@
 [![GitHub repo size](https://img.shields.io/github/repo-size/RanitManik/foody)](https://github.com/RanitManik/foody)
 [![GitHub stars](https://img.shields.io/github/stars/RanitManik/foody?style=default)](https://github.com/RanitManik/foody/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/RanitManik/foody?style=default)](https://github.com/RanitManik/foody/network/members)
-[![GitHub Discussions](https://img.shields.io/github/discussions/RanitManik/foody)](https://github.com/RanitManik/foody/discussions)  
+[![GitHub Discussions](https://img.shields.io/github/discussions/RanitManik/foody)](https://github.com/RanitManik/foody/discussions)
 [![CI](https://github.com/RanitManik/foody/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/RanitManik/foody/branch/main/graph/badge.svg)](https://codecov.io/gh/RanitManik/foody)
@@ -477,4 +477,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-This application was developed as a solution to a take-home assignment, demonstrating full-stack development skills with modern web technologies and comprehensive access control implementation.
+This application was developed as a solution for Nick Fury's restaurant operations, demonstrating full-stack development skills with modern web technologies and comprehensive access control implementation.
