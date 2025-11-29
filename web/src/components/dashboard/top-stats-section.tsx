@@ -52,7 +52,7 @@ export function TopStatsSection({ items }: TopStatsSectionProps) {
                                 </div>
                                 <div className="mt-1 text-2xl font-semibold tabular-nums sm:text-center">
                                     {item.isLoading ? (
-                                        <Skeleton className="h-8 w-16" />
+                                        <Skeleton className="h-8 w-16 sm:mx-auto" />
                                     ) : (
                                         (item.value ?? "--")
                                     )}
