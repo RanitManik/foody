@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Line } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, Line } from "recharts";
 import { format, eachDayOfInterval, parseISO } from "date-fns";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -98,7 +98,7 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                         </EmptyContent>
                     </Empty>
                 ) : (
-                    <ChartContainer config={chartConfig} className="aspect-auto h-full w-full">
+                    <ChartContainer config={chartConfig} className="aspect-auto h-full w-full p-0">
                         <AreaChart
                             data={chartData}
                             margin={{ top: 20, right: 0, left: 0, bottom: 10 }}
@@ -135,7 +135,7 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                                 tickLine={false}
                                 axisLine={false}
                                 tickMargin={8}
-                                minTickGap={16}
+                                minTickGap={32}
                                 tickCount={10}
                                 tickFormatter={(value) => {
                                     const date = new Date(value);
@@ -144,20 +144,6 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                                         day: "numeric",
                                     });
                                 }}
-                            />
-                            <YAxis
-                                yAxisId="left"
-                                orientation="left"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={false}
-                            />
-                            <YAxis
-                                yAxisId="right"
-                                orientation="right"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={false}
                             />
                             <ChartTooltip
                                 cursor={false}
