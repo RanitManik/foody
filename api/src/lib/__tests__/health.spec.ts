@@ -35,9 +35,9 @@ const mockGetRedisClient = getRedisClient as jest.MockedFunction<typeof getRedis
 const mockLogger = logger as jest.Mocked<typeof logger>;
 
 describe("Health Router", () => {
-    let mockExpressRouter: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-    let req: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-    let res: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    let mockExpressRouter: any;
+    let req: any;
+    let res: any;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -64,7 +64,7 @@ describe("Health Router", () => {
         });
 
         describe("GET /", () => {
-            let routeHandler: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+            let routeHandler: any;
 
             beforeEach(() => {
                 createHealthRouter();
@@ -84,7 +84,6 @@ describe("Health Router", () => {
                     },
                 });
                 (mockGetRedisClient as any).mockReturnValue({
-                    // eslint-disable-line @typescript-eslint/no-explicit-any
                     ping: jest.fn().mockResolvedValue("PONG"),
                 });
 
@@ -107,7 +106,7 @@ describe("Health Router", () => {
                     latency: 10,
                     error: "Connection failed",
                 });
-                (mockGetRedisClient as any).mockReturnValue(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+                (mockGetRedisClient as any).mockReturnValue(null);
 
                 await routeHandler(req, res);
 
@@ -140,7 +139,7 @@ describe("Health Router", () => {
                 const mockRedisClient = {
                     ping: jest.fn().mockRejectedValue(new Error("Redis ping failed")),
                 };
-                (mockGetRedisClient as any).mockReturnValue(mockRedisClient); // eslint-disable-line @typescript-eslint/no-explicit-any
+                (mockGetRedisClient as any).mockReturnValue(mockRedisClient);
 
                 await routeHandler(req, res);
 
@@ -180,7 +179,7 @@ describe("Health Router", () => {
         });
 
         describe("GET /detailed", () => {
-            let routeHandler: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+            let routeHandler: any;
 
             beforeEach(() => {
                 createHealthRouter();
@@ -203,7 +202,7 @@ describe("Health Router", () => {
                 const mockRedisClient = {
                     ping: jest.fn().mockResolvedValue("PONG"),
                 };
-                (mockGetRedisClient as any).mockReturnValue(mockRedisClient); // eslint-disable-line @typescript-eslint/no-explicit-any
+                (mockGetRedisClient as any).mockReturnValue(mockRedisClient);
 
                 // Mock Date.now for consistent timing
                 const mockNow = jest.spyOn(Date, "now").mockReturnValue(startTime + 25);
@@ -251,7 +250,7 @@ describe("Health Router", () => {
                         idle_connections: 3,
                     },
                 });
-                (mockGetRedisClient as any).mockReturnValue(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+                (mockGetRedisClient as any).mockReturnValue(null);
 
                 await routeHandler(req, res);
 
@@ -269,7 +268,7 @@ describe("Health Router", () => {
         });
 
         describe("GET /ready", () => {
-            let routeHandler: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+            let routeHandler: any;
 
             beforeEach(() => {
                 createHealthRouter();

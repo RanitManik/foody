@@ -71,9 +71,9 @@ export function useAuth() {
 
                 // Redirect based on role
                 if (user.role === "ADMIN") {
-                    router.push("/admin/restaurants");
+                    router.push("/admin/dashboard");
                 } else if (user.restaurantId) {
-                    router.push(`/restaurant/${user.restaurantId}/orders`);
+                    router.push(`/restaurant/${user.restaurantId}/dashboard`);
                 } else {
                     // Fallback if no restaurant ID for non-admin (shouldn't happen based on schema but good safety)
                     router.push("/");

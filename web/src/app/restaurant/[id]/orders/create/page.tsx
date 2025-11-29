@@ -471,11 +471,11 @@ export default function CreateOrderPage() {
                                     variant={
                                         (orderData as { order?: OrderData })?.order?.status ===
                                         "COMPLETED"
-                                            ? "secondary"
+                                            ? "success"
                                             : (orderData as { order?: OrderData })?.order
                                                     ?.status === "CANCELLED"
-                                              ? "destructive"
-                                              : "default"
+                                              ? "fail"
+                                              : "pending"
                                     }
                                 >
                                     {(orderData as { order?: OrderData })?.order?.status ===
@@ -580,13 +580,13 @@ export default function CreateOrderPage() {
 
                                                     <div className="absolute top-3 right-3">
                                                         {item.isAvailable ? (
-                                                            <Badge className="bg-white/90 text-black backdrop-blur-sm hover:bg-white">
-                                                                <span className="mr-1.5 h-2 w-2 rounded-full bg-green-500" />
+                                                            <Badge variant="success">
+                                                                <span className="h-2 w-2 rounded-full bg-green-500" />
                                                                 Available
                                                             </Badge>
                                                         ) : (
-                                                            <Badge variant="destructive">
-                                                                <span className="mr-1.5 h-2 w-2 rounded-full bg-white" />
+                                                            <Badge variant="fail">
+                                                                <span className="h-2 w-2 rounded-full bg-white" />
                                                                 Unavailable
                                                             </Badge>
                                                         )}
@@ -672,7 +672,7 @@ export default function CreateOrderPage() {
                         <div className="bg-muted/20 border-b p-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-semibold">Order Summary</h2>
-                                <Badge variant="secondary" className="px-3 py-1">
+                                <Badge variant="pending" className="px-3 py-1">
                                     {cart.length} items
                                 </Badge>
                             </div>
@@ -843,7 +843,7 @@ export default function CreateOrderPage() {
                 <SheetContent side="right" className="flex w-full flex-col gap-0">
                     <SheetHeader className="flex flex-row items-center justify-start border-b">
                         <SheetTitle>Order Summary</SheetTitle>
-                        <Badge variant="secondary" className="px-2 py-0.5">
+                        <Badge variant="pending" className="px-2 py-0.5">
                             {cart.length} items
                         </Badge>
                     </SheetHeader>

@@ -20,6 +20,8 @@ import { typeDefs as feedbackTypeDefs } from "./feedback/schema";
 import { feedbackResolvers } from "./feedback/resolver";
 import { typeDefs as userTypeDefs } from "./user/schema";
 import { userResolvers } from "./user/resolver";
+import { typeDefs as dashboardTypeDefs } from "./dashboard/schema";
+import { dashboardResolvers } from "./dashboard/resolver";
 
 // Merge all type definitions
 export const typeDefs = mergeTypeDefs([
@@ -31,6 +33,7 @@ export const typeDefs = mergeTypeDefs([
     restaurantTypeDefs,
     feedbackTypeDefs,
     userTypeDefs,
+    dashboardTypeDefs,
 ]);
 
 // Merge all resolvers (scalars must come first)
@@ -43,4 +46,5 @@ export const resolvers = mergeResolvers([
     restaurantResolvers,
     feedbackResolvers,
     userResolvers,
+    dashboardResolvers,
 ]);

@@ -477,4 +477,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-This application was developed as a solution to a take-home assignment, demonstrating full-stack development skills with modern web technologies and comprehensive access control implementation.
+This application was developed as a solution for Nick Fury's restaurant operations, demonstrating full-stack development skills with modern web technologies and comprehensive access control implementation.

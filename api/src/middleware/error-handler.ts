@@ -5,7 +5,7 @@ import { logger } from "../lib/shared/logger";
 export function setupErrorHandlerMiddleware(app: Application) {
     // ===== CENTRAL ERROR HANDLER =====
     // This must be the last middleware - catches any unhandled errors
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
         const requestId = req.headers["x-request-id"] as string | undefined;
 

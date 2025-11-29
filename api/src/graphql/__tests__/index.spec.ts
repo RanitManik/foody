@@ -24,6 +24,12 @@ jest.mock("../feedback/schema", () => ({ typeDefs: "feedbackTypeDefs" }));
 jest.mock("../feedback/resolver", () => ({ feedbackResolvers: { feedback: true } }));
 jest.mock("../user/schema", () => ({ typeDefs: "userTypeDefs" }));
 jest.mock("../user/resolver", () => ({ userResolvers: { user: true } }));
+jest.mock("../dashboard/schema", () => ({ typeDefs: "dashboardTypeDefs" }));
+jest.mock("../dashboard/resolver", () => ({
+    dashboardResolvers: {
+        Query: { adminDashboardMetrics: jest.fn(), restaurantDashboardMetrics: jest.fn() },
+    },
+}));
 
 import { mergeTypeDefs, mergeResolvers } from "@graphql-tools/merge";
 
@@ -51,6 +57,7 @@ describe("GraphQL Index", () => {
             "restaurantTypeDefs",
             "feedbackTypeDefs",
             "userTypeDefs",
+            "dashboardTypeDefs",
         ]);
     });
 
@@ -64,6 +71,12 @@ describe("GraphQL Index", () => {
             { restaurant: true },
             { feedback: true },
             { user: true },
+            {
+                Query: {
+                    adminDashboardMetrics: expect.any(Function),
+                    restaurantDashboardMetrics: expect.any(Function),
+                },
+            },
         ]);
     });
 

@@ -95,6 +95,7 @@ export const CACHE_TTL = {
     ORDERS: 1800, // 30 minutes - order status changes frequently
     USER_DATA: 3600, // 1 hour - user profile data changes less frequently
     STATIC_DATA: 86400, // 24 hours - rarely changing reference data
+    DASHBOARD: 300, // 5 minutes - dashboards tolerate slightly stale metrics
 };
 
 // Set cache value

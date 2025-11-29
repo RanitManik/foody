@@ -11,12 +11,19 @@ import {
     CreditCard,
     Settings,
     Users,
+    LayoutDashboard,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 
 const sidebarItems = [
+    {
+        title: "Dashboard",
+        href: "/restaurant/[id]/dashboard",
+        icon: LayoutDashboard,
+        roles: ["ADMIN", "MANAGER", "MEMBER"],
+    },
     {
         title: "Menu Order",
         href: "/restaurant/[id]/orders/create",

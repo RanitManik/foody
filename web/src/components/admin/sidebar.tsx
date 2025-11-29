@@ -3,15 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, MessageSquare, PanelLeftClose } from "lucide-react";
+import { Building2, MessageSquare, PanelLeftClose, LayoutDashboard } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
     {
+        title: "Dashboard",
+        href: "/admin/dashboard",
+        icon: LayoutDashboard,
+    },
+    {
         title: "Restaurants",
         href: "/admin/restaurants",
-        icon: LayoutDashboard,
+        icon: Building2,
     },
 ];
 
@@ -41,13 +46,6 @@ export function AdminSidebar({ isCollapsed, toggleCollapse, onOpenFeedback }: Ad
                 </div>
             </div>
             <div className="flex-1 overflow-x-hidden py-4">
-                {/* {!isCollapsed && (
-                    <div className="mb-2 px-4">
-                        <h2 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider">
-                            ORGANIZATION
-                        </h2>
-                    </div>
-                )} */}
                 <nav className="grid items-start gap-1 px-2 text-sm font-medium lg:px-4">
                     {sidebarItems.map((item) => (
                         <Link

@@ -57,7 +57,7 @@ export function AccessDenied() {
                                     href={
                                         user.role === "ADMIN"
                                             ? "/admin/restaurants"
-                                            : `/restaurant/${user.restaurantId}/orders`
+                                            : `/restaurant/${user.restaurantId}/dashboard`
                                     }
                                 >
                                     Go to Dashboard
