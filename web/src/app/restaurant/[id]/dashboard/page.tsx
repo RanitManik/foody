@@ -108,7 +108,6 @@ export default function RestaurantDashboardPage() {
         {
             variables: { restaurantId, range: { preset: rangePreset } },
             skip: !restaurantId,
-            fetchPolicy: "no-cache",
         },
     );
 

@@ -21,12 +21,12 @@ export function TopStatsSection({ items }: TopStatsSectionProps) {
     return (
         <Card className="w-full">
             <CardContent className="p-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4">
                     {items.map((item, i) => (
                         <div
                             key={item.key}
                             className={cn(
-                                "bg-card flex min-h-[86px] items-center justify-between gap-4 px-6 py-3",
+                                "bg-card flex min-h-[86px] items-center justify-center gap-4 px-6 py-3",
                                 "md:border-border md:border-r md:last:border-r-0",
                             )}
                         >
@@ -50,7 +50,7 @@ export function TopStatsSection({ items }: TopStatsSectionProps) {
                                         </Tooltip>
                                     )}
                                 </div>
-                                <div className="mt-1 text-2xl font-semibold tabular-nums">
+                                <div className="mt-1 text-2xl font-semibold tabular-nums sm:text-center">
                                     {item.isLoading ? (
                                         <Skeleton className="h-8 w-16" />
                                     ) : (
