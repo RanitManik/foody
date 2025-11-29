@@ -111,12 +111,6 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 0,
 });
 
-const currencyWithCentsFormatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-});
-
 const numberFormatter = new Intl.NumberFormat("en-US");
 
 const formatMetricValue = (metric?: DashboardMetric | null) => {
@@ -124,9 +118,10 @@ const formatMetricValue = (metric?: DashboardMetric | null) => {
     const rawValue = typeof metric.value === "number" ? metric.value : Number(metric.value ?? 0);
 
     if (metric.unit === "USD") {
+        // Round Avg. Order to whole dollars in the dashboard's top stats
         const formatter =
-            metric.key === "averageOrderValue" ? currencyWithCentsFormatter : currencyFormatter;
-        return formatter.format(rawValue);
+            metric.key === "averageOrderValue" ? currencyFormatter : currencyFormatter;
+        return formatter.format(Math.round(rawValue));
     }
 
     return numberFormatter.format(rawValue);
