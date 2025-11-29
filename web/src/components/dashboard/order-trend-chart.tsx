@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, Line } from "recharts";
-import { format, eachDayOfInterval, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -48,30 +48,87 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) {
+    const currencyFormatter = React.useMemo(() => {
+        return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 0,
+        });
+    }, []);
+
+    const numberFormatter = React.useMemo(() => new Intl.NumberFormat("en-US"), []);
     const chartData = React.useMemo(() => {
+        // Prefer using ISO date strings for the x axis values (UTC midnight) so
+        // the chart and tooltip tick formatters can reliably parse them. This
+        // avoids timezone-related off-by-one-day errors when iterating ranges.
         if (!range)
             return data.map((point) => ({
-                date: format(new Date(point.date), "MMM d"),
+                date: new Date(point.date).toISOString(),
                 orders: point.orders,
-                revenue: Number(point.revenue || 0),
+                revenue: Math.round(Number(point.revenue || 0)),
             }));
 
         const start = parseISO(range.start);
         const end = parseISO(range.end);
-        const allDates = eachDayOfInterval({ start, end });
 
+        // Build a data map keyed by ISO date (YYYY-MM-DD) produced from the
+        // order point date; this key uses UTC and will match the dates we
+        // generate below.
         const dataMap = new Map(data.map((point) => [point.date.split("T")[0], point]));
+
+        // Iterate days in UTC to avoid timezone shifting. Use a manual loop so
+        // we control how Date objects are mutated in UTC.
+        const allDates: Date[] = [];
+        const startUTC = new Date(
+            Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()),
+        );
+        const endUTC = new Date(
+            Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()),
+        );
+        for (
+            let d = new Date(startUTC);
+            d.getTime() <= endUTC.getTime();
+            d.setUTCDate(d.getUTCDate() + 1)
+        ) {
+            allDates.push(new Date(d));
+        }
 
         return allDates.map((date) => {
             const dateStr = date.toISOString().split("T")[0];
             const point = dataMap.get(dateStr);
             return {
-                date: format(date, "MMM d"),
+                // Use ISO so we can parse reliably; tickFormatter will render
+                // a human-friendly label from the ISO value.
+                date: `${dateStr}T00:00:00.000Z`,
                 orders: point?.orders ?? 0,
-                revenue: Number(point?.revenue ?? 0),
+                revenue: Math.round(Number(point?.revenue ?? 0)),
             };
         });
     }, [data, range]);
+
+    const xTickFormatter = React.useCallback((value: string | number) => {
+        const date = new Date(value as string);
+        return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }, []);
+
+    const tooltipLabelFormatter = React.useCallback((value: string | number) => {
+        return new Date(value as string).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+        });
+    }, []);
+
+    const tooltipValueFormatter = React.useCallback(
+        (value: unknown, name?: string | number) => {
+            const key = String(name ?? "");
+            const numeric = Number(value ?? 0);
+            if (key === "revenue") {
+                return currencyFormatter.format(Math.round(numeric));
+            }
+            return numberFormatter.format(Math.round(numeric));
+        },
+        [currencyFormatter, numberFormatter],
+    );
 
     return (
         <Card className="h-full">
@@ -135,26 +192,15 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                                 tickLine={false}
                                 axisLine={false}
                                 tickMargin={8}
-                                minTickGap={32}
-                                tickCount={10}
-                                tickFormatter={(value) => {
-                                    const date = new Date(value);
-                                    return date.toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                    });
-                                }}
+                                minTickGap={8}
+                                interval="preserveStartEnd"
+                                tickFormatter={xTickFormatter}
                             />
                             <ChartTooltip
                                 cursor={false}
                                 content={
                                     <ChartTooltipContent
-                                        labelFormatter={(value) => {
-                                            return new Date(value).toLocaleDateString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                            });
-                                        }}
+                                        labelFormatter={tooltipLabelFormatter}
                                         indicator="dot"
                                         formatter={(value, name) => {
                                             const config =
@@ -167,9 +213,7 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                                                     />
                                                     <span>
                                                         {config?.label}:{" "}
-                                                        {typeof value === "number"
-                                                            ? value.toLocaleString()
-                                                            : value}
+                                                        {tooltipValueFormatter(value, name)}
                                                     </span>
                                                 </div>
                                             );
