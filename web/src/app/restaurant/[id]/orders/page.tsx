@@ -210,9 +210,9 @@ type PaymentMethodsData = {
 };
 
 const statusConfig = {
-    PENDING: { label: "Pending", color: "secondary", icon: Clock },
-    COMPLETED: { label: "Completed", color: "default", icon: CheckCircle },
-    CANCELLED: { label: "Cancelled", color: "destructive", icon: X },
+    PENDING: { label: "Pending", color: "pending", icon: Clock },
+    COMPLETED: { label: "Completed", color: "success", icon: CheckCircle },
+    CANCELLED: { label: "Cancelled", color: "fail", icon: X },
 } as const;
 
 export default function OrdersPage() {
@@ -562,14 +562,15 @@ export default function OrdersPage() {
                                                       <Badge
                                                           variant={
                                                               statusInfo.color as
-                                                                  | "secondary"
-                                                                  | "default"
+                                                                  | "pending"
+                                                                  | "success"
+                                                                  | "fail"
                                                                   | "outline"
                                                                   | "destructive"
                                                           }
                                                           className="h-5 px-1.5 py-0.5 text-xs"
                                                       >
-                                                          <StatusIcon className="mr-1 h-2.5 w-2.5" />
+                                                          <StatusIcon className="h-2.5 w-2.5" />
                                                           {statusInfo.label}
                                                       </Badge>
                                                   </TableCell>
@@ -815,8 +816,9 @@ export default function OrdersPage() {
                                                     statusConfig[
                                                         viewingOrder.status as keyof typeof statusConfig
                                                     ].color as
-                                                        | "secondary"
-                                                        | "default"
+                                                        | "pending"
+                                                        | "success"
+                                                        | "fail"
                                                         | "outline"
                                                         | "destructive"
                                                 }
@@ -918,8 +920,8 @@ export default function OrdersPage() {
                                                 <Badge
                                                     variant={
                                                         viewingOrder.payment.status === "COMPLETED"
-                                                            ? "default"
-                                                            : "secondary"
+                                                            ? "success"
+                                                            : "pending"
                                                     }
                                                 >
                                                     {viewingOrder.payment.status}

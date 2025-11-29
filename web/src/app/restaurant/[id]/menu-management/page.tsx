@@ -645,17 +645,12 @@ export default function MenuManagementPage() {
                                                   </div>
                                               </TableCell>
                                               <TableCell className="border-r px-2 font-medium sm:px-3 md:px-4">
-                                                  <div className="flex items-center gap-2">
-                                                      <div
-                                                          className={`h-2 w-2 rounded-full ${item.isAvailable ? "bg-green-500" : "bg-gray-400"}`}
-                                                      />
-                                                      <span
-                                                          className="max-w-40 truncate text-xs md:max-w-none md:overflow-visible md:text-sm"
-                                                          title={item.name}
-                                                      >
-                                                          {item.name}
-                                                      </span>
-                                                  </div>
+                                                  <span
+                                                      className="max-w-40 truncate text-xs md:max-w-none md:overflow-visible md:text-sm"
+                                                      title={item.name}
+                                                  >
+                                                      {item.name}
+                                                  </span>
                                               </TableCell>
                                               <TableCell className="text-muted-foreground border-r px-2 sm:px-3 md:px-4">
                                                   <span
@@ -671,9 +666,7 @@ export default function MenuManagementPage() {
                                               <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                   <Badge
                                                       variant={
-                                                          item.isAvailable
-                                                              ? "secondary"
-                                                              : "destructive"
+                                                          item.isAvailable ? "success" : "fail"
                                                       }
                                                       className="h-5 px-1.5 py-0.5 text-xs"
                                                   >
@@ -1053,8 +1046,8 @@ export default function MenuManagementPage() {
                                                 <Badge
                                                     variant={
                                                         viewingMenuItem.isAvailable
-                                                            ? "secondary"
-                                                            : "destructive"
+                                                            ? "success"
+                                                            : "fail"
                                                     }
                                                     className="w-fit"
                                                 >

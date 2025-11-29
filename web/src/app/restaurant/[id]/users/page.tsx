@@ -194,9 +194,9 @@ type UserUpdates = {
 };
 
 const roleConfig = {
-    ADMIN: { label: "Admin", color: "destructive", icon: Shield },
-    MANAGER: { label: "Manager", color: "default", icon: Building },
-    MEMBER: { label: "Member", color: "secondary", icon: Users },
+    ADMIN: { label: "Admin", color: "fail", icon: Shield },
+    MANAGER: { label: "Manager", color: "success", icon: Building },
+    MEMBER: { label: "Member", color: "pending", icon: Users },
 } as const;
 
 const userSchema = z.object({
@@ -802,17 +802,12 @@ export default function UsersPage() {
                                                       {user.id.slice(-8)}
                                                   </TableCell>
                                                   <TableCell className="border-r px-2 sm:px-3 md:px-4">
-                                                      <div className="flex items-center gap-2">
-                                                          <div
-                                                              className={`h-2 w-2 rounded-full ${user.isActive ? "bg-green-500" : "bg-red-500"}`}
-                                                          />
-                                                          <span
-                                                              className="max-w-40 truncate text-xs md:max-w-none md:overflow-visible md:text-sm"
-                                                              title={`${user.firstName} ${user.lastName}`}
-                                                          >
-                                                              {user.firstName} {user.lastName}
-                                                          </span>
-                                                      </div>
+                                                      <span
+                                                          className="max-w-40 truncate text-xs md:max-w-none md:overflow-visible md:text-sm"
+                                                          title={`${user.firstName} ${user.lastName}`}
+                                                      >
+                                                          {user.firstName} {user.lastName}
+                                                      </span>
                                                   </TableCell>
                                                   <TableCell className="border-r px-2 sm:px-3 md:px-4">
                                                       <span
@@ -838,20 +833,18 @@ export default function UsersPage() {
                                                   <TableCell className="border-r px-2 text-center sm:px-3 md:px-4">
                                                       <Badge
                                                           variant={
-                                                              user.isActive
-                                                                  ? "secondary"
-                                                                  : "destructive"
+                                                              user.isActive ? "success" : "fail"
                                                           }
                                                           className="h-5 px-1.5 py-0.5 text-xs"
                                                       >
                                                           {user.isActive ? (
                                                               <>
-                                                                  <UserCheck className="mr-1 h-2.5 w-2.5" />
+                                                                  <UserCheck className="h-2.5 w-2.5" />
                                                                   Active
                                                               </>
                                                           ) : (
                                                               <>
-                                                                  <UserX className="mr-1 h-2.5 w-2.5" />
+                                                                  <UserX className="h-2.5 w-2.5" />
                                                                   Inactive
                                                               </>
                                                           )}
@@ -1070,8 +1063,9 @@ export default function UsersPage() {
                                                 roleConfig[
                                                     viewingUser.role as keyof typeof roleConfig
                                                 ].color as
-                                                    | "secondary"
-                                                    | "default"
+                                                    | "pending"
+                                                    | "success"
+                                                    | "fail"
                                                     | "outline"
                                                     | "destructive"
                                             }
@@ -1084,7 +1078,7 @@ export default function UsersPage() {
                                             }
                                         </Badge>
                                         <Badge
-                                            variant={viewingUser.isActive ? "default" : "secondary"}
+                                            variant={viewingUser.isActive ? "success" : "fail"}
                                             className="w-fit"
                                         >
                                             {viewingUser.isActive ? "Active" : "Inactive"}
