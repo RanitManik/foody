@@ -1,3 +1,32 @@
+# [1.1.0](https://github.com/RanitManik/foody/compare/v1.0.0...v1.1.0) (2025-11-29)
+
+
+### Bug Fixes
+
+* **auth:** update admin redirect to dashboard page ([ef3b312](https://github.com/RanitManik/foody/commit/ef3b312e4688439d7ebaeb1ccd2361b28510e9bf))
+* correct formatting in README.md for GitHub Discussions badge ([037504e](https://github.com/RanitManik/foody/commit/037504e78d21c34885e2b9055a88edacd69c715e))
+* **dashboard:** adjust grid layout and alignment in TopStatsSection component ([07c0bb9](https://github.com/RanitManik/foody/commit/07c0bb9e5deddebd67c9aaccc0ee13e64bf73ae8))
+* **dashboard:** update currency formatting for average order value to round to whole dollars ([0e15eb0](https://github.com/RanitManik/foody/commit/0e15eb001d1bd9a737f6d78bdde9fdbaa67cce6b))
+* **dashboard:** update order metrics to reflect completed orders only ([5823aea](https://github.com/RanitManik/foody/commit/5823aea0031e4adcdd24cdc7485bb108f11c8efc))
+* **dashboard:** update total orders and order trend metrics to reflect accurate values ([375790b](https://github.com/RanitManik/foody/commit/375790b4e2471db47539c616dc9e6bf52c809298))
+* **header:** add loading skeletons for restaurant name and status in RestaurantHeader component ([f05b332](https://github.com/RanitManik/foody/commit/f05b3322a64f7705077dcf986f7b57f80e6c6c8a))
+* **header:** adjust gap in loading skeleton container for improved layout ([efae0ca](https://github.com/RanitManik/foody/commit/efae0ca026d09ad919c7e747cc45e8b9886f9d82))
+* **header:** update restaurant link to redirect to dashboard instead of orders ([d544fbc](https://github.com/RanitManik/foody/commit/d544fbcc93b4ded67e3f81ebfd20aa67b981a002))
+* **order-trend-chart:** adjust chart container padding and tick gap for better layout ([6e14148](https://github.com/RanitManik/foody/commit/6e14148fe4426385be5a0ffa81bfd17bb53901fb))
+* **top-stats-section:** center loading skeleton in TopStatsSection component ([8052a7d](https://github.com/RanitManik/foody/commit/8052a7d6f9c797082f7c6115e564428f50132b2e))
+* update project description to reflect restaurant operations context ([5db1af9](https://github.com/RanitManik/foody/commit/5db1af94e82248c16bc68445429b8ab67d75d624))
+
+
+### Features
+
+* **dashboard:** add LAST_90_DAYS option to DashboardRangePreset and update related components ([b39fd97](https://github.com/RanitManik/foody/commit/b39fd9775d85b9bcf09be129120cdc1e96048fc0))
+* **dashboard:** implement admin and restaurant dashboard metrics ([d427396](https://github.com/RanitManik/foody/commit/d427396a846be5b9f8083c18c4e9a3c7d414746c))
+* **dashboard:** implement restaurant dashboard page with metrics, recent orders, and top menu items ([4ea7d2c](https://github.com/RanitManik/foody/commit/4ea7d2cfbd8b73214b9b4338000a6a0596341e33))
+* **dashboard:** update routing for admin access and enhance order trend chart ([fe353e8](https://github.com/RanitManik/foody/commit/fe353e86e31d59345c4c5a28d7cecda026d5a8d1))
+* **database:** enhance seed script with dynamic menu item categories and order creation logic ([7bb8bff](https://github.com/RanitManik/foody/commit/7bb8bff974d6bedfd911507d50e3bd614bf8fbd7))
+* **order-trend-chart:** enhance date handling and formatting for improved chart accuracy ([4c3c5c0](https://github.com/RanitManik/foody/commit/4c3c5c041db956267a31691f21ec5a9f7989ec00))
+* update routing to use dashboard instead of orders for restaurant and admin pages ([6443733](https://github.com/RanitManik/foody/commit/64437330eeae28a17aa9ac8c8e7a8fc521ede2ae))
+
 # 1.0.0 (2025-11-27)
 
 
