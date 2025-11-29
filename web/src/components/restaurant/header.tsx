@@ -146,9 +146,13 @@ export function RestaurantHeader({
                             <BreadcrumbItem>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-0! hover:bg-transparent focus-visible:outline-none">
-                                        <span className="w-15 truncate text-sm font-semibold sm:w-auto">
-                                            {restaurant?.name || "Restaurant"}
-                                        </span>
+                                        {restaurantsLoading ? (
+                                            <Skeleton className="h-4 w-20" />
+                                        ) : (
+                                            <span className="w-15 truncate text-sm font-semibold sm:w-auto">
+                                                {restaurant?.name || "Restaurant"}
+                                            </span>
+                                        )}
                                         <ChevronDown className="text-muted-foreground size-4" />
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="start" className="min-w-[180px]">
@@ -181,15 +185,24 @@ export function RestaurantHeader({
                     </Breadcrumb>
                 ) : (
                     <div className="bg-card flex items-center gap-3 rounded-lg border px-3 py-1.5 shadow-sm">
-                        <div
-                            className={cn(
-                                "h-2 w-2 rounded-full",
-                                restaurant?.isActive ? "bg-green-500" : "bg-red-500",
-                            )}
-                        />
-                        <span className="text-sm font-semibold">
-                            {restaurant?.name || "Restaurant"}
-                        </span>
+                        {restaurantsLoading ? (
+                            <>
+                                <Skeleton className="h-2 w-2 rounded-full" />
+                                <Skeleton className="h-4 w-24" />
+                            </>
+                        ) : (
+                            <>
+                                <div
+                                    className={cn(
+                                        "h-2 w-2 rounded-full",
+                                        restaurant?.isActive ? "bg-green-500" : "bg-red-500",
+                                    )}
+                                />
+                                <span className="text-sm font-semibold">
+                                    {restaurant?.name || "Restaurant"}
+                                </span>
+                            </>
+                        )}
                     </div>
                 )}
             </div>{" "}
