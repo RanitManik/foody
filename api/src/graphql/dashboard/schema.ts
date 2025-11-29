@@ -6,6 +6,7 @@ export const typeDefs = `#graphql
         TODAY
         LAST_7_DAYS
         LAST_30_DAYS
+        LAST_90_DAYS
         CUSTOM
     }
 

@@ -11,7 +11,7 @@ const DEFAULT_PRESET: DashboardRangePreset = "LAST_7_DAYS";
 
 const paymentStatuses = Object.values(PaymentStatus);
 
-type DashboardRangePreset = "TODAY" | "LAST_7_DAYS" | "LAST_30_DAYS" | "CUSTOM";
+type DashboardRangePreset = "TODAY" | "LAST_7_DAYS" | "LAST_30_DAYS" | "LAST_90_DAYS" | "CUSTOM";
 
 type DashboardRange = {
     preset: DashboardRangePreset;
@@ -86,6 +86,7 @@ const presetToDays: Record<Exclude<DashboardRangePreset, "CUSTOM">, number> = {
     TODAY: 0,
     LAST_7_DAYS: 6,
     LAST_30_DAYS: 29,
+    LAST_90_DAYS: 89,
 };
 
 const normalizeRange = (input?: DashboardRangeInput | null): DashboardRange => {

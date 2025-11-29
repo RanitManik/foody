@@ -55,7 +55,7 @@ const ADMIN_DASHBOARD_QUERY = gql`
     }
 `;
 
-type DashboardRangePreset = "TODAY" | "LAST_7_DAYS" | "LAST_30_DAYS";
+type DashboardRangePreset = "TODAY" | "LAST_7_DAYS" | "LAST_30_DAYS" | "LAST_90_DAYS";
 
 type DashboardMetric = {
     key: string;
@@ -80,6 +80,7 @@ type AdminDashboardResponse = {
 const RANGE_OPTIONS: Array<{ label: string; value: DashboardRangePreset }> = [
     { label: "Last 7 days", value: "LAST_7_DAYS" },
     { label: "Last 30 days", value: "LAST_30_DAYS" },
+    { label: "Last 3 months", value: "LAST_90_DAYS" },
 ];
 
 const KPI_ORDER = ["totalRevenue", "totalOrders", "averageOrderValue", "totalRestaurants"];
