@@ -188,7 +188,7 @@ export function RestaurantHeader({
                                                                 key={r.id}
                                                                 onClick={() =>
                                                                     router.push(
-                                                                        `/restaurant/${r.id}/orders`,
+                                                                        `/restaurant/${r.id}/dashboard`,
                                                                     )
                                                                 }
                                                             >
