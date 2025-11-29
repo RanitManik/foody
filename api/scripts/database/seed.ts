@@ -6,6 +6,20 @@ const prisma = new PrismaClient();
 
 const DEFAULT_PASSWORD = "ChangeMe123!";
 
+const CATEGORIES = [
+    "Appetizers",
+    "Main Course",
+    "Desserts",
+    "Beverages",
+    "Sides",
+    "Salads",
+    "Soups",
+    "Grilled Items",
+    "Fried Items",
+    "Vegetarian",
+    "Non-Vegetarian",
+];
+
 const LOCATIONS = {
     SPICE_GARDEN: "spice-garden-bangalore",
     TANDOOR_EXPRESS: "tandoor-express-bangalore",
@@ -44,8 +58,8 @@ async function main() {
     const restaurantBar = multibar.create(4, 0, { task: "Restaurants" });
     const userBar = multibar.create(256, 0, { task: "Users" });
     const menuBar = multibar.create(200, 0, { task: "Menu Items" });
-    const orderBar = multibar.create(200, 0, { task: "Orders" });
-    const paymentBar = multibar.create(200, 0, { task: "Payment Methods" });
+    const orderBar = multibar.create(400, 0, { task: "Orders" });
+    const paymentBar = multibar.create(20, 0, { task: "Payment Methods" });
 
     const restaurantIndia1 = await prisma.restaurants.upsert({
         where: { id: RESTAURANT_IDS.SPICE_GARDEN },
@@ -267,6 +281,9 @@ async function main() {
     const menuItems = [];
     for (const restaurant of restaurants) {
         for (let i = 1; i <= 50; i++) {
+            const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+            const basePrice = Math.random() * 40 + 5; // 5 to 45
+            const price = Math.round(basePrice * 100) / 100; // round to 2 decimals
             const menuItem = await prisma.menu_items.upsert({
                 where: { id: `menu-${restaurant.id}-${i}` },
                 update: {},
@@ -274,8 +291,8 @@ async function main() {
                     id: `menu-${restaurant.id}-${i}`,
                     name: `Menu Item ${i} at ${restaurant.name}`,
                     description: `Description for menu item ${i} at ${restaurant.name}`,
-                    price: 10 + (i % 10),
-                    category: "Main Course",
+                    price: price,
+                    category: category,
                     restaurantId: restaurant.id,
                 },
             });
@@ -286,19 +303,24 @@ async function main() {
     statusMessages.push("✅ 200 menu items created (50 per restaurant)");
     menuBar.stop();
 
-    // Create orders (50 per restaurant = 200)
+    // Create orders (100 per restaurant = 400)
     for (const restaurant of restaurants) {
-        for (let i = 1; i <= 50; i++) {
+        for (let i = 1; i <= 100; i++) {
             const user = users[Math.floor(Math.random() * users.length)];
             const availableItems = menuItems.filter((m) => m.restaurantId === restaurant.id);
-            const numItems = Math.floor(Math.random() * 3) + 1;
+            const numItems = Math.floor(Math.random() * 5) + 1; // 1 to 5 items
             const selectedItems = [];
             let total = 0;
             for (let j = 0; j < numItems; j++) {
                 const item = availableItems[Math.floor(Math.random() * availableItems.length)];
-                selectedItems.push(item);
-                total += item.price;
+                const quantity = Math.floor(Math.random() * 3) + 1; // 1 to 3 quantity
+                selectedItems.push({ item, quantity });
+                total += item.price * quantity;
             }
+            // Random date in last 30 days
+            const daysAgo = Math.floor(Math.random() * 30);
+            const createdAt = new Date();
+            createdAt.setDate(createdAt.getDate() - daysAgo);
             const order = await prisma.orders.create({
                 data: {
                     userId: user.id,
@@ -306,40 +328,41 @@ async function main() {
                     totalAmount: total,
                     status: "COMPLETED",
                     phone: "+1234567890",
+                    createdAt: createdAt,
                 },
             });
-            for (const item of selectedItems) {
+            for (const { item, quantity } of selectedItems) {
                 await prisma.order_items.create({
                     data: {
                         orderId: order.id,
                         menuItemId: item.id,
-                        quantity: 1,
+                        quantity: quantity,
                         price: item.price,
                     },
                 });
             }
-            orderBar.update(restaurants.indexOf(restaurant) * 50 + i);
+            orderBar.update(restaurants.indexOf(restaurant) * 100 + i);
         }
     }
-    statusMessages.push("✅ 200 orders created (50 per restaurant)");
+    statusMessages.push("✅ 400 orders created (100 per restaurant, spread over 30 days)");
     orderBar.stop();
 
-    // Create payment methods (50 per restaurant = 200)
+    // Create payment methods (5 per restaurant = 20)
     for (const restaurant of restaurants) {
-        for (let i = 1; i <= 50; i++) {
+        for (let i = 0; i < 5; i++) {
             await prisma.payment_methods.create({
                 data: {
                     restaurantId: restaurant.id,
                     type: "CREDIT_CARD",
-                    provider: "STRIPE",
-                    last4: `${i % 10}${i % 10}${i % 10}${i % 10}`,
-                    isDefault: i === 1,
+                    provider: i % 2 === 0 ? "STRIPE" : "PAYPAL",
+                    last4: `${(i + 1) % 10}${(i + 2) % 10}${(i + 3) % 10}${(i + 4) % 10}`,
+                    isDefault: i === 0,
                 },
             });
-            paymentBar.update(restaurants.indexOf(restaurant) * 50 + i);
+            paymentBar.update(restaurants.indexOf(restaurant) * 5 + i + 1);
         }
     }
-    statusMessages.push("✅ 200 payment methods created (50 per restaurant)");
+    statusMessages.push("✅ 20 payment methods created (5 per restaurant)");
     paymentBar.stop();
 
     multibar.stop();

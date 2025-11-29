@@ -20,6 +20,7 @@ import {
     type ChartConfig,
 } from "@/components/ui/chart";
 import type { RestaurantPerformance } from "@/components/dashboard/types";
+import { TriangleAlert } from "lucide-react";
 
 const COLORS = [
     "var(--chart-1)",
@@ -76,7 +77,7 @@ export function TopRestaurantsPieChart({ data, loading }: TopRestaurantsPieChart
     return (
         <Card className="h-full">
             <CardHeader className="flex items-center gap-2 space-y-0 py-5 text-xl sm:flex-row">
-                <div>
+                <div className="grid flex-1 gap-1">
                     <CardTitle>Revenue Share</CardTitle>
                     <CardDescription>Showing total revenue for the last 7 days</CardDescription>
                 </div>
@@ -85,9 +86,10 @@ export function TopRestaurantsPieChart({ data, loading }: TopRestaurantsPieChart
                 {loading ? (
                     <Skeleton className="h-full w-full" />
                 ) : slices.length === 0 ? (
-                    <Empty>
+                    <Empty className="h-full">
                         <EmptyContent>
                             <EmptyHeader>
+                                <TriangleAlert className="text-destructive size-8" />
                                 <EmptyTitle>No revenue captured</EmptyTitle>
                                 <EmptyDescription>
                                     Once restaurants start processing orders you’ll see how revenue

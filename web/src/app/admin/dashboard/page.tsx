@@ -205,11 +205,7 @@ export default function AdminDashboardPage() {
                         onClick={() => refetch()}
                         disabled={loading}
                     >
-                        {loading ? (
-                            <Spinner className="mr-2" />
-                        ) : (
-                            <RefreshCw className="mr-2 size-4" />
-                        )}
+                        {loading ? <Spinner /> : <RefreshCw className="size-4" />}
                         Refresh
                     </Button>
                 </div>
