@@ -106,8 +106,6 @@ export const typeDefs = `#graphql
         kpis: [DashboardMetric!]!
         orderTrend: [DashboardTrendPoint!]!
         topRestaurants: [DashboardRestaurantPerformance!]!
-        paymentHealth: [DashboardPaymentSlice!]!
-        recentFeedback: [DashboardFeedbackSnippet!]!
     }
 
     type RestaurantDashboardSummary {

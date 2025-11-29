@@ -319,8 +319,6 @@ export const dashboardResolvers = {
                         newUsers,
                         orders,
                         completedPayments,
-                        paymentBreakdown,
-                        recentFeedback,
                     ] = await Promise.all([
                         prisma.restaurants.count(),
                         prisma.restaurants.count({ where: { isActive: true } }),
@@ -380,33 +378,6 @@ export const dashboardResolvers = {
                             _sum: { amount: true },
                             _count: { _all: true },
                         }),
-                        prisma.payments.groupBy({
-                            by: ["status"],
-                            where: {
-                                createdAt: {
-                                    gte: range.start,
-                                    lte: range.end,
-                                },
-                            },
-                            _count: { _all: true },
-                            _sum: { amount: true },
-                        }),
-                        prisma.feedbacks.findMany({
-                            where: {
-                                createdAt: {
-                                    gte: range.start,
-                                    lte: range.end,
-                                },
-                            },
-                            orderBy: { createdAt: "desc" },
-                            take: 5,
-                            select: {
-                                id: true,
-                                message: true,
-                                email: true,
-                                createdAt: true,
-                            },
-                        }),
                     ]);
 
                     // If payments aggregation returns zero (no recorded payments), fallback to sum of completed orders
@@ -465,8 +436,6 @@ export const dashboardResolvers = {
                         ],
                         orderTrend: buildOrderTrend(orders),
                         topRestaurants: buildTopRestaurants(orders),
-                        paymentHealth: normalizePaymentSlices(paymentBreakdown),
-                        recentFeedback,
                     };
                 },
                 CACHE_TTL.DASHBOARD,

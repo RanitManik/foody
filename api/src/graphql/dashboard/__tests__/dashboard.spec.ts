@@ -141,26 +141,6 @@ describe("Dashboard resolvers", () => {
                 _sum: { amount: 500 },
                 _count: { _all: 5 },
             });
-            (mockPrisma.payments.groupBy as jest.Mock).mockResolvedValue([
-                {
-                    status: PaymentStatus.COMPLETED,
-                    _count: { _all: 5 },
-                    _sum: { amount: 500 },
-                },
-                {
-                    status: PaymentStatus.FAILED,
-                    _count: { _all: 1 },
-                    _sum: { amount: 50 },
-                },
-            ]);
-            (mockPrisma.feedbacks.findMany as jest.Mock).mockResolvedValue([
-                {
-                    id: "feedback-1",
-                    message: "Loving it",
-                    email: "guest@foody.dev",
-                    createdAt: new Date(),
-                },
-            ]);
 
             const context = createContext({ user: buildUser({ role: UserRole.ADMIN }) });
             const result = await dashboardResolvers.Query?.adminDashboardMetrics?.(
