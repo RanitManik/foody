@@ -17,7 +17,7 @@ export default function HomePage() {
         const userData = JSON.parse(localStorage.getItem("user_data") || "{}");
 
         if (role === "ADMIN") {
-            router.push("/admin/restaurants");
+            router.push("/admin/dashboard");
         } else if (userData.restaurantId) {
             router.push(`/restaurant/${userData.restaurantId}/orders`);
         } else {

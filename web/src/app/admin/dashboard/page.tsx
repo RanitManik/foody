@@ -142,7 +142,6 @@ export default function AdminDashboardPage() {
             variables: {
                 range: { preset: rangePreset },
             },
-            fetchPolicy: "cache-and-network",
         },
     );
 

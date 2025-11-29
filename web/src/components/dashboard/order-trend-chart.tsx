@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Line } from "recharts";
 import { format, eachDayOfInterval, parseISO } from "date-fns";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -99,7 +99,10 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                     </Empty>
                 ) : (
                     <ChartContainer config={chartConfig} className="aspect-auto h-full w-full">
-                        <AreaChart data={chartData}>
+                        <AreaChart
+                            data={chartData}
+                            margin={{ top: 20, right: 0, left: 0, bottom: 10 }}
+                        >
                             <defs>
                                 <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
                                     <stop
@@ -132,7 +135,8 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                                 tickLine={false}
                                 axisLine={false}
                                 tickMargin={8}
-                                minTickGap={32}
+                                minTickGap={16}
+                                tickCount={10}
                                 tickFormatter={(value) => {
                                     const date = new Date(value);
                                     return date.toLocaleDateString("en-US", {
@@ -140,6 +144,20 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                                         day: "numeric",
                                     });
                                 }}
+                            />
+                            <YAxis
+                                yAxisId="left"
+                                orientation="left"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={false}
+                            />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={false}
                             />
                             <ChartTooltip
                                 cursor={false}
@@ -174,18 +192,26 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                                 }
                             />
                             <Area
+                                yAxisId="left"
                                 dataKey="revenue"
                                 type="natural"
                                 fill="url(#fillRevenue)"
                                 stroke="var(--color-revenue)"
-                                stackId="a"
                             />
                             <Area
+                                yAxisId="right"
                                 dataKey="orders"
                                 type="natural"
                                 fill="url(#fillOrders)"
                                 stroke="var(--color-orders)"
-                                stackId="a"
+                            />
+                            <Line
+                                yAxisId="right"
+                                dataKey="orders"
+                                type="monotone"
+                                stroke="var(--color-orders)"
+                                strokeWidth={2}
+                                dot={false}
                             />
                             <ChartLegend content={<ChartLegendContent />} />
                         </AreaChart>
