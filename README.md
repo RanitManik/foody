@@ -45,7 +45,6 @@ A comprehensive restaurant operations management platform implementing role-base
     - [Code Quality](#code-quality)
 - [**Testing**](#testing)
 - [**Deployment**](#deployment)
-    - [Environment Variables](#environment-variables)
 - [**Monitoring & Observability**](#monitoring--observability)
     - [Metrics](#metrics)
     - [Health Checks](#health-checks)
