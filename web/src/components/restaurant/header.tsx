@@ -34,6 +34,7 @@ import {
     BreadcrumbLink,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTheme } from "next-themes";
 import FeedbackModal from "@/components/admin/feedback-modal";
 import { useQuery } from "@apollo/client/react";
@@ -42,25 +43,29 @@ import { useRouter } from "nextjs-toploader/app";
 import { gql } from "@apollo/client/core";
 import { cn } from "@/lib/utils";
 
-const GET_RESTAURANT = gql`
-    query GetRestaurantHeader($id: ID!) {
-        restaurant(id: $id) {
-            id
-            name
-            isActive
-            location
+const GET_RESTAURANTS = gql`
+    query GetRestaurantsForHeader {
+        restaurants {
+            restaurants {
+                id
+                name
+                isActive
+                location
+            }
         }
     }
 `;
 
-interface RestaurantData {
-    restaurant: {
-        id: string;
-        name: string;
-        isActive: boolean;
-        location: string;
+type RestaurantsListData = {
+    restaurants: {
+        restaurants: Array<{
+            id: string;
+            name: string;
+            isActive: boolean;
+            location: string;
+        }>;
     };
-}
+};
 
 export function RestaurantHeader({
     restaurantId,
@@ -75,33 +80,13 @@ export function RestaurantHeader({
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const openFeedback = () => (onOpenFeedback ? onOpenFeedback(true) : setIsFeedbackOpen(true));
 
-    const { data } = useQuery<RestaurantData>(GET_RESTAURANT, {
-        variables: { id: restaurantId },
-        skip: !restaurantId,
-    });
-
-    const restaurant = data?.restaurant;
-
-    const GET_RESTAURANTS = gql`
-        query GetRestaurantsForHeader {
-            restaurants {
-                restaurants {
-                    id
-                    name
-                }
-            }
-        }
-    `;
-
-    type RestaurantsListData = {
-        restaurants: {
-            restaurants: Array<{ id: string; name: string }>;
-        };
-    };
-
     const { data: allRestaurantsData, loading: restaurantsLoading } = useQuery<RestaurantsListData>(
         GET_RESTAURANTS,
         { skip: !restaurantId },
+    );
+
+    const restaurant = allRestaurantsData?.restaurants?.restaurants?.find(
+        (r) => r.id === restaurantId,
     );
 
     const router = useRouter();
@@ -147,75 +132,67 @@ export function RestaurantHeader({
                     <RestaurantSidebar restaurantId={restaurantId} onOpenFeedback={openFeedback} />
                 </SheetContent>
             </Sheet>
-
             {/* Left Side: Restaurant Info */}
             <div className="flex items-center gap-4">
-                {restaurant && (
-                    <div className="flex items-center gap-3">
-                        {user?.role === "ADMIN" ? (
-                            <Breadcrumb className="text-sm">
-                                <BreadcrumbList className="flex-nowrap">
-                                    <BreadcrumbItem>
-                                        <BreadcrumbLink asChild>
-                                            <Link href="/admin/restaurants">Restaurants</Link>
-                                        </BreadcrumbLink>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator />
-                                    <BreadcrumbItem>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-0! hover:bg-transparent focus-visible:outline-none">
-                                                <span className="w-15 truncate text-sm font-semibold sm:w-auto">
-                                                    {restaurant.name}
-                                                </span>
-                                                <ChevronDown className="text-muted-foreground size-4" />
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent
-                                                align="start"
-                                                className="min-w-[180px]"
-                                            >
-                                                {restaurantsLoading ? (
-                                                    <DropdownMenuItem disabled>
-                                                        Loading…
+                {user?.role === "ADMIN" ? (
+                    <Breadcrumb className="text-sm">
+                        <BreadcrumbList className="flex-nowrap">
+                            <BreadcrumbItem>
+                                <BreadcrumbLink asChild>
+                                    <Link href="/admin/restaurants">Restaurants</Link>
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-0! hover:bg-transparent focus-visible:outline-none">
+                                        <span className="w-15 truncate text-sm font-semibold sm:w-auto">
+                                            {restaurant?.name || "Restaurant"}
+                                        </span>
+                                        <ChevronDown className="text-muted-foreground size-4" />
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="start" className="min-w-[180px]">
+                                        {restaurantsLoading ? (
+                                            <div className="space-y-2 p-2">
+                                                <Skeleton className="h-4 w-full" />
+                                                <Skeleton className="h-4 w-3/4" />
+                                                <Skeleton className="h-4 w-1/2" />
+                                            </div>
+                                        ) : (
+                                            (allRestaurantsData?.restaurants?.restaurants || [])
+                                                .filter((r) => r.id !== restaurant?.id)
+                                                .map((r) => (
+                                                    <DropdownMenuItem
+                                                        key={r.id}
+                                                        onClick={() =>
+                                                            router.push(
+                                                                `/restaurant/${r.id}/dashboard`,
+                                                            )
+                                                        }
+                                                    >
+                                                        {r.name}
                                                     </DropdownMenuItem>
-                                                ) : (
-                                                    (
-                                                        allRestaurantsData?.restaurants
-                                                            ?.restaurants || []
-                                                    )
-                                                        .filter((r) => r.id !== restaurant?.id)
-                                                        .map((r) => (
-                                                            <DropdownMenuItem
-                                                                key={r.id}
-                                                                onClick={() =>
-                                                                    router.push(
-                                                                        `/restaurant/${r.id}/dashboard`,
-                                                                    )
-                                                                }
-                                                            >
-                                                                {r.name}
-                                                            </DropdownMenuItem>
-                                                        ))
-                                                )}
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </BreadcrumbItem>
-                                </BreadcrumbList>
-                            </Breadcrumb>
-                        ) : (
-                            <div className="bg-card flex items-center gap-3 rounded-lg border px-3 py-1.5 shadow-sm">
-                                <div
-                                    className={cn(
-                                        "h-2 w-2 rounded-full",
-                                        restaurant.isActive ? "bg-green-500" : "bg-red-500",
-                                    )}
-                                />
-                                <span className="text-sm font-semibold">{restaurant.name}</span>
-                            </div>
-                        )}
+                                                ))
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                ) : (
+                    <div className="bg-card flex items-center gap-3 rounded-lg border px-3 py-1.5 shadow-sm">
+                        <div
+                            className={cn(
+                                "h-2 w-2 rounded-full",
+                                restaurant?.isActive ? "bg-green-500" : "bg-red-500",
+                            )}
+                        />
+                        <span className="text-sm font-semibold">
+                            {restaurant?.name || "Restaurant"}
+                        </span>
                     </div>
                 )}
-            </div>
-
+            </div>{" "}
             {/* Right Side: Date, Time, Profile */}
             <div className="ml-auto flex items-center gap-3">
                 {/* Date & Time */}
