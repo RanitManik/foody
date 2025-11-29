@@ -184,7 +184,7 @@ export function RestaurantHeader({
                         </BreadcrumbList>
                     </Breadcrumb>
                 ) : (
-                    <div className="bg-card flex items-center gap-3 rounded-lg border px-3 py-1.5 shadow-sm">
+                    <div className="bg-card flex items-center gap-2 rounded-lg border px-3 py-1.5 shadow-sm">
                         {restaurantsLoading ? (
                             <>
                                 <Skeleton className="h-2 w-2 rounded-full" />
