@@ -115,15 +115,12 @@ export const typeDefs = `#graphql
         averageOrderValue: Decimal!
         pendingOrders: Int!
         completedOrders: Int!
-        failedPayments: Int!
-        offlineMenuItems: Int!
     }
 
     type RestaurantDashboardMetrics {
         range: DashboardRange!
         summary: RestaurantDashboardSummary!
         orderTrend: [DashboardTrendPoint!]!
-        paymentHealth: [DashboardPaymentSlice!]!
         topMenuItems: [DashboardMenuItemPerformance!]!
         recentOrders: [DashboardRecentOrder!]!
     }

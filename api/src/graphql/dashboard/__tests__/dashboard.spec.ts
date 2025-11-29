@@ -218,7 +218,7 @@ describe("Dashboard resolvers", () => {
                     _sum: { amount: 200 },
                 },
             ]);
-            (mockPrisma.menu_items.count as jest.Mock).mockResolvedValue(1);
+            // menu_items.count not needed in simplified restaurant payload
             (mockPrisma.order_items.findMany as jest.Mock).mockResolvedValue([
                 {
                     menuItemId: "menu-1",
@@ -251,7 +251,6 @@ describe("Dashboard resolvers", () => {
 
             expect(result).toBeDefined();
             expect(result?.summary.totalOrders).toBe(2);
-            expect(result?.summary.offlineMenuItems).toBe(1);
             expect(result?.topMenuItems[0]).toMatchObject({ menuItemId: "menu-1", quantity: 3 });
             expect(mockWithCache).toHaveBeenCalled();
         });

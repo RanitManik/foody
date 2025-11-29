@@ -9,8 +9,6 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const MAX_RANGE_DAYS = 90;
 const DEFAULT_PRESET: DashboardRangePreset = "LAST_7_DAYS";
 
-const paymentStatuses = Object.values(PaymentStatus);
-
 type DashboardRangePreset = "TODAY" | "LAST_7_DAYS" | "LAST_30_DAYS" | "LAST_90_DAYS" | "CUSTOM";
 
 type DashboardRange = {
@@ -42,12 +40,6 @@ type OrderForDashboard = {
         firstName: string | null;
         lastName: string | null;
     } | null;
-};
-
-type PaymentGroupRow = {
-    status: PaymentStatus;
-    _count: { _all: number };
-    _sum: { amount: Prisma.Decimal | number | null };
 };
 
 type MenuItemPerformanceRow = {
@@ -231,20 +223,6 @@ const buildTopRestaurants = (orders: OrderForDashboard[]) => {
             ...entry,
             averageOrderValue: entry.orders > 0 ? entry.revenue / entry.orders : 0,
         }));
-};
-
-const normalizePaymentSlices = (rows: PaymentGroupRow[]) => {
-    const lookup = new Map<PaymentStatus, PaymentGroupRow>();
-    rows.forEach((row) => lookup.set(row.status, row));
-
-    return paymentStatuses.map((status) => {
-        const row = lookup.get(status as PaymentStatus);
-        return {
-            status,
-            count: row?._count._all ?? 0,
-            amount: decimalToNumber(row?._sum.amount),
-        };
-    });
 };
 
 const buildRecentOrders = (orders: OrderForDashboard[]) => {
@@ -455,13 +433,7 @@ export const dashboardResolvers = {
             return withCache(
                 cacheKey,
                 async () => {
-                    const [
-                        orders,
-                        completedPayments,
-                        paymentBreakdown,
-                        offlineMenuItems,
-                        menuPerformanceRows,
-                    ] = await Promise.all([
+                    const [orders, completedPayments, menuPerformanceRows] = await Promise.all([
                         prisma.orders.findMany({
                             where: {
                                 restaurantId: validatedRestaurantId,
@@ -506,26 +478,6 @@ export const dashboardResolvers = {
                             _sum: { amount: true },
                             _count: { _all: true },
                         }),
-                        prisma.payments.groupBy({
-                            by: ["status"],
-                            where: {
-                                createdAt: {
-                                    gte: range.start,
-                                    lte: range.end,
-                                },
-                                orders: {
-                                    restaurantId: validatedRestaurantId,
-                                },
-                            },
-                            _count: { _all: true },
-                            _sum: { amount: true },
-                        }),
-                        prisma.menu_items.count({
-                            where: {
-                                restaurantId: validatedRestaurantId,
-                                isAvailable: false,
-                            },
-                        }),
                         prisma.order_items.findMany({
                             where: {
                                 orders: {
@@ -552,18 +504,24 @@ export const dashboardResolvers = {
                     ]);
 
                     const totalOrders = orders.length;
-                    const totalRevenue = decimalToNumber(completedPayments._sum.amount);
-                    const completedOrders = completedPayments._count._all ?? 0;
+                    const paymentsSum = decimalToNumber(completedPayments._sum.amount);
+                    const completedOrdersFromOrders = orders.filter(
+                        (o) => o.status === OrderStatus.COMPLETED,
+                    ).length;
+                    const orderRevenueSum = orders
+                        .filter((o) => o.status === OrderStatus.COMPLETED)
+                        .reduce((acc, cur) => acc + decimalToNumber(cur.totalAmount), 0);
+
+                    const totalRevenue = paymentsSum || orderRevenueSum;
+                    const completedOrders =
+                        (completedPayments._count && completedPayments._count._all) ||
+                        completedOrdersFromOrders ||
+                        0;
                     const averageOrderValue =
                         completedOrders > 0 ? totalRevenue / completedOrders : 0;
                     const pendingOrders = orders.filter(
                         (order) => order.status === OrderStatus.PENDING,
                     ).length;
-
-                    const paymentHealth = normalizePaymentSlices(paymentBreakdown);
-                    const failedPayments =
-                        paymentHealth.find((slice) => slice.status === PaymentStatus.FAILED)
-                            ?.count ?? 0;
 
                     return {
                         range,
@@ -573,11 +531,8 @@ export const dashboardResolvers = {
                             averageOrderValue: Number(averageOrderValue.toFixed(2)),
                             pendingOrders,
                             completedOrders,
-                            failedPayments,
-                            offlineMenuItems,
                         },
                         orderTrend: buildOrderTrend(orders),
-                        paymentHealth,
                         topMenuItems: buildMenuPerformance(menuPerformanceRows),
                         recentOrders: buildRecentOrders(orders),
                     };

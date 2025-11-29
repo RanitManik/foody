@@ -20,6 +20,7 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
+import { TriangleAlert } from "lucide-react";
 
 export type TrendPoint = {
     date: string;
@@ -144,9 +145,10 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                 {loading ? (
                     <Skeleton className="h-full w-full" />
                 ) : chartData.length === 0 ? (
-                    <Empty>
+                    <Empty className="h-full">
                         <EmptyContent>
                             <EmptyHeader>
+                                <TriangleAlert className="text-destructive size-8" />
                                 <EmptyTitle>No activity yet</EmptyTitle>
                                 <EmptyDescription>
                                     Orders placed during the selected range will show up here.
