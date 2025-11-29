@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Area, AreaChart, CartesianGrid, XAxis, Line } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, Line, YAxis } from "recharts";
 import { parseISO } from "date-fns";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -223,17 +223,34 @@ export function OrderTrendChart({ data, loading, range }: OrderTrendChartProps) 
                                     />
                                 }
                             />
+                            <YAxis
+                                yAxisId="left"
+                                hide
+                                axisLine={false}
+                                tickLine={false}
+                                domain={[0, "dataMax"]}
+                            />
+                            <YAxis
+                                yAxisId="right"
+                                hide
+                                orientation="right"
+                                axisLine={false}
+                                tickLine={false}
+                                domain={[0, "dataMax"]}
+                            />
                             <Area
                                 yAxisId="left"
                                 dataKey="revenue"
-                                type="natural"
+                                type="monotone"
+                                baseValue={0}
                                 fill="url(#fillRevenue)"
                                 stroke="var(--color-revenue)"
                             />
                             <Area
                                 yAxisId="right"
                                 dataKey="orders"
-                                type="natural"
+                                type="monotone"
+                                baseValue={0}
                                 fill="url(#fillOrders)"
                                 stroke="var(--color-orders)"
                             />
