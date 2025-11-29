@@ -3,15 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, MessageSquare, PanelLeftClose } from "lucide-react";
+import { GaugeCircle, Building2, MessageSquare, PanelLeftClose } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
     {
+        title: "Dashboard",
+        href: "/admin/dashboard",
+        icon: GaugeCircle,
+    },
+    {
         title: "Restaurants",
         href: "/admin/restaurants",
-        icon: LayoutDashboard,
+        icon: Building2,
     },
 ];
 
