@@ -671,7 +671,7 @@ export default function AdminRestaurantsPage() {
                                                   className="hover:bg-muted/50 h-10 cursor-pointer"
                                                   onClick={() =>
                                                       router.push(
-                                                          `/restaurant/${restaurant.id}/orders`,
+                                                          `/restaurant/${restaurant.id}/dashboard`,
                                                       )
                                                   }
                                               >

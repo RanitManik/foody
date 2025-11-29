@@ -61,7 +61,7 @@ const RESTAURANT_DASHBOARD_QUERY = gql`
     }
 `;
 
-type DashboardRangePreset = "TODAY" | "LAST_7_DAYS" | "LAST_30_DAYS" | "LAST_90_DAYS";
+type DashboardRangePreset = "LAST_7_DAYS" | "LAST_30_DAYS" | "LAST_90_DAYS";
 
 type RestaurantDashboardSummary = {
     totalRevenue: number;
@@ -172,7 +172,6 @@ export default function RestaurantDashboardPage() {
                             <SelectValue placeholder="Select range" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="TODAY">Today</SelectItem>
                             <SelectItem value="LAST_7_DAYS">Last 7 days</SelectItem>
                             <SelectItem value="LAST_30_DAYS">Last 30 days</SelectItem>
                             <SelectItem value="LAST_90_DAYS">Last 3 months</SelectItem>
