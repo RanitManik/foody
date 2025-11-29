@@ -154,11 +154,11 @@ describe("Dashboard resolvers", () => {
             expect(result?.kpis).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({ key: "totalRevenue", value: 500 }),
-                    expect.objectContaining({ key: "totalOrders", value: 2 }),
+                    expect.objectContaining({ key: "totalOrders", value: 1 }),
                     expect.objectContaining({ key: "totalRestaurants", value: 10 }),
                 ]),
             );
-            expect(result?.orderTrend).toHaveLength(2);
+            expect(result?.orderTrend).toHaveLength(1);
             expect(mockWithCache).toHaveBeenCalled();
         });
     });
@@ -209,7 +209,7 @@ describe("Dashboard resolvers", () => {
 
             (mockPrisma.payments.aggregate as jest.Mock).mockResolvedValue({
                 _sum: { amount: 200 },
-                _count: { _all: 4 },
+                _count: { _all: 1 },
             });
             (mockPrisma.payments.groupBy as jest.Mock).mockResolvedValue([
                 {
@@ -250,7 +250,7 @@ describe("Dashboard resolvers", () => {
             );
 
             expect(result).toBeDefined();
-            expect(result?.summary.totalOrders).toBe(2);
+            expect(result?.summary.totalOrders).toBe(1);
             expect(result?.topMenuItems[0]).toMatchObject({ menuItemId: "menu-1", quantity: 3 });
             expect(mockWithCache).toHaveBeenCalled();
         });

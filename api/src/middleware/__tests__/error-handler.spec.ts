@@ -2,6 +2,29 @@ import { setupErrorHandlerMiddleware } from "../error-handler";
 import express, { Request, Response, NextFunction } from "express";
 import request from "supertest";
 
+jest.mock("../../lib/shared/logger", () => ({
+    logger: {
+        error: jest.fn(),
+        info: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn(),
+    },
+}));
+
+// Mock console methods to prevent test output pollution
+const originalConsoleLog = console.log;
+const originalConsoleError = console.error;
+
+beforeAll(() => {
+    console.log = jest.fn();
+    console.error = jest.fn();
+});
+
+afterAll(() => {
+    console.log = originalConsoleLog;
+    console.error = originalConsoleError;
+});
+
 describe("Error Handler Middleware", () => {
     let app: express.Application;
 

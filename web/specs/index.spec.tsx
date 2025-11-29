@@ -60,7 +60,7 @@ describe("Page", () => {
         expect(mockPush).toHaveBeenCalledWith("/admin/dashboard");
     });
 
-    it("should redirect restaurant user to orders page", () => {
+    it("should redirect restaurant user to dashboard page", () => {
         localStorageMock.getItem
             .mockReturnValueOnce("token") // auth_token
             .mockReturnValueOnce("MANAGER") // user_role
@@ -68,6 +68,6 @@ describe("Page", () => {
 
         render(<Page />);
 
-        expect(mockPush).toHaveBeenCalledWith("/restaurant/123/orders");
+        expect(mockPush).toHaveBeenCalledWith("/restaurant/123/dashboard");
     });
 });
