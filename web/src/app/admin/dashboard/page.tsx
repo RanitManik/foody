@@ -97,7 +97,7 @@ const KPI_LABELS: Record<string, string> = {
 
 const KPI_DESCRIPTIONS: Record<string, string> = {
     totalRevenue: "Gross revenue collected from completed payments in the selected range.",
-    totalOrders: "Number of orders submitted across every restaurant.",
+    totalOrders: "Number of orders completed across every restaurant.",
     averageOrderValue: "Average ticket size for completed orders.",
     totalRestaurants: "Total restaurants onboarded in Foody.",
     activeRestaurants: "Restaurants currently marked as active.",

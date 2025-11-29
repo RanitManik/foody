@@ -365,10 +365,11 @@ export const dashboardResolvers = {
                         .filter((o) => o.status === OrderStatus.COMPLETED)
                         .reduce((acc, cur) => acc + decimalToNumber(cur.totalAmount), 0);
                     const totalRevenue = paymentsSum || orderRevenueSum;
-                    const completedOrders = orders.filter(
+                    const completedOrdersList = orders.filter(
                         (o) => o.status === OrderStatus.COMPLETED,
-                    ).length;
-                    const totalOrders = orders.length;
+                    );
+                    const completedOrders = completedOrdersList.length;
+                    const totalOrders = completedOrders; // Changed to only count completed orders
                     const averageOrderValue =
                         completedOrders > 0 ? totalRevenue / completedOrders : 0;
 
@@ -413,8 +414,8 @@ export const dashboardResolvers = {
                                 value: newUsers,
                             },
                         ],
-                        orderTrend: buildOrderTrend(orders),
-                        topRestaurants: buildTopRestaurants(orders),
+                        orderTrend: buildOrderTrend(completedOrdersList),
+                        topRestaurants: buildTopRestaurants(completedOrdersList),
                     };
                 },
                 CACHE_TTL.DASHBOARD,
@@ -503,7 +504,6 @@ export const dashboardResolvers = {
                         }),
                     ]);
 
-                    const totalOrders = orders.length;
                     const paymentsSum = decimalToNumber(completedPayments._sum.amount);
                     const completedOrdersFromOrders = orders.filter(
                         (o) => o.status === OrderStatus.COMPLETED,
@@ -523,18 +523,22 @@ export const dashboardResolvers = {
                         (order) => order.status === OrderStatus.PENDING,
                     ).length;
 
+                    const completedOrdersList = orders.filter(
+                        (o) => o.status === OrderStatus.COMPLETED,
+                    );
+
                     return {
                         range,
                         summary: {
                             totalRevenue,
-                            totalOrders,
+                            totalOrders: completedOrders, // Total Orders shows completed orders
                             averageOrderValue: Number(averageOrderValue.toFixed(2)),
                             pendingOrders,
-                            completedOrders,
+                            completedOrders, // Keep as completed orders count
                         },
-                        orderTrend: buildOrderTrend(orders),
+                        orderTrend: buildOrderTrend(completedOrdersList),
                         topMenuItems: buildMenuPerformance(menuPerformanceRows),
-                        recentOrders: buildRecentOrders(orders),
+                        recentOrders: buildRecentOrders(completedOrdersList),
                     };
                 },
                 CACHE_TTL.DASHBOARD,

@@ -136,7 +136,7 @@ export default function RestaurantDashboardPage() {
                 key: "totalOrders",
                 label: "Total Orders",
                 value: String(summary?.totalOrders ?? "--"),
-                tooltip: "Number of orders in the selected range",
+                tooltip: "Number of completed orders in the selected range",
                 isLoading: loading && !summary,
             },
             {
@@ -147,10 +147,13 @@ export default function RestaurantDashboardPage() {
                 isLoading: loading && !summary,
             },
             {
-                key: "pendingOrders",
-                label: "Pending Orders",
-                value: String(summary?.pendingOrders ?? "--"),
-                tooltip: "Orders pending fulfillment",
+                key: "orderCompletionRate",
+                label: "Completion Rate",
+                value:
+                    summary?.completedOrders && summary?.pendingOrders !== undefined
+                        ? `${Math.round((summary.completedOrders / (summary.completedOrders + summary.pendingOrders)) * 100)}%`
+                        : "--",
+                tooltip: "Percentage of orders completed vs total orders in the selected range",
                 isLoading: loading && !summary,
             },
         ] as StatItem[];
