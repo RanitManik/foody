@@ -71,7 +71,7 @@ export function useAuth() {
 
                 // Redirect based on role
                 if (user.role === "ADMIN") {
-                    router.push("/admin/restaurants");
+                    router.push("/admin/dashboard");
                 } else if (user.restaurantId) {
                     router.push(`/restaurant/${user.restaurantId}/orders`);
                 } else {

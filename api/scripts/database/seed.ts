@@ -282,7 +282,8 @@ async function main() {
     for (const restaurant of restaurants) {
         for (let i = 1; i <= 50; i++) {
             const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
-            const basePrice = Math.random() * 40 + 5; // 5 to 45
+            // Price variance: base price between $3 and $200 to create a wide variety
+            const basePrice = Math.random() * 197 + 3; // 3 to 200
             const price = Math.round(basePrice * 100) / 100; // round to 2 decimals
             const menuItem = await prisma.menu_items.upsert({
                 where: { id: `menu-${restaurant.id}-${i}` },
@@ -308,7 +309,8 @@ async function main() {
         for (let i = 1; i <= 100; i++) {
             const user = users[Math.floor(Math.random() * users.length)];
             const availableItems = menuItems.filter((m) => m.restaurantId === restaurant.id);
-            const numItems = Math.floor(Math.random() * 5) + 1; // 1 to 5 items
+            // Vary number of items per order widely between 1 and 10
+            const numItems = Math.floor(Math.random() * 10) + 1; // 1 to 10 items
             const selectedItems = [];
             let total = 0;
             for (let j = 0; j < numItems; j++) {
@@ -317,8 +319,8 @@ async function main() {
                 selectedItems.push({ item, quantity });
                 total += item.price * quantity;
             }
-            // Random date in last 30 days
-            const daysAgo = Math.floor(Math.random() * 30);
+            // Random date in last 120 days (approx 4 months)
+            const daysAgo = Math.floor(Math.random() * 120);
             const createdAt = new Date();
             createdAt.setDate(createdAt.getDate() - daysAgo);
             const order = await prisma.orders.create({
