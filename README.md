@@ -45,7 +45,6 @@ A comprehensive restaurant operations management platform implementing role-base
     - [Code Quality](#code-quality)
 - [**Testing**](#testing)
 - [**Deployment**](#deployment)
-    - [Docker](#docker)
     - [Environment Variables](#environment-variables)
 - [**Monitoring & Observability**](#monitoring--observability)
     - [Metrics](#metrics)
@@ -311,15 +310,8 @@ For detailed documentation, guides, and technical references, see the [`docs/`](
 6. **Start development servers:**
 
     ```bash
-    # API server (http://localhost:4000)
-    npm run dev:api
-
-    # Web application (http://localhost:3000)
-    npm run dev:web
+    npm run dev
     ```
-
-    > [!NOTE]
-    > You can also use `npm run dev` to start both servers.
 
 ## Development
 
