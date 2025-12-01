@@ -1,5 +1,19 @@
 # Foody API Documentation
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Base URL](#base-url)
+- [Authentication](#authentication)
+- [GraphQL Schema](#graphql-schema)
+  - [Core Domains](#core-domains)
+  - [Data Types](#data-types)
+- [Rate Limiting](#rate-limiting)
+- [Error Handling](#error-handling)
+- [Health Checks](#health-checks)
+- [Real-time Updates](#real-time-updates)
+- [Development](#development)
+
 ## Overview
 
 The Foody API is a GraphQL-based backend service that provides comprehensive restaurant operations management functionality. It implements role-based access control with restaurant-based data isolation.

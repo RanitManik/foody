@@ -1,5 +1,17 @@
 # Development Environment Setup
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+    - [System Requirements](#system-requirements)
+    - [Required Software](#required-software)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Database Setup](#database-setup)
+- [Running the Application](#running-the-application)
+- [Verification](#verification)
+- [Troubleshooting](#troubleshooting)
+
 This guide provides detailed instructions for setting up a complete development environment for the Foody project.
 
 ## Prerequisites
@@ -67,7 +79,7 @@ sudo apt install redis-server
 sudo systemctl start redis
 ```
 
-## Project Setup
+## Installation
 
 ### 1. Clone Repository
 
@@ -85,6 +97,8 @@ npm install
 # Verify installation
 npm run nx --version
 ```
+
+## Configuration
 
 ### 3. Environment Configuration
 
@@ -131,7 +145,7 @@ Edit `web/.env.local`:
 NEXT_PUBLIC_API_URL="http://localhost:4000/graphql"
 ```
 
-### 4. Database Setup
+## Database Setup
 
 #### Create Database User (Optional but Recommended)
 
@@ -166,6 +180,8 @@ npm run db:migrate
 npm run db:seed
 ```
 
+## Running the Application
+
 ### 5. Verify Setup
 
 #### Test Database Connection
@@ -196,7 +212,7 @@ Expected response:
 }
 ```
 
-## Development Workflow
+### Development Workflow
 
 ### Starting Development Servers
 
@@ -266,117 +282,6 @@ mutation Login {
         }
     }
 }
-```
-
-## IDE Setup
-
-### Visual Studio Code (Recommended)
-
-#### Required Extensions
-
-```json
-{
-    "recommendations": [
-        "ms-vscode.vscode-typescript-next",
-        "bradlc.vscode-tailwindcss",
-        "ms-vscode.vscode-json",
-        "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint",
-        "ms-vscode.vscode-jest",
-        "graphql.vscode-graphql",
-        "prisma.prisma"
-    ]
-}
-```
-
-#### Workspace Settings
-
-Create `.vscode/settings.json`:
-
-```json
-{
-    "typescript.preferences.importModuleSpecifier": "relative",
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "explicit"
-    },
-    "tailwindCSS.experimental.classRegex": [
-        ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
-        ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-    ],
-    "graphql-config.load.legacy": true
-}
-```
-
-### Other IDEs
-
-#### WebStorm/IntelliJ IDEA
-
-- Install Prisma plugin
-- Configure TypeScript compiler
-- Set up Prettier and ESLint
-
-#### Vim/Neovim
-
-- Install TypeScript language server
-- Configure Prettier and ESLint
-- Set up GraphQL syntax highlighting
-
-## Docker Development (Alternative)
-
-### Using Docker Compose
-
-If you prefer Docker for development:
-
-```yaml
-# docker-compose.dev.yml
-version: "3.8"
-
-services:
-    db:
-        image: postgres:15
-        environment:
-            POSTGRES_DB: foody
-            POSTGRES_USER: foody_dev
-            POSTGRES_PASSWORD: dev_password
-        ports:
-            - "5432:5432"
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
-
-    redis:
-        image: redis:7-alpine
-        ports:
-            - "6379:6379"
-
-    api:
-        build:
-            context: ./api
-            dockerfile: Dockerfile.dev
-        environment:
-            - DATABASE_URL=postgresql://foody_dev:dev_password@db:5432/foody
-            - REDIS_URL=redis://redis:6379
-            - JWT_SECRET=dev-jwt-secret
-        ports:
-            - "4000:4000"
-        volumes:
-            - ./api:/app
-            - /app/node_modules
-        depends_on:
-            - db
-            - redis
-
-volumes:
-    postgres_data:
-```
-
-```bash
-# Start services
-docker-compose -f docker-compose.dev.yml up -d
-
-# Run migrations in container
-docker-compose -f docker-compose.dev.yml exec api npm run db:setup
 ```
 
 ## Troubleshooting
@@ -494,16 +399,6 @@ npm run test -- --watch
 # Run specific tests
 npm run test:api -- --testPathPattern=auth
 ```
-
-## Next Steps
-
-Once your environment is set up:
-
-1. **Explore the Codebase**: Read the main README and architecture docs
-2. **Run the Tests**: Ensure everything works with `npm run validate`
-3. **Make Your First Change**: Try adding a small feature or fixing a bug
-4. **Learn the Workflow**: Understand Nx commands and Git workflow
-5. **Contribute**: Follow the contributing guidelines for your first PR
 
 ## Support
 

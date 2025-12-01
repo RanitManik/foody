@@ -2,6 +2,18 @@
 
 Welcome to the Foody documentation! This directory contains comprehensive documentation for the Foody restaurant management platform.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Documentation Structure](#documentation-structure)
+- [Quick Links](#quick-links)
+- [Getting Help](#getting-help)
+- [License](#license)
+
+## Overview
+
+This documentation covers all aspects of the Foody platform, from development setup to deployment and user guides.
+
 ## Documentation Structure
 
 - **[API](./api/)** - GraphQL API documentation, schemas, and endpoint references
