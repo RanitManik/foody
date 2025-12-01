@@ -9,7 +9,7 @@
 [![GitHub repo size](https://img.shields.io/github/repo-size/RanitManik/foody)](https://github.com/RanitManik/foody)
 [![GitHub stars](https://img.shields.io/github/stars/RanitManik/foody?style=default)](https://github.com/RanitManik/foody/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/RanitManik/foody?style=default)](https://github.com/RanitManik/foody/network/members)
-[![GitHub Discussions](https://img.shields.io/github/discussions/RanitManik/foody)](https://github.com/RanitManik/foody/discussions)  
+[![GitHub Discussions](https://img.shields.io/github/discussions/RanitManik/foody)](https://github.com/RanitManik/foody/discussions)
 [![CI](https://github.com/RanitManik/foody/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/RanitManik/foody/branch/main/graph/badge.svg)](https://codecov.io/gh/RanitManik/foody)
@@ -45,8 +45,6 @@ A comprehensive restaurant operations management platform implementing role-base
     - [Code Quality](#code-quality)
 - [**Testing**](#testing)
 - [**Deployment**](#deployment)
-    - [Docker](#docker)
-    - [Environment Variables](#environment-variables)
 - [**Monitoring & Observability**](#monitoring--observability)
     - [Metrics](#metrics)
     - [Health Checks](#health-checks)
@@ -311,15 +309,8 @@ For detailed documentation, guides, and technical references, see the [`docs/`](
 6. **Start development servers:**
 
     ```bash
-    # API server (http://localhost:4000)
-    npm run dev:api
-
-    # Web application (http://localhost:3000)
-    npm run dev:web
+    npm run dev
     ```
-
-    > [!NOTE]
-    > You can also use `npm run dev` to start both servers.
 
 ## Development
 
