@@ -97,7 +97,7 @@ jobs:
 
             - name: Upload Build Artifacts
               if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v5
               with:
                   name: dist-artifacts
                   path: dist/
