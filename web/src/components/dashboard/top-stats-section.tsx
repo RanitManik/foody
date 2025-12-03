@@ -26,7 +26,7 @@ export function TopStatsSection({ items }: TopStatsSectionProps) {
                         <div
                             key={item.key}
                             className={cn(
-                                "bg-card flex min-h-[86px] items-center gap-4 px-6 py-3 sm:justify-center",
+                                "bg-card flex min-h-[86px] items-center gap-4 px-4 py-3 sm:justify-center sm:px-6",
                                 "md:border-border md:border-r md:last:border-r-0",
                             )}
                         >
