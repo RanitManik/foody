@@ -681,12 +681,7 @@ export default function AdminRestaurantsPage() {
                                                       </div>
                                                   </TableCell>
                                                   <TableCell className="border-r px-2 font-medium sm:px-3 md:px-4">
-                                                      <div className="flex items-center gap-2">
-                                                          <div
-                                                              className={`h-2 w-2 rounded-full ${restaurant.isActive ? "bg-green-500" : "bg-gray-400"}`}
-                                                          />
-                                                          {restaurant.name}
-                                                      </div>
+                                                      {restaurant.name}
                                                   </TableCell>
                                                   <TableCell className="text-muted-foreground border-r px-2 sm:px-3 md:px-4">
                                                       {restaurant.city}, {restaurant.location}
