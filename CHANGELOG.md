@@ -1,3 +1,16 @@
+## [1.1.1](https://github.com/RanitManik/foody/compare/v1.1.0...v1.1.1) (2025-12-03)
+
+
+### Bug Fixes
+
+* **chart:** add gap to Card components for improved layout ([a231aeb](https://github.com/RanitManik/foody/commit/a231aeb3584ed543bab2a02b35149cbb8340677f))
+* **chart:** adjust header padding for consistency across components ([8191164](https://github.com/RanitManik/foody/commit/8191164e7fae52d5a24e5f3ba993abdc00098fcf))
+* **dashboard:** refactor layout structure and improve component heights for better responsiveness ([64d515c](https://github.com/RanitManik/foody/commit/64d515c8f3004097a1989ecb9d3f8ec6e1b24954))
+* **restaurants:** simplify restaurant name display by removing unnecessary wrapper ([7c8c2fd](https://github.com/RanitManik/foody/commit/7c8c2fd5f51db23e725f89c5878f67dc5cfc7a47))
+* **top-stats:** add padding to Card component for improved layout ([a323db8](https://github.com/RanitManik/foody/commit/a323db89bdee3fd5a3fda5f95401d92b62b69e1a))
+* **top-stats:** adjust layout and visibility of elements in TopStatsSection ([b75d8a4](https://github.com/RanitManik/foody/commit/b75d8a4311d556afbb1722d660795e999df6987e))
+* **ui:** fixed some ui inconsistencies and layout issues ([#81](https://github.com/RanitManik/foody/issues/81)) ([0df274d](https://github.com/RanitManik/foody/commit/0df274df02174282e2c127cc8f5481ebbb8a7598))
+
 # [1.1.0](https://github.com/RanitManik/foody/compare/v1.0.0...v1.1.0) (2025-11-29)
 
 
