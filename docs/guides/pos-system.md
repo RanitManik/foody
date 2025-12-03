@@ -1,5 +1,19 @@
 # POS System User Guide
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Accessing the POS System](#accessing-the-pos-system)
+- [Creating a New Order](#creating-a-new-order)
+    - [Step 1: Start New Order](#step-1-start-new-order)
+    - [Step 2: Add Menu Items](#step-2-add-menu-items)
+    - [Step 3: Order Details](#step-3-order-details)
+- [Processing Payments](#processing-payments)
+    - [Payment Methods](#payment-methods)
+- [Order Management](#order-management)
+- [Reporting and Analytics](#reporting-and-analytics)
+- [Troubleshooting](#troubleshooting)
+
 This guide explains how to use the Point of Sale (POS) system in Foody for creating and managing restaurant orders.
 
 ## Overview

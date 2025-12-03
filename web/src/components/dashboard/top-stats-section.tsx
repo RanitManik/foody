@@ -19,14 +19,14 @@ interface TopStatsSectionProps {
 
 export function TopStatsSection({ items }: TopStatsSectionProps) {
     return (
-        <Card className="w-full">
+        <Card className="w-full py-4">
             <CardContent className="p-0">
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4">
                     {items.map((item, i) => (
                         <div
                             key={item.key}
                             className={cn(
-                                "bg-card flex min-h-[86px] items-center justify-center gap-4 px-6 py-3",
+                                "bg-card flex min-h-[86px] items-center gap-4 px-4 py-3 sm:justify-center sm:px-6",
                                 "md:border-border md:border-r md:last:border-r-0",
                             )}
                         >
@@ -40,7 +40,7 @@ export function TopStatsSection({ items }: TopStatsSectionProps) {
                                             <TooltipTrigger asChild>
                                                 <button
                                                     type="button"
-                                                    className="text-muted-foreground"
+                                                    className="text-muted-foreground hidden sm:block"
                                                     aria-label={`More info about ${item.label}`}
                                                 >
                                                     <Info className="h-4 w-4" />

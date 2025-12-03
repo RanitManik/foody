@@ -160,7 +160,7 @@ export default function RestaurantDashboardPage() {
     }, [metrics?.summary, loading]);
 
     return (
-        <div className="flex h-full flex-col gap-6">
+        <>
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight">Restaurant Dashboard</h1>
@@ -199,13 +199,13 @@ export default function RestaurantDashboardPage() {
 
             <TopStatsSection items={summaryStats} />
 
-            <div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[2fr_1fr]">
+            <div className="grid flex-1 gap-4 md:grid-cols-[2fr_1fr] lg:grid-cols-[2fr_1fr]">
                 <OrderTrendChart
                     data={metrics?.orderTrend ?? []}
                     loading={loading && !metrics}
                     range={metrics?.range}
                 />
-                <div className="grid gap-6">
+                <div className="grid gap-4">
                     {/* Use a Pie chart for top menu items (similar to admin revenue share) */}
                     <TopMenuItemsPieChart
                         data={metrics?.topMenuItems ?? []}
@@ -213,6 +213,6 @@ export default function RestaurantDashboardPage() {
                     />
                 </div>
             </div>
-        </div>
+        </>
     );
 }

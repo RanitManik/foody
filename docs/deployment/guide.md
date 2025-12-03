@@ -1,5 +1,17 @@
 # Deployment Guide
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Environment Setup](#environment-setup)
+    - [Required Environment Variables](#required-environment-variables)
+- [Database Setup](#database-setup)
+- [Docker Deployment](#docker-deployment)
+    - [Using Docker Compose](#using-docker-compose)
+- [Manual Deployment](#manual-deployment)
+- [Monitoring Setup](#monitoring-setup)
+- [Troubleshooting](#troubleshooting)
+
 This guide covers deploying the Foody application to production environments.
 
 ## Prerequisites
@@ -184,42 +196,7 @@ volumes:
     npm start
     ```
 
-## Production Considerations
-
-### Security
-
-1. **SSL/TLS Configuration:**
-    - Use HTTPS in production
-    - Configure SSL certificates
-    - Set secure cookie flags
-
-2. **Environment Variables:**
-    - Use strong, unique secrets
-    - Rotate JWT secrets regularly
-    - Store secrets securely (not in code)
-
-3. **Network Security:**
-    - Configure firewalls
-    - Use VPN for database access
-    - Implement rate limiting
-
-### Performance
-
-1. **Database Optimization:**
-    - Configure connection pooling
-    - Set up database indexes
-    - Monitor query performance
-
-2. **Caching:**
-    - Configure Redis for production
-    - Set appropriate cache TTL values
-    - Monitor cache hit rates
-
-3. **CDN:**
-    - Use CDN for static assets
-    - Configure proper cache headers
-
-### Monitoring
+## Monitoring Setup
 
 1. **Application Monitoring:**
     - Set up Prometheus metrics collection
@@ -230,51 +207,6 @@ volumes:
     - Monitor server resources
     - Set up log aggregation
     - Configure backup monitoring
-
-## Backup and Recovery
-
-### Database Backup
-
-```bash
-# Create backup
-pg_dump -U foody_user -h localhost foody > foody_backup.sql
-
-# Restore backup
-psql -U foody_user -h localhost foody < foody_backup.sql
-```
-
-### Automated Backups
-
-Consider using:
-
-- PostgreSQL backup tools
-- Cloud provider backup services
-- Automated backup scripts
-
-## Scaling
-
-### Horizontal Scaling
-
-1. **Load Balancer:**
-    - Use nginx or cloud load balancer
-    - Configure session affinity if needed
-    - Implement health checks
-
-2. **Database Scaling:**
-    - Use read replicas for read-heavy workloads
-    - Consider database sharding for large datasets
-    - Implement connection pooling
-
-3. **Caching:**
-    - Scale Redis cluster
-    - Implement cache warming strategies
-
-### Vertical Scaling
-
-1. **Resource Allocation:**
-    - Monitor CPU and memory usage
-    - Adjust container resource limits
-    - Scale database instance size
 
 ## Troubleshooting
 

@@ -2,11 +2,22 @@
 
 This guide covers development setup, coding standards, and contribution guidelines for the Foody project.
 
+## Table of Contents
+
+- [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Local Setup](#local-setup)
+- [Project Structure](#project-structure)
+- [Development Workflow](#development-workflow)
+- [Coding Standards](#coding-standards)
+- [Testing](#testing)
+- [Contributing](#contributing)
+
 ## Getting Started
 
 ### Prerequisites
 
-- **Node.js**: Version 18 or higher
+- **Node.js**: Version 22 or higher
 - **npm**: Latest version (comes with Node.js)
 - **PostgreSQL**: Version 15 or higher
 - **Redis**: Optional, for caching (version 7+ recommended)
@@ -21,31 +32,38 @@ This guide covers development setup, coding standards, and contribution guidelin
     cd foody
     ```
 
-2. **Install Dependencies:**
+2. **Set up Node.js version:**
+
+    ```bash
+    nvm use  # Uses .nvmrc file
+    # or manually: nvm use 20
+    ```
+
+3. **Install Dependencies:**
 
     ```bash
     npm install
     ```
 
-3. **Set up Environment Variables:**
+4. **Set up Environment Variables:**
 
     ```bash
     cp api/.env.example api/.env
     cp web/.env.example web/.env.local
     ```
 
-4. **Configure Database:**
+5. **Configure Database:**
     - Install PostgreSQL locally or use Docker
     - Update `DATABASE_URL` in `api/.env`
     - Create database: `createdb foody`
 
-5. **Set up Database Schema:**
+6. **Set up Database Schema:**
 
     ```bash
     npm run db:setup
     ```
 
-6. **Start Development Servers:**
+7. **Start Development Servers:**
 
     ```bash
     # Terminal 1: API server
@@ -55,7 +73,7 @@ This guide covers development setup, coding standards, and contribution guidelin
     npm run dev:web
     ```
 
-7. **Access the Application:**
+8. **Access the Application:**
     - Web app: http://localhost:3000
     - API playground: http://localhost:4000/graphql
     - API health: http://localhost:4000/health

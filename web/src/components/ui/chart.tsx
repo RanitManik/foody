@@ -288,7 +288,7 @@ function ChartLegendContent({
                                     }}
                                 />
                             )}
-                            {itemConfig?.label}
+                            <span className="line-clamp-2">{itemConfig?.label}</span>
                         </div>
                     );
                 })}

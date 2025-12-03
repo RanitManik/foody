@@ -9,7 +9,7 @@
 [![GitHub repo size](https://img.shields.io/github/repo-size/RanitManik/foody)](https://github.com/RanitManik/foody)
 [![GitHub stars](https://img.shields.io/github/stars/RanitManik/foody?style=default)](https://github.com/RanitManik/foody/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/RanitManik/foody?style=default)](https://github.com/RanitManik/foody/network/members)
-[![GitHub Discussions](https://img.shields.io/github/discussions/RanitManik/foody)](https://github.com/RanitManik/foody/discussions)  
+[![GitHub Discussions](https://img.shields.io/github/discussions/RanitManik/foody)](https://github.com/RanitManik/foody/discussions)
 [![CI](https://github.com/RanitManik/foody/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/RanitManik/foody/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/RanitManik/foody/branch/main/graph/badge.svg)](https://codecov.io/gh/RanitManik/foody)
@@ -45,8 +45,6 @@ A comprehensive restaurant operations management platform implementing role-base
     - [Code Quality](#code-quality)
 - [**Testing**](#testing)
 - [**Deployment**](#deployment)
-    - [Docker](#docker)
-    - [Environment Variables](#environment-variables)
 - [**Monitoring & Observability**](#monitoring--observability)
     - [Metrics](#metrics)
     - [Health Checks](#health-checks)
@@ -267,61 +265,43 @@ For detailed documentation, guides, and technical references, see the [`docs/`](
 
 ## Getting Started
 
+> [!NOTE]
+> For detailed setup instructions, including prerequisites and installation steps, see [Development Setup](./docs/development/setup.md) and [Development Guide](./docs/development/guide.md).
+
 ### Prerequisites
 
 - Node.js 22+
 - PostgreSQL 15+
 - Redis (optional, for caching)
 
-### Installation
+### Quick Start
 
-1. **Clone the repository:**
+1. **Clone and install:**
 
     ```bash
     git clone https://github.com/RanitManik/foody.git
     cd foody
-    ```
-
-2. **Set up Node.js version:**
-
-    ```bash
-    nvm use  # Uses .nvmrc file
-    # or manually: nvm use 20
-    ```
-
-3. **Install dependencies:**
-
-    ```bash
     npm install
     ```
 
-4. **Set up environment variables:**
+2. **Set up environment:**
 
     ```bash
     cp api/.env.example api/.env
     cp web/.env.example web/.env
-    ```
-
-5. **Set up the database:**
-
-    ```bash
     npm run db:setup
     ```
 
-6. **Start development servers:**
+3. **Start development:**
 
     ```bash
-    # API server (http://localhost:4000)
-    npm run dev:api
-
-    # Web application (http://localhost:3000)
-    npm run dev:web
+    npm run dev
     ```
 
-    > [!NOTE]
-    > You can also use `npm run dev` to start both servers.
-
 ## Development
+
+> [!NOTE]
+> For detailed development information, including setup, coding standards, and workflow, see [Development Guide](./docs/development/guide.md).
 
 ### Available Scripts
 
@@ -337,6 +317,8 @@ npm run db:migrate        # Run database migrations
 npm run db:reset          # Reset database
 npm run db:seed           # Seed database with test data
 npm run db:setup          # Complete database setup
+~~~~npm run db:studio         # Open Prisma Studio
+npm run db:format         # Format Prisma schema
 
 # Testing
 npm run test              # Run all tests
@@ -348,6 +330,17 @@ npm run test:e2e          # Run end-to-end tests
 npm run build             # Build all projects
 npm run build:api         # Build API
 npm run build:web         # Build web application
+
+# Code Quality
+npm run lint              # Lint all code
+npm run lint:api          # Lint API code
+npm run lint:web          # Lint web code
+npm run format            # Format code with Prettier
+npm run format:check      # Check code formatting
+npm run typecheck         # Type check all projects
+npm run typecheck:api     # Type check API
+npm run typecheck:web     # Type check web
+npm run validate          # Run all quality checks (format, lint, typecheck, test)
 ```
 
 ### Project Structure
@@ -393,7 +386,10 @@ npm run test:e2e          # End-to-end tests
 
 ## Deployment
 
-### Environment Variables
+> [!NOTE]
+> For detailed deployment instructions, including environment variables, Docker setup, and production configuration, see [Deployment Guide](./docs/deployment/guide.md).
+
+### Quick Reference
 
 #### API (.env)
 
@@ -407,13 +403,6 @@ PORT=4000
 CORS_ORIGIN="https://your-frontend-domain.com"
 ```
 
-> [!IMPORTANT]
-> Set `CORS_ORIGIN` to your frontend's domain(s). For multiple origins, separate with commas:
->
-> ```
-> CORS_ORIGIN="https://foody.5dev.in,https://another-domain.com"
-> ```
-
 #### Web (.env.local)
 
 ```env
@@ -421,6 +410,9 @@ NEXT_PUBLIC_API_URL="http://localhost:4000/graphql"
 ```
 
 ## Monitoring & Observability
+
+> [!NOTE]
+> For detailed monitoring setup, metrics configuration, and observability best practices, see [API Documentation](./docs/api/) and [Architecture Overview](./docs/architecture/overview.md).
 
 ### Metrics
 

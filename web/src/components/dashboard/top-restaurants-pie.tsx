@@ -75,8 +75,8 @@ export function TopRestaurantsPieChart({ data, loading }: TopRestaurantsPieChart
     }, [slices]);
 
     return (
-        <Card className="h-full">
-            <CardHeader className="flex items-center gap-2 space-y-0 py-5 text-xl sm:flex-row">
+        <Card className="h-full min-h-[550px] gap-1">
+            <CardHeader className="flex items-center gap-2 space-y-0 py-4 text-xl sm:flex-row">
                 <div className="grid flex-1 gap-1">
                     <CardTitle>Revenue Share</CardTitle>
                     <CardDescription>Showing total revenue for the last 7 days</CardDescription>

@@ -1,5 +1,17 @@
 # System Architecture
 
+## Table of Contents
+
+- [Overview](#overview)
+- [High-Level Architecture](#high-level-architecture)
+- [Component Architecture](#component-architecture)
+    - [Frontend (Web)](#frontend-web)
+    - [Backend (API)](#backend-api)
+    - [Database Layer](#database-layer)
+- [Data Flow](#data-flow)
+- [Security Architecture](#security-architecture)
+- [Deployment Architecture](#deployment-architecture)
+
 ## Overview
 
 Foody is a modern restaurant operations management platform built with a microservices-inspired architecture using Nx monorepo. The system implements comprehensive role-based access control with restaurant-based data isolation.

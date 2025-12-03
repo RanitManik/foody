@@ -171,7 +171,7 @@ export default function AdminDashboardPage() {
     );
 
     return (
-        <div className="flex h-full flex-col gap-6">
+        <>
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
@@ -226,7 +226,7 @@ export default function AdminDashboardPage() {
                 )}
             />
 
-            <div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[2fr_1fr]">
+            <div className="grid flex-1 gap-4 lg:grid-cols-[2fr_1fr]">
                 <OrderTrendChart
                     data={metrics?.orderTrend ?? []}
                     loading={loading && !metrics}
@@ -237,6 +237,6 @@ export default function AdminDashboardPage() {
                     loading={loading && !metrics}
                 />
             </div>
-        </div>
+        </>
     );
 }
