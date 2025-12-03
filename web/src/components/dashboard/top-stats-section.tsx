@@ -19,7 +19,7 @@ interface TopStatsSectionProps {
 
 export function TopStatsSection({ items }: TopStatsSectionProps) {
     return (
-        <Card className="w-full">
+        <Card className="w-full py-4">
             <CardContent className="p-0">
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4">
                     {items.map((item, i) => (
