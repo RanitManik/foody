@@ -1,3 +1,11 @@
+## [1.1.2](https://github.com/RanitManik/foody/compare/v1.1.1...v1.1.2) (2025-12-04)
+
+
+### Bug Fixes
+
+* **chart:** update min-width in ChartTooltipContent for better layout ([c82e749](https://github.com/RanitManik/foody/commit/c82e749b37f8deb4c533b867a7acdad3c35593ff))
+* **vscode:** restore prisma setting in settings.json ([fafce9c](https://github.com/RanitManik/foody/commit/fafce9cb3bdb4a9aa32cb0129a09fd06f4556474))
+
 ## [1.1.1](https://github.com/RanitManik/foody/compare/v1.1.0...v1.1.1) (2025-12-03)
 
 
