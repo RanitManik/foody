@@ -9,5 +9,5 @@
     "typescript.updateImportsOnFileMove.enabled": "always",
     "files.eol": "\n",
     "files.insertFinalNewline": true,
-    "files.trimTrailingWhitespace": true
+    "prisma.pinToPrisma6": true
 }
