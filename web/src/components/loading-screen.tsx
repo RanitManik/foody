@@ -48,7 +48,7 @@ export function LoadingScreen() {
                 squares={[40, 40]}
                 squaresClassName="text-white/[0.02]"
             />
-            <div className="relative z-10 mx-4 w-full max-w-md overflow-hidden rounded-xl border border-white/10 bg-black/60 p-8 shadow-2xl backdrop-blur-xl">
+            <div className="relative z-10 mx-4 w-full max-w-md overflow-hidden rounded-xl border border-white/20 bg-linear-to-br from-white/10 via-white/5 to-transparent p-8 shadow-2xl backdrop-blur-xl">
                 {/* Background Glow */}
                 <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
                 <div className="absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-purple-500/20 blur-3xl" />
