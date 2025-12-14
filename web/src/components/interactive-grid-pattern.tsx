@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { cn } from "../lib/utils";
 
 interface InteractiveGridPatternProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -17,44 +17,47 @@ export function InteractiveGridPattern({
     squaresClassName,
     ...props
 }: InteractiveGridPatternProps) {
-    const [hoveredCell, setHoveredCell] = useState<{ x: number; y: number; color: string } | null>(
-        null,
-    );
+    const [colors, setColors] = useState<string[][]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Generate a random bright neon color
-    const generateBrightColor = () => {
+    function generateBrightColor() {
         const hue = Math.floor(Math.random() * 360);
         return `hsl(${hue}, 100%, 50%)`;
-    };
+    }
 
-    const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-        if (!containerRef.current) return;
+    useEffect(() => {
+        const updateGridSize = () => {
+            if (containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                const cols = Math.ceil(rect.width / width);
+                const rows = Math.ceil(rect.height / height);
+                setColors(
+                    Array.from({ length: rows }, () =>
+                        Array.from({ length: cols }, () => generateBrightColor()),
+                    ),
+                );
+            }
+        };
 
-        const rect = containerRef.current.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+        updateGridSize();
+        window.addEventListener("resize", updateGridSize);
+        return () => window.removeEventListener("resize", updateGridSize);
+    }, [width, height]);
 
-        // Calculate grid coordinates
-        const col = Math.floor(x / width);
-        const row = Math.floor(y / height);
+    useEffect(() => {
+        if (colors.length === 0) return;
+        const interval = setInterval(() => {
+            setColors((prev) => prev.map((row) => row.map(() => generateBrightColor())));
+        }, 1000); // change all colors every 1 second
 
-        // Only update if the cell has changed to avoid constant re-renders/color flickering
-        if (!hoveredCell || hoveredCell.x !== col || hoveredCell.y !== row) {
-            setHoveredCell({ x: col, y: row, color: generateBrightColor() });
-        }
-    };
-
-    const handleMouseLeave = () => {
-        setHoveredCell(null);
-    };
+        return () => clearInterval(interval);
+    }, [colors]);
 
     return (
         <div
             ref={containerRef}
             className={cn("absolute inset-0 h-full w-full overflow-hidden", className)}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
             {...props}
         >
             <svg className="absolute inset-0 h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -84,19 +87,22 @@ export function InteractiveGridPattern({
                     className={squaresClassName}
                 />
 
-                {/* Hovered Cell Highlight */}
-                {hoveredCell && (
-                    <rect
-                        x={hoveredCell.x * width}
-                        y={hoveredCell.y * height}
-                        width={width}
-                        height={height}
-                        fill={hoveredCell.color}
-                        fillOpacity="1"
-                        stroke={hoveredCell.color}
-                        strokeWidth="1"
-                        className="transition-all duration-75 ease-out"
-                    />
+                {/* Colored Cells */}
+                {colors.map((row, y) =>
+                    row.map((color, x) => (
+                        <rect
+                            key={`${x}-${y}`}
+                            x={x * width}
+                            y={y * height}
+                            width={width}
+                            height={height}
+                            fill={color}
+                            fillOpacity="0.6"
+                            stroke={color}
+                            strokeWidth="1"
+                            className="transition-all duration-1000 ease-in-out"
+                        />
+                    )),
                 )}
             </svg>
 
