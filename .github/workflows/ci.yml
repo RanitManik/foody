@@ -43,7 +43,7 @@ jobs:
                   cache: "npm"
 
             - name: Restore Nx Cache
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               with:
                   path: .nx/cache
                   key: nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
