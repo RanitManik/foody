@@ -32,7 +32,7 @@
         "zod": "^4.1.12"
     },
     "devDependencies": {
-        "@types/bcryptjs": "^2.4.6",
+        "@types/bcryptjs": "^3.0.0",
         "@types/cli-progress": "^3.11.6",
         "@types/compression": "^1.7.5",
         "@types/cors": "^2.8.12",
