@@ -58,7 +58,7 @@
         "axios": "^1.13.6",
         "express": "^4.21.2",
         "next": "^15.5.12",
-        "react": "^19.0.0",
+        "react": "^19.2.4",
         "react-dom": "^19.0.0"
     },
     "devDependencies": {
@@ -95,7 +95,7 @@
         "@types/express": "^4.17.21",
         "@types/jest": "^30.0.0",
         "@types/node": "20.19.9",
-        "@types/react": "^19.0.0",
+        "@types/react": "^19.2.14",
         "@types/react-dom": "^19.0.0",
         "autoprefixer": "10.4.27",
         "babel-jest": "^30.0.2",
