@@ -8,7 +8,7 @@
     "dependencies": {
         "@apollo/server": "^5.4.0",
         "@as-integrations/express4": "^1.1.2",
-        "@graphql-tools/schema": "^10.0.29",
+        "@graphql-tools/schema": "^10.0.31",
         "@prisma/client": "^6.19.0",
         "bcryptjs": "^3.0.3",
         "compression": "^1.7.4",
