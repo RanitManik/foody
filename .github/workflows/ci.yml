@@ -58,7 +58,7 @@ jobs:
               run: npm run db:generate
 
             - name: Set SHAs for Nx
-              uses: nrwl/nx-set-shas@v4
+              uses: nrwl/nx-set-shas@v5
 
             - name: Run Quality Checks & Build
               run: |
