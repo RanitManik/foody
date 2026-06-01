@@ -72,7 +72,7 @@
         "@nx/esbuild": "22.0.3",
         "@nx/eslint": "22.0.3",
         "@nx/eslint-plugin": "22.0.3",
-        "@nx/jest": "22.0.3",
+        "@nx/jest": "22.7.5",
         "@nx/js": "22.0.3",
         "@nx/next": "22.0.3",
         "@nx/node": "^22.0.3",
