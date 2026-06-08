@@ -111,7 +111,7 @@
         "eslint-plugin-react-hooks": "7.0.1",
         "husky": "^9.1.7",
         "jest": "^30.0.2",
-        "jest-environment-jsdom": "^30.0.2",
+        "jest-environment-jsdom": "^30.4.1",
         "jest-environment-node": "^30.0.2",
         "jest-util": "^30.0.2",
         "lint-staged": "^17.0.7",
