@@ -66,7 +66,7 @@
         "@commitlint/config-conventional": "^21.0.2",
         "@eslint/compat": "^1.1.1",
         "@eslint/eslintrc": "^3.3.5",
-        "@eslint/js": "^9.8.0",
+        "@eslint/js": "^10.0.1",
         "@next/eslint-plugin-next": "^15.2.4",
         "@nx/devkit": "22.7.5",
         "@nx/esbuild": "22.0.3",
